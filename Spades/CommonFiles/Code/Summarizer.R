@@ -1,0 +1,143 @@
+library(data.table)
+library(writexl)
+summaries<-list.files(pattern = "*contigs.stats.csv")
+krakens<-list.files(pattern = "*resultskraken.csv")
+fastqc<-list.files(pattern = "*fastqc.zip")
+
+
+#Merging summaries
+if(exists("summ")) rm(summ)
+for (i in 1:length(summaries)) {
+  dummy<-read.csv(summaries[i])
+  if(!exists("summ")){
+    summ<-dummy
+  }else{
+    summ<-rbind(summ,dummy)
+  }
+}
+
+#Kraken
+kraken.fasta<-krakens[grep("cleancontigs",krakens)]
+
+summ$AgentContigs<-NA
+
+for (i in 1:length(kraken.fasta)) {
+  dummy<-read.csv(kraken.fasta[i])
+  summ$AgentContigs[which(summ$Sample==gsub("_.*","",kraken.fasta[i]))]<-dummy$Specie[which(dummy$Ratio==max(dummy$Ratio))]
+}
+
+kraken.raw<-krakens[grep("Raw.resultskraken.csv",krakens)]
+summ$AgentRawReads<-NA
+summ$ReadsSupportingAgent<-NA
+summ$RatioHumanReadsPreTrimming<-0
+summ$RatioUnclassifiedReadsPreTrimming<-0
+
+for (i in 1:length(kraken.raw)) {
+  dummy<-read.csv(kraken.raw[i])
+  summ$AgentRawReads[which(summ$Sample==gsub("_.*","",kraken.fasta[i]))]<-dummy$Specie[which(dummy$Ratio==max(dummy$Ratio))]
+  summ$ReadsSupportingAgent[which(summ$Sample==gsub("_.*","",kraken.fasta[i]))]<-dummy$Ratio[which(dummy$Ratio==max(dummy$Ratio))]
+  if(length(which(dummy$Specie=="unclassified (taxid 0)"))==1){
+    summ$RatioUnclassifiedReadsPreTrimming[which(summ$Sample==gsub("_.*","",kraken.fasta[i]))]<-dummy$Ratio[which(dummy$Specie=="unclassified (taxid 0)")]  
+  }
+  if(length(which(dummy$Specie=="Homo sapiens (taxid 9606)"))==1){
+  summ$RatioHumanReadsPreTrimming[which(summ$Sample==gsub("_.*","",kraken.fasta[i]))]<-dummy$Ratio[which(dummy$Specie=="Homo sapiens (taxid 9606)")]
+  }
+}
+
+kraken.after<-krakens[grep("Trimmed.resultskraken.csv",krakens)]
+
+summ$RatioHumanReadsAfterTrimming<-0
+summ$RatioUnclassifiedReadsAfterTrimming<-0
+
+for (i in 1:length(kraken.after)) {
+  dummy<-read.csv(kraken.after[i])
+  if(length(which(dummy$Specie=="unclassified (taxid 0)"))==1){
+    summ$RatioUnclassifiedReadsAfterTrimming[which(summ$Sample==gsub("_.*","",kraken.fasta[i]))]<-dummy$Ratio[which(dummy$Specie=="unclassified (taxid 0)")]  
+  }
+  if(length(which(dummy$Specie=="Homo sapiens (taxid 9606)"))==1){
+    summ$RatioHumanReadsAfterTrimming[which(summ$Sample==gsub("_.*","",kraken.fasta[i]))]<-dummy$Ratio[which(dummy$Specie=="Homo sapiens (taxid 9606)")]
+  }
+}
+
+
+#Fastqc parsing
+
+if(exists("out")) rm(out)
+ if(!dir.exists("temp")) dir.create("temp")
+for (i in 1:length(fastqc)) {
+
+  unzip(fastqc[i], exdir ="temp" )  
+  to.load<-list.files("temp", full.names = TRUE, pattern = "fastqc_data.txt", recursive = TRUE)
+  dum.df<-fread(to.load, skip = "#Quality	Count", header = TRUE, sep = "\t" )
+  dum.df<-as.data.frame(dum.df)
+  colnames(dum.df)<-c("Q", "count")
+  #dum.df<-dum.df[-1,]
+  
+  dum.df$file<-gsub("_fastqc.*","",gsub(".*/","", fastqc[i]))
+  dum.df$count<-as.numeric(dum.df$count)
+  dum.df$ratio<-dum.df$count/sum(dum.df$count)
+  dum.df$TotalCount<-sum(dum.df$count)
+  dum.df$Q30<-sum(dum.df$count[which(dum.df$Q>=30)])/sum(dum.df$count)
+  
+  unlink(paste("temp/",gsub(".zip","",fastqc[i]),sep = ""), recursive = TRUE)
+  
+  if(!exists("out")){
+    out<-dum.df
+  }else{
+    out<-rbind(out,dum.df)
+  }
+  
+}
+unlink("temp", recursive = TRUE)
+#Sample finding and summarizing
+samps<-unique(summ$Sample)
+
+summ$TotalReadCount<-NA
+summ$RawQ30_R1<-NA
+summ$RawQ30_R2<-NA
+summ$ReadCountAfterTrimming<-NA
+summ$TrimmedQ30_R1<-NA
+summ$TrimmedQ30_R2<-NA
+summ$RatioReadsTrimmed<-NA
+
+
+
+for (i in 1:length(samps)) {
+  out.samp<-out[grep(samps[i],out$file ),]
+  summ$TotalReadCount[which(summ$Sample==samps[i])]<- unique(out.samp$TotalCount[grep("_R1_", out.samp$file)])
+  summ$RawQ30_R1[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_R1_", out.samp$file)])
+  summ$RawQ30_R2[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_R2_", out.samp$file)])
+  
+  summ$ReadCountAfterTrimming[which(summ$Sample==samps[i])]<- unique(out.samp$TotalCount[grep("_1P$", out.samp$file)])
+  summ$TrimmedQ30_R1[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_1P$", out.samp$file)])
+  summ$TrimmedQ30_R2[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_2P$", out.samp$file)])
+  
+  summ$RatioReadsTrimmed[which(summ$Sample==samps[i])]<- (summ$TotalReadCount[which(summ$Sample==samps[i])]- summ$ReadCountAfterTrimming[which(summ$Sample==samps[i])])/
+    (summ$TotalReadCount[which(summ$Sample==samps[i])])
+    
+  #Folder Organization
+  
+  
+  }
+
+
+rmlist<-list.files(pattern = "_rmlst.csv")
+if(exists("out.mlst")) rm(out.mlst)
+
+for (i in 1:length(rmlist)) {
+  dummy<-read.csv(rmlist[i])
+  
+  if(!exists("out.mlst")){
+    out.mlst<-dummy
+  }else{
+    out.mlst<-rbind(out.mlst, dummy)
+  }
+}
+
+
+out.mlst$Sample<-gsub("_.*","",out.mlst$Sample)
+
+summ<-merge(summ, out.mlst, by="Sample", all.x=TRUE)
+
+write.csv(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".csv",sep = ""), row.names = FALSE)
+write_xlsx(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".xlsx",sep = ""))
