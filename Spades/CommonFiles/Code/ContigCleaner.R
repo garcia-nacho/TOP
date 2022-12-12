@@ -37,6 +37,6 @@ while(!found){
   k<-k+1
 }
 
-names(dummyfa)<-paste(summaries$Sample[1],gsub("_length.*","",names(dummyfa)))
+names(dummyfa)<-paste(summaries$Sample[1],gsub("_length.*","",names(dummyfa)),sep="")
 write.fasta(dummyfa, names = names(dummyfa), file.out ="clean_contigs.fasta")
 write.csv(summaries, "clean_contigs.stats.csv", row.names = FALSE)
