@@ -1,6 +1,6 @@
 library(jsonlite)
 inputfasta<-list.files(pattern = "clean_contigs.fasta")
-system(paste("/home/nacho/Documents/TOPtest/mlstRunner.sh", inputfasta))
+system(paste("/home/docker/CommonFiles/Code/mlstRunner.sh", inputfasta))
 
 input<-list.files(pattern = "testsh_rmlst.json")
 df<-fromJSON(input)
