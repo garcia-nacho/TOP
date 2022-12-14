@@ -1,10 +1,9 @@
-#Same as StatPH-B but on fhibase
+#Fully-loaded version derived from StatPH-B Fl but based on fhibase
 FROM garcianacho/fhibase:v1
 LABEL maintainer="Nacho Garcia <iggl@fhi.no>"
 ARG ABRICATE_VER="1.0.1"
 
 # For easy upgrade later. ARG varibles only persist during docker image build time
-ARG ABRICATE_VER
 ARG ANY2FASTA_VERSION="0.4.2"
 
 LABEL description="Mass screening of contigs for AMR or virulence genes"
@@ -57,6 +56,24 @@ $PATH"\
 ADD AcinetobacterPlasmidTyping.fasta /
 RUN mkdir -v /abricate-${ABRICATE_VER}/db/AcinetobacterPlasmidTyping && \
   cp -v /AcinetobacterPlasmidTyping.fasta /abricate-${ABRICATE_VER}/db/AcinetobacterPlasmidTyping/sequences && \
+  abricate --setupdb && \
+  abricate --list
+
+ADD Hi_Fts1.fasta /
+RUN mkdir -v /abricate-${ABRICATE_VER}/db/HinfFtsI && \
+  cp -v /Hi_Fts1.fasta /abricate-${ABRICATE_VER}/db/HinfFtsI/sequences && \
+  abricate --setupdb && \
+  abricate --list
+
+ADD Hi_GyrSubA.fasta /
+RUN mkdir -v /abricate-${ABRICATE_VER}/db/HinfGyrSubA && \
+  cp -v /Hi_GyrSubA.fasta /abricate-${ABRICATE_VER}/db/HinfGyrSubA/sequences && \
+  abricate --setupdb && \
+  abricate --list
+
+ADD Hi_TopoIVsubA.fasta /
+RUN mkdir -v /abricate-${ABRICATE_VER}/db/HinfTopoIVsubA && \
+  cp -v /Hi_TopoIVsubA.fasta /abricate-${ABRICATE_VER}/db/HinfTopoIVsubA/sequences && \
   abricate --setupdb && \
   abricate --list
 
