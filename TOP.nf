@@ -93,7 +93,7 @@ process Rmlst {
     val(sample)
 
     output:
-    path("*mlst{.json,.csv}")
+    path("*mlst{.json,.csv}"), emit: mlstfiles
 
     script:
     """
@@ -260,5 +260,5 @@ workflow {
                      ouputspades.spadessum.collect(),
                      ouputspades.fastasclean.collect(),
                      ouputspades.fastasraw.collect(),
-                     mlst.collect())
+                     mlst.mlstfiles.collect())
 }

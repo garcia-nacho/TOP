@@ -133,11 +133,28 @@ for (i in 1:length(rmlist)) {
     out.mlst<-rbind(out.mlst, dummy)
   }
 }
-
-
 out.mlst$Sample<-gsub("_.*","",out.mlst$Sample)
 
+rmlist<-list.files(pattern = "_seqmlst.csv")
+if(exists("out.seqmlst")) rm(out.seqmlst)
+
+for (i in 1:length(rmlist)) {
+  dummy<-read.csv(rmlist[i])
+  
+  if(!exists("out.seqmlst")){
+    out.seqmlst<-dummy
+  }else{
+    if(length(setdiff(colnames(out.seqmlst), colnames(dummy) ))>0){
+      dummy[setdiff(names(out.seqmlst), names(dummy))] <- NA
+      out.seqmlst[setdiff(names(dummy), names(out.seqmlst))] <- NA  
+    }
+    out.seqmlst<-rbind(out.seqmlst, dummy)
+  }
+}
+out.seqmlst$Sample<-gsub("_.*","",out.seqmlst$Sample)
+
 summ<-merge(summ, out.mlst, by="Sample", all.x=TRUE)
+summ<-merge(summ, out.seqmlst, by="Sample", all.x=TRUE)
 
 write.csv(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".csv",sep = ""), row.names = FALSE)
 write_xlsx(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".xlsx",sep = ""))
