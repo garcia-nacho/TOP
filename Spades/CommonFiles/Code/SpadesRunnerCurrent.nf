@@ -101,7 +101,7 @@ process Rmlst {
     curl -s -H "Content-Type: application/json" -X POST "http://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1/sequence" -d @- > \
     ${sample}_rmlst.json
     Rscript /home/docker/CommonFiles/Code/rmlst_parser.R
-    Rscript /home/docker/CommonFiles/Code/R_RunnerMLST.R
+    Rscript /home/docker/CommonFiles/Code/seqmlst_parser.R
 
     """
 

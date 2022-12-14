@@ -10,7 +10,7 @@ output<-df$taxon_prediction
 if(!is.null(df$fields$genus)){ 
 output$genus<-df$fields$genus
 }else{
-output$genus<- gsub(" .*","",df$taxon)   
+output$genus<- gsub(" .*","",output$taxon)   
 }
 colnames(output)<-paste("rMLST_",colnames(output),sep="")
 
