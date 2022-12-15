@@ -52,4 +52,3 @@ RUN chmod -R +rwx /home/docker/CommonFiles/* \
 #Unpack Kraken2 db
 USER docker
 WORKDIR /Data
-CMD ["sh", "-c", "/home/docker/CommonFiles/Runner.sh"]
