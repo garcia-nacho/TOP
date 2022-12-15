@@ -3,6 +3,11 @@
 #docker run -it --rm -v $(pwd):/Data -v /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB garcianacho/top bash
 
 conda create -n top_nf -y -c bioconda nextflow
+source activate top_nf
+cp TOP.nf ${CONDA_PREFIX}/bin/TOP.nf
+cp TOP.sh ${CONDA_PREFIX}/bin/TOP
+cp nextflow.config ${CONDA_PREFIX}/bin/nexflow.config
+conda deactivate
 
 #If ${1} doesnt exist go to pwd
 echo "Downloading Kraken database"
