@@ -100,25 +100,23 @@ process Spades {
 process Rmlst {
     container 'garcianacho/top:spades'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
-
     input:
     path(input)
     val(sample)
 
     output:
     path("*mlst{.json,.csv}"), emit: mlstresults
-    val(agent), emit: agent
+    path("*.agent"), emit: agent
     path(input), emit: clean_contigs_frommlst
     val(sample), emit: sample_frommlst
 
-    script:
+    shell:
     """
     (echo -n '{"base64":true,"details":true,"sequence": "'; base64 ${input}; echo '"}') | \
     curl -s -H "Content-Type: application/json" -X POST "http://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1/sequence" -d @- > \
     ${sample}_rmlst.json
     Rscript /home/docker/CommonFiles/Code/rmlst_parser.R
-    
-    agent="\$(Rscript /home/docker/CommonFiles/Code/seqmlst_parser.R)"
+    Rscript /home/docker/CommonFiles/Code/seqmlst_parser.R
 
     """
 
@@ -263,50 +261,43 @@ process Integration {
     """
 }
 
-process Abricate {
+process Abricate { 
     container 'garcianacho/top:abricate'
     cpus 1
     maxForks = 1
 
-    publishDir(
-    path: "${params.publishDir}/abricate",
-    mode: 'copy',
-    saveAs: { fn -> fn.substring(fn.lastIndexOf('/')+1) },
-    )
-
     input:
     path(fastaclean)
     val(sample)
-    val(agent)
+    path(agent)
 
     output:
     path("*{.tsv,.csv}"), emit: abricate_results
 
     script:
 
-    if(agent == "Hinf")
     """
-    abricate-get_db --db ncbi --force
-    abricate-get_db --db vfdb --force
-    abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv 
-    abricate --db HinfFtsI --quiet *.fasta > ${sample}_HinfFtsI.tsv
-    abricate --db HinfGyrSubA --quiet *.fasta > ${sample}_HinfGyrSubA.tsv
-    abricate --db HinfTopoIVsubA --quiet *.fasta > ${sample}_HinfTopoIVsubA.tsv
-    abricate --db ncbi --quiet *.fasta > ${sample}_ResFinder.tsv
-    #Integration Abricate
-    """
-    else()
-    """
-    abricate-get_db --db ncbi --force
-    abricate-get_db --db vfdb --force
-    abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv
-    abricate --db ncbi --quiet *.fasta > ${sample}_ResFinder.tsv
-    #Dummy file
+    if test -f "Hinf.agent"; 
+    then
+        abricate-get_db --db ncbi --force
+        abricate-get_db --db vfdb --force
+        abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv 
+        abricate --db HinfFtsI --quiet *.fasta > ${sample}_HinfFtsI.tsv
+        abricate --db HinfGyrSubA --quiet *.fasta > ${sample}_HinfGyrSubA.tsv
+        abricate --db HinfTopoIVsubA --quiet *.fasta > ${sample}_HinfTopoIVsubA.tsv
+        abricate --db ncbi --quiet *.fasta > ${sample}_ResFinder.tsv
+        #Integration Abricate
+    else
+        abricate-get_db --db ncbi --force
+        abricate-get_db --db vfdb --force
+        abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv
+        abricate --db ncbi --quiet *.fasta > ${sample}_ResFinder.tsv
+        #Dummy file
+    fi
+
     """
 
 }
-
-
 
 
 workflow {

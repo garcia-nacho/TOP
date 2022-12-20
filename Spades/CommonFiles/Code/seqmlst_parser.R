@@ -52,4 +52,4 @@ colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))]<-paste(s
 
 write.csv(output, gsub("_clean_contigs.fasta","_seqmlst.csv", inputfasta),row.names = FALSE )
 file.rename(input, gsub("_clean_contigs.fasta","_seqmlst.json", inputfasta))
-write(shortname, stdout())
+write.table(shortname, paste(shortname,".agent",sep=""), row.names =FALSE, col.names=FALSE, quote = FALSE )
