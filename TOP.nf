@@ -3,12 +3,16 @@
 // Declare syntax version
 nextflow.enable.dsl=2
 
-params.reads = "./RunX/*/*_{R1,R2}*.fastq.gz"
-params.publishDir = './results'
+params.readsfolder = "."
+params.publishDir = params.readsfolder+"/TOPresults"
 params.threads = 10
 params.toolcores = 2
 
+
+params.reads=params.readsfolder+"/*/*_{R1,R2}*.fastq.gz"
+
 process Trimming {
+ 
     container 'garcianacho/top:spades'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
 
@@ -64,11 +68,10 @@ process KrakenRaw {
 
 }
 
-
 process Spades {
 
     container 'garcianacho/top:spades'
-    containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
+    //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
 
     maxForks = params.threads - 2
 
@@ -94,17 +97,19 @@ process Spades {
     """
 }
 
-
 process Rmlst {
     container 'garcianacho/top:spades'
-    containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
+    //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
 
     input:
     path(input)
     val(sample)
 
     output:
-    path("*mlst{.json,.csv}")
+    path("*mlst{.json,.csv}"), emit: mlstresults
+    val(agent), emit: agent
+    path(input), emit: clean_contigs_frommlst
+    val(sample), emit: sample_frommlst
 
     script:
     """
@@ -112,12 +117,12 @@ process Rmlst {
     curl -s -H "Content-Type: application/json" -X POST "http://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1/sequence" -d @- > \
     ${sample}_rmlst.json
     Rscript /home/docker/CommonFiles/Code/rmlst_parser.R
-    Rscript /home/docker/CommonFiles/Code/seqmlst_parser.R
+    
+    agent="\$(Rscript /home/docker/CommonFiles/Code/seqmlst_parser.R)"
 
     """
 
 }
-
 
 process Prokka {
     container = 'garcianacho/prokka'
@@ -135,7 +140,6 @@ process Prokka {
     """
 
 }
-
 
 process KrakenClean {
     container 'garcianacho/top:spades'
@@ -156,7 +160,6 @@ process KrakenClean {
     """ 
 
 }
-
 
 process KrakenTrimmed {
     container 'garcianacho/top:spades'
@@ -213,7 +216,7 @@ process Mapping {
 
 process Integration {
     container 'garcianacho/top:spades'
-    containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
+    //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
     cpus 1
     maxForks = 1
 
@@ -260,6 +263,51 @@ process Integration {
     """
 }
 
+process Abricate {
+    container 'garcianacho/top:abricate'
+    cpus 1
+    maxForks = 1
+
+    publishDir(
+    path: "${params.publishDir}/abricate",
+    mode: 'copy',
+    saveAs: { fn -> fn.substring(fn.lastIndexOf('/')+1) },
+    )
+
+    input:
+    path(fastaclean)
+    val(sample)
+    val(agent)
+
+    output:
+    path("*{.tsv,.csv}"), emit: abricate_results
+
+    script:
+
+    if(agent == "Hinf")
+    """
+    abricate-get_db --db ncbi --force
+    abricate-get_db --db vfdb --force
+    abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv 
+    abricate --db HinfFtsI --quiet *.fasta > ${sample}_HinfFtsI.tsv
+    abricate --db HinfGyrSubA --quiet *.fasta > ${sample}_HinfGyrSubA.tsv
+    abricate --db HinfTopoIVsubA --quiet *.fasta > ${sample}_HinfTopoIVsubA.tsv
+    abricate --db ncbi --quiet *.fasta > ${sample}_ResFinder.tsv
+    #Integration Abricate
+    """
+    else()
+    """
+    abricate-get_db --db ncbi --force
+    abricate-get_db --db vfdb --force
+    abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv
+    abricate --db ncbi --quiet *.fasta > ${sample}_ResFinder.tsv
+    #Dummy file
+    """
+
+}
+
+
+
 
 workflow {
    sample_reads = Channel.fromFilePairs( params.reads )
@@ -270,6 +318,8 @@ workflow {
    kkcon=KrakenClean(ouputspades.spadesraw)
    mapped=Mapping(ouputspades.spadesraw)
    mlst=Rmlst(ouputspades.fastasclean, ouputspades.sample_name)
+   abri=Abricate(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent )
+
    integ=Integration(kkraw.collect(),
                      kkcon.collect(),
                      ktrim.collect(),
@@ -279,5 +329,5 @@ workflow {
                      ouputspades.spadessum.collect(),
                      ouputspades.fastasclean.collect(),
                      ouputspades.fastasraw.collect(),
-                     mlst.collect())
+                     mlst.mlstresults.collect())
 }

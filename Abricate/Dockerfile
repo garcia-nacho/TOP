@@ -77,6 +77,7 @@ RUN mkdir -v /abricate-${ABRICATE_VER}/db/HinfTopoIVsubA && \
   abricate --setupdb && \
   abricate --list
 
+RUN chmod -R 777 /abricate-${ABRICATE_VER}/
 # final working directory is /data
-WORKDIR /Data
 USER docker
+WORKDIR /Data

@@ -44,5 +44,12 @@ for (i in 1:length(df$exact_matches)) {
 output$Sample<-gsub(".*/","",gsub("_clean_contigs.fasta","",inputfasta))
 output$MLST_Date<-date
 
+shortname<-results$rMLST_taxon
+shortname<-paste(unlist(base::strsplit(gsub(" .*", "",shortname),""))[1] ,
+      paste(unlist(base::strsplit(gsub(".* ", "",shortname),""))[c(1:3)],collapse = ""),sep = "")
+
+colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))]<-paste(shortname, colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))],sep = "_")
+
 write.csv(output, gsub("_clean_contigs.fasta","_seqmlst.csv", inputfasta),row.names = FALSE )
 file.rename(input, gsub("_clean_contigs.fasta","_seqmlst.json", inputfasta))
+write(shortname, stdout())

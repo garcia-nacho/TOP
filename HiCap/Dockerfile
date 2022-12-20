@@ -1,4 +1,4 @@
-#Fully-loaded version derived from StatPH-B Fl but based on fhibase
+
 FROM garcianacho/fhibase:v1
 LABEL maintainer="Nacho Garcia <iggl@fhi.no>"
 
@@ -12,6 +12,9 @@ RUN cd /home/docker \
     && conda config --add channels defaults \
     && conda config --add channels bioconda \
     && conda config --add channels conda-forge \
-    && conda install -c bioconda -c conda-forge hicap
+    && conda create -n hicap
+
+RUN /bin/bash -c ". activate hicap && \
+   conda install -c bioconda -c conda-forge hicap"    
 
 WORKDIR /Data

@@ -1,8 +1,9 @@
 #!/bin/sh
 
-conda activate top_nf
+source activate top_nf
 
-/media/nacho/Data/DockerImages/TOP/TOP.nf -c /media/nacho/Data/DockerImages/TOP/nextflow.config 
-
+#Chech if ${1} exists otherwise 1=$(pwd)
+TOP.nf -readsfolder "${1}"
+rm -rf ./work
 
 conda deactivate
