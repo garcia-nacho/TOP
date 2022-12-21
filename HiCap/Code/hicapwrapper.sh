@@ -1,7 +1,7 @@
 #!/bin/bash
 Tab=$(printf '\t')
 source activate hicap
-
+mkdir Results
 for files in *.fasta
 do
 
@@ -13,6 +13,6 @@ fi
 
 done
 
-cp Results/* ./
-
+mv Results/* ./
+rm -rf Results
 conda deactivate

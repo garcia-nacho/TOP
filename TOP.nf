@@ -235,6 +235,8 @@ process Integration {
     path(fastaclean)
     path(fastaraw)
     path(mlst_in)
+    path(abri)
+    path(hicap)
   
     output:
     path ("*")
@@ -284,14 +286,14 @@ process Abricate {
         abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv 
         abricate --db HinfFtsI --quiet *.fasta > ${sample}_HinfFtsI.tsv
         abricate --db HinfGyrSubA --quiet *.fasta > ${sample}_HinfGyrSubA.tsv
-        abricate --db HinfTopoIVsubA --quiet *.fasta > ${sample}_HinfTopoIVsubA.tsv
-        abricate --db ncbi --quiet *.fasta > ${sample}_ResFinder.tsv
+        abricate --db HinfTopoIVsubA --quiet *.fasta > ${sample}_HinfTopoIVSubA.tsv
+        abricate --db ncbi --quiet *.fasta > ${sample}_ncbi.tsv
         #Integration Abricate
     else
         abricate-get_db --db ncbi --force
         abricate-get_db --db vfdb --force
         abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv
-        abricate --db ncbi --quiet *.fasta > ${sample}_ResFinder.tsv
+        abricate --db ncbi --quiet *.fasta > ${sample}_ncbi.tsv
         #Dummy file
     fi
 
@@ -324,9 +326,13 @@ process Hicap {
     if test -f "Hinf.agent"; 
     then
         /home/docker/Code/hicapwrapper.sh
-        mv Hicap_merged.tsv ${sample}_HiCap.tsv
-    else
+        mv *.tsv ${sample}_HiCap.tsv
+        mv *.gbk ${sample}_HiCap.gbk
+        mv *.log ${sample}_HiCap.log
+        mv *.svg ${sample}_HiCap.svg
 
+    else
+        cat "NoHi" > ${sample}_HiCap.tsv
         #Dummy Hicap file
 
     fi
