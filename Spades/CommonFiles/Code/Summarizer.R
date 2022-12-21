@@ -175,6 +175,26 @@ summ<-merge(summ, out.abri, by="Sample", all.x=TRUE)
 
 #HiCap
 
+hicaplist<-list.files(pattern = "_HiCap.tsv")
+for (i in 1:length(hicaplist)) {
+  dummy<-read.csv(hicaplist[i], sep = "\t")
+  
+  if(!exists("out.hicap")){
+    out.hicap<-dummy
+  }else{
+    if(length(setdiff(colnames(out.hicap), colnames(dummy) ))>0){
+      dummy[setdiff(names(out.hicap), names(dummy))] <- NA
+      out.hicap[setdiff(names(dummy), names(out.hicap))] <- NA  
+    }
+    out.hicap<-rbind(out.hicap, dummy)
+  }
+}
+out.hicap$Sample<-gsub("_.*","",hicaplist)
+out.hicap<-out.hicap[, which(colnames(out.hicap) %in% c("predicted_serotype", "Sample"))]
+colnames(out.hicap)[which(colnames(out.hicap)=="predicted_serotype")]<-"HiCap_Predicted_Serotype"
+
+summ<-merge(summ, out.hicap, by="Sample", all.x=TRUE)
+
 
 write.csv(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".csv",sep = ""), row.names = FALSE)
 write_xlsx(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".xlsx",sep = ""))

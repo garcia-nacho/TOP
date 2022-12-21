@@ -36,8 +36,7 @@ for (i in 1:length(files.to.take)) {
 }
 
 }
-  
-  
+  write.csv(output,"Abricate.csv",row.names = FALSE)
 
 
 

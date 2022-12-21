@@ -259,7 +259,13 @@ process Integration {
     mv *.zip ./QC
     mv *.json ./QC
     mv *mlst.csv ./QC
+    mv *mlst.csv ./QC
+    mv *_Abricate.csv ./QC
 
+    if test -f "*.tsv"; then mv *.tsv ./QC; fi
+    if test -f "*.gbk"; then mv *.gbk ./QC; fi
+    if test -f "*.log"; then mv *.log ./QC; fi
+    if test -f "*.svg"; then mv *.svg ./QC; fi
     """
 }
 
@@ -326,10 +332,6 @@ process Hicap {
     if test -f "Hinf.agent"; 
     then
         /home/docker/Code/hicapwrapper.sh
-        mv *.tsv ${sample}_HiCap.tsv
-        mv *.gbk ${sample}_HiCap.gbk
-        mv *.log ${sample}_HiCap.log
-        mv *.svg ${sample}_HiCap.svg
 
     else
         cat "NoHi" > ${sample}_HiCap.tsv
