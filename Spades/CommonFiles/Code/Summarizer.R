@@ -156,5 +156,25 @@ out.seqmlst$Sample<-gsub("_.*","",out.seqmlst$Sample)
 summ<-merge(summ, out.mlst, by="Sample", all.x=TRUE)
 summ<-merge(summ, out.seqmlst, by="Sample", all.x=TRUE)
 
+#Abricate
+abrilist<-list.files(pattern = "_Abricate.csv")
+for (i in 1:length(abrilist)) {
+  dummy<-read.csv(abrilist[i])
+  
+  if(!exists("out.abri")){
+    out.abri<-dummy
+  }else{
+    if(length(setdiff(colnames(out.abri), colnames(dummy) ))>0){
+      dummy[setdiff(names(out.abri), names(dummy))] <- NA
+      out.abri[setdiff(names(dummy), names(out.abri))] <- NA  
+    }
+    out.abri<-rbind(out.abri, dummy)
+  }
+}
+summ<-merge(summ, out.abri, by="Sample", all.x=TRUE)
+
+#HiCap
+
+
 write.csv(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".csv",sep = ""), row.names = FALSE)
 write_xlsx(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".xlsx",sep = ""))

@@ -16,5 +16,9 @@ RUN cd /home/docker \
 
 RUN /bin/bash -c ". activate hicap && \
    conda install -c bioconda -c conda-forge hicap"    
+RUN mkdir -p /Data /home/docker/Code
+COPY Code/ /home/docker/Code
+RUN chmod -R +rwx /home/docker/Code/* \
+    && chmod 777 /Data 
 
 WORKDIR /Data

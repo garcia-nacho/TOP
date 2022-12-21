@@ -79,5 +79,9 @@ RUN mkdir -v /abricate-${ABRICATE_VER}/db/HinfTopoIVsubA && \
 
 RUN chmod -R 777 /abricate-${ABRICATE_VER}/
 # final working directory is /data
+RUN mkdir -p /Data /home/docker/Code
+COPY Code/ /home/docker/Code
+RUN chmod -R +rwx /home/docker/Code/* \
+    && chmod 777 /Data 
 USER docker
 WORKDIR /Data

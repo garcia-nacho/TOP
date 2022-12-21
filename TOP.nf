@@ -295,6 +295,42 @@ process Abricate {
         #Dummy file
     fi
 
+    #Test if the files can be empty or they just dont exist
+    
+    Rscript /home/docker/Code/AbricateParser.R
+    mv Abricate.csv ${sample}_Abricate.csv
+
+    """
+
+}
+
+
+process Hicap { 
+    container 'garcianacho/top:hicap'
+    cpus 1
+    maxForks = 1
+
+    input:
+    path(fastaclean)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*"), emit: hicap_results
+
+    script:
+
+    """
+    if test -f "Hinf.agent"; 
+    then
+        /home/docker/Code/hicapwrapper.sh
+        mv Hicap_merged.tsv ${sample}_HiCap.tsv
+    else
+
+        #Dummy Hicap file
+
+    fi
+
     """
 
 }
@@ -310,7 +346,7 @@ workflow {
    mapped=Mapping(ouputspades.spadesraw)
    mlst=Rmlst(ouputspades.fastasclean, ouputspades.sample_name)
    abri=Abricate(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent )
-
+   hicap=Hicap(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent )
    integ=Integration(kkraw.collect(),
                      kkcon.collect(),
                      ktrim.collect(),
@@ -320,5 +356,7 @@ workflow {
                      ouputspades.spadessum.collect(),
                      ouputspades.fastasclean.collect(),
                      ouputspades.fastasraw.collect(),
-                     mlst.mlstresults.collect())
+                     mlst.mlstresults.collect(),
+                     abri.abricate_results.collect(),
+                     hicap.hicap_results.collect())
 }
