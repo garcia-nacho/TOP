@@ -83,6 +83,9 @@ process Spades {
     path("*_contigs.stats.csv"), emit: spadessum 
     path ("*clean_contigs.fasta"), emit: fastasclean
     path ("*raw_contigs.fasta"), emit: fastasraw
+    path (trimmedR1), emit: r1spades
+    path (trimmedR2), emit: r2spades
+
     val(sample), emit: sample_name
 
     script:
@@ -103,12 +106,16 @@ process Rmlst {
     input:
     path(input)
     val(sample)
+    path(r1)
+    path(r2)
 
     output:
     path("*mlst{.json,.csv}"), emit: mlstresults
     path("*.agent"), emit: agent
     path(input), emit: clean_contigs_frommlst
     val(sample), emit: sample_frommlst
+    path (r1), emit: r1mlst
+    path (r2), emit: r2mlst
 
     shell:
     """
@@ -117,6 +124,7 @@ process Rmlst {
     ${sample}_rmlst.json
     Rscript /home/docker/CommonFiles/Code/rmlst_parser.R
     Rscript /home/docker/CommonFiles/Code/seqmlst_parser.R
+    #Missing genus 
 
     """
 
@@ -258,8 +266,7 @@ process Integration {
     mv *.txt ./QC
     mv *.zip ./QC
     mv *.json ./QC
-    mv *mlst.csv ./QC
-    mv *mlst.csv ./QC
+  
     mv *_Abricate.csv ./QC
 
     if test -f "*.tsv"; then mv *.tsv ./QC; fi
@@ -349,21 +356,21 @@ workflow {
    trimmed=Trimming(sample_reads)
    ktrim=KrakenTrimmed(trimmed)
    kkraw=KrakenRaw(sample_reads)
-   ouputspades=Spades(trimmed)
-   kkcon=KrakenClean(ouputspades.spadesraw)
-   mapped=Mapping(ouputspades.spadesraw)
-   mlst=Rmlst(ouputspades.fastasclean, ouputspades.sample_name)
-   abri=Abricate(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent )
-   hicap=Hicap(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent )
+   outputspades=Spades(trimmed)
+   kkcon=KrakenClean(outputspades.spadesraw)
+   mapped=Mapping(outputspades.spadesraw)
+   mlst=Rmlst(outputspades.fastasclean, outputspades.sample_name,outputspades.r1spades, outputspades.r2spades)
+   abri=Abricate(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+   hicap=Hicap(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    integ=Integration(kkraw.collect(),
                      kkcon.collect(),
                      ktrim.collect(),
                      mapped.bam.collect(),
                      mapped.bai.collect(),
                      mapped.bt2sum.collect(),
-                     ouputspades.spadessum.collect(),
-                     ouputspades.fastasclean.collect(),
-                     ouputspades.fastasraw.collect(),
+                     outputspades.spadessum.collect(),
+                     outputspades.fastasclean.collect(),
+                     outputspades.fastasraw.collect(),
                      mlst.mlstresults.collect(),
                      abri.abricate_results.collect(),
                      hicap.hicap_results.collect())
