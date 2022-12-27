@@ -206,6 +206,7 @@ process Mapping {
     path("*sorted.bam"), emit: bam
     path("*.bai"), emit: bai
     path ("*Bowtie2summary.txt"), emit: bt2sum
+    path ("*depth.tsv"), emit: bt2depth
 
     script:
 
@@ -215,6 +216,7 @@ process Mapping {
     samtools view -b -o ${sample}.bam  ${sample}.sam
     samtools sort ${sample}.bam -o ${sample}.sorted.bam
     samtools index ${sample}.sorted.bam
+    samtools depth -a ${sample}.sorted.bam > ${sample}_depth.tsv
     
     """ 
 
@@ -245,6 +247,7 @@ process Integration {
     path(mlst_in)
     path(abri)
     path(hicap)
+    path(seroba)
   
     output:
     path ("*")
@@ -350,6 +353,35 @@ process Hicap {
 
 }
 
+process Seroba { 
+    container 'garcianacho/top:seroba'
+    cpus 1
+    maxForks = 1
+
+    input:
+    path(r1)
+    path(r2)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*.tsv"), emit: seroba_results
+
+    script:
+
+    """
+    source activate seroba
+    
+    seroba runSerotyping /home/docker/seroba/database/ ${r1} ${r2} ${sample}
+    mv ${sample}/*.tsv ./${sample}_seroba.tsv
+    rm -rf dummy
+
+    conda deactivate
+
+    """
+
+}
+
 
 workflow {
    sample_reads = Channel.fromFilePairs( params.reads )
@@ -362,6 +394,7 @@ workflow {
    mlst=Rmlst(outputspades.fastasclean, outputspades.sample_name,outputspades.r1spades, outputspades.r2spades)
    abri=Abricate(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    hicap=Hicap(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+   seroba=Seroba(mlst.r1mlst, mlst.r2mlst, mlst.sample_frommlst, mlst.agent)
    integ=Integration(kkraw.collect(),
                      kkcon.collect(),
                      ktrim.collect(),
@@ -373,5 +406,6 @@ workflow {
                      outputspades.fastasraw.collect(),
                      mlst.mlstresults.collect(),
                      abri.abricate_results.collect(),
-                     hicap.hicap_results.collect())
+                     hicap.hicap_results.collect(),
+                     seroba.seroba_results.collect())
 }
