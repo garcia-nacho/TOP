@@ -345,7 +345,7 @@ process Hicap {
         /home/docker/Code/hicapwrapper.sh
 
     else
-        cat "NoHi" > ${sample}_HiCap.tsv
+        echo "NoHi" > ${sample}_HiCap.tsv
         #Dummy Hicap file
 
     fi
@@ -371,16 +371,19 @@ process Seroba {
     script:
 
     """
-    source activate seroba
-    
-    seroba runSerotyping /home/docker/seroba/database/ ${r1} ${r2} ${sample}
-    mv ${sample}/*.tsv ./${sample}_seroba.tsv
-    rm -rf dummy
+    if test -f "Spne.agent"; 
+    then
+        source activate seroba
+        seroba runSerotyping /home/docker/seroba/database/ ${r1} ${r2} ${sample}
+        mv ${sample}/*.tsv ./${sample}_seroba.tsv
+        rm -rf dummy
+        conda deactivate
 
-    conda deactivate
+    else
+        echo "NoSpne" > ${sample}_seroba.tsv
+    fi
 
     """
-
 }
 
 
@@ -408,6 +411,6 @@ workflow {
                      mlst.mlstresults.collect(),
                      abri.abricate_results.collect(),
                      hicap.hicap_results.collect(),
-                     seroba.seroba_results.collect()
+                     seroba.seroba_results.collect(),
                      mapped.bt2depth.collect())
 }
