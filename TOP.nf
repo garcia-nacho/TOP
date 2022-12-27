@@ -7,7 +7,7 @@ params.readsfolder = "."
 params.publishDir = params.readsfolder+"/TOPresults"
 params.threads = 10
 params.toolcores = 2
-
+params.forceSp="none"
 
 params.reads=params.readsfolder+"/*/*_{R1,R2}*.fastq.gz"
 
@@ -248,6 +248,7 @@ process Integration {
     path(abri)
     path(hicap)
     path(seroba)
+    path(depth)
   
     output:
     path ("*")
@@ -407,5 +408,6 @@ workflow {
                      mlst.mlstresults.collect(),
                      abri.abricate_results.collect(),
                      hicap.hicap_results.collect(),
-                     seroba.seroba_results.collect())
+                     seroba.seroba_results.collect()
+                     mapped.bt2depth.collect())
 }
