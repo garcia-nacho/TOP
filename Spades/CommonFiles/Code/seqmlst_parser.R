@@ -20,6 +20,7 @@ results<-read.csv(rmlst.res)
 if(nrow(results)>1){
 results$MLST_Conflict<-paste(paste(results$rMLST_support, results$rMLST_taxon,sep = "% "), collapse = " / ")
 results<-results[which(results$rMLST_support==max(results$rMLST_support)),]
+if(nrow(results)>1) results<-results[1,]
 }
 
 dumm.db<-document$databases[[which(document$name==tolower(gsub(" .*","",results$rMLST_taxon)))]]

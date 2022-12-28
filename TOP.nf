@@ -96,6 +96,7 @@ process Spades {
     Rscript /home/docker/CommonFiles/Code/ContigCleaner.R
     mv clean_contigs.fasta ${sample}_clean_contigs.fasta
     mv clean_contigs.stats.csv ${sample}_contigs.stats.csv
+    rm -rf ./corrected
     
     """
 }
