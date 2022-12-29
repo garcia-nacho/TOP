@@ -271,6 +271,8 @@ process Integration {
     mv *.txt ./QC
     mv *.zip ./QC
     mv *.json ./QC
+    mv *vfdb.tsv ./QC
+    mv *ncbi.tsv ./QC
   
     mv *_Abricate.csv ./QC
 
