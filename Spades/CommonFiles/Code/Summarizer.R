@@ -34,13 +34,13 @@ summ$RatioUnclassifiedReadsPreTrimming<-0
 
 for (i in 1:length(kraken.raw)) {
   dummy<-read.csv(kraken.raw[i])
-  summ$AgentRawReads[which(summ$Sample==gsub("_.*","",kraken.fasta[i]))]<-dummy$Specie[which(dummy$Ratio==max(dummy$Ratio))]
-  summ$ReadsSupportingAgent[which(summ$Sample==gsub("_.*","",kraken.fasta[i]))]<-dummy$Ratio[which(dummy$Ratio==max(dummy$Ratio))]
+  summ$AgentRawReads[which(summ$Sample==gsub("_.*","",kraken.raw[i]))]<-dummy$Specie[which(dummy$Ratio==max(dummy$Ratio))]
+  summ$ReadsSupportingAgent[which(summ$Sample==gsub("_.*","",kraken.raw[i]))]<-dummy$Ratio[which(dummy$Ratio==max(dummy$Ratio))]
   if(length(which(dummy$Specie=="unclassified (taxid 0)"))==1){
-    summ$RatioUnclassifiedReadsPreTrimming[which(summ$Sample==gsub("_.*","",kraken.fasta[i]))]<-dummy$Ratio[which(dummy$Specie=="unclassified (taxid 0)")]  
+    summ$RatioUnclassifiedReadsPreTrimming[which(summ$Sample==gsub("_.*","",kraken.raw[i]))]<-dummy$Ratio[which(dummy$Specie=="unclassified (taxid 0)")]  
   }
   if(length(which(dummy$Specie=="Homo sapiens (taxid 9606)"))==1){
-  summ$RatioHumanReadsPreTrimming[which(summ$Sample==gsub("_.*","",kraken.fasta[i]))]<-dummy$Ratio[which(dummy$Specie=="Homo sapiens (taxid 9606)")]
+  summ$RatioHumanReadsPreTrimming[which(summ$Sample==gsub("_.*","",kraken.raw[i]))]<-dummy$Ratio[which(dummy$Specie=="Homo sapiens (taxid 9606)")]
   }
 }
 
