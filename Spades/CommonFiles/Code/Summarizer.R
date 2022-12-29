@@ -127,9 +127,20 @@ if(exists("out.mlst")) rm(out.mlst)
 for (i in 1:length(rmlist)) {
   dummy<-read.csv(rmlist[i])
   
+  if(nrow(dummy)>1){
+    dummy$MLST_Conflict<-paste(paste(dummy$rMLST_support, dummy$rMLST_taxon,sep = "% "), collapse = " / ")
+    dummy<-dummy[which(dummy$rMLST_support==max(dummy$rMLST_support)),]
+    if(nrow(dummy)>1) dummy<-dummy[1,]
+  }
+  
+  
   if(!exists("out.mlst")){
     out.mlst<-dummy
   }else{
+    if(length(setdiff(colnames(out.mlst), colnames(dummy) ))>0){
+      dummy[setdiff(names(out.mlst), names(dummy))] <- NA
+      out.mlst[setdiff(names(dummy), names(out.mlst))] <- NA  
+    }
     out.mlst<-rbind(out.mlst, dummy)
   }
 }
@@ -178,7 +189,11 @@ summ<-merge(summ, out.abri, by="Sample", all.x=TRUE)
 hicaplist<-list.files(pattern = "_HiCap.tsv")
 for (i in 1:length(hicaplist)) {
   dummy<-read.csv(hicaplist[i], sep = "\t")
-  
+  #Fix no hicap
+  if(colnames(dummy)[1]=="NoHi"){ 
+    dummy<-as.data.frame(matrix(NA))
+    colnames(dummy)[1]<-"predicted_serotype"
+  }
   if(!exists("out.hicap")){
     out.hicap<-dummy
   }else{
@@ -194,6 +209,39 @@ out.hicap<-out.hicap[, which(colnames(out.hicap) %in% c("predicted_serotype", "S
 colnames(out.hicap)[which(colnames(out.hicap)=="predicted_serotype")]<-"HiCap_Predicted_Serotype"
 
 summ<-merge(summ, out.hicap, by="Sample", all.x=TRUE)
+
+#Seroba
+
+serolist<-list.files(pattern = "_seroba.tsv")
+if(exists("out.seroba")) rm(out.seroba)
+for (i in 1:length(serolist)) {
+  dummy<-read.csv(serolist[i], sep = "\t",header = FALSE)
+  #Fix no hicap
+  if(dummy[1,1]=="NoSpne"){ 
+    dummy<-as.data.frame(matrix(NA))
+    colnames(dummy)[1]<-"Seroba_Predicted_Serotype"
+    dummy$Sample<-gsub("_.*","",serolist[i])
+  }else{
+    if(ncol(dummy)==2) colnames(dummy)<-c("Sample", "Seroba_Predicted_Serotype")
+    if(ncol(dummy)==3) colnames(dummy)<-c("Sample", "Seroba_Predicted_Serotype","Seroba_warning")
+  }
+  
+  if(!exists("out.seroba")){
+    out.seroba<-dummy
+  }else{
+    if(length(setdiff(colnames(out.seroba), colnames(dummy) ))>0 | 
+       length(setdiff(colnames(dummy), colnames(out.seroba) ))>0){
+      dummy[setdiff(names(out.seroba), names(dummy))] <- NA
+      out.seroba[setdiff(names(dummy), names(out.seroba))] <- NA  
+    }
+    out.seroba<-rbind(out.seroba, dummy)
+  }
+}
+
+out.seroba$Sample<-gsub("_.*","",out.seroba$Sample)
+summ<-merge(summ, out.seroba, by="Sample", all.x=TRUE)
+
+
 
 
 write.csv(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".csv",sep = ""), row.names = FALSE)
