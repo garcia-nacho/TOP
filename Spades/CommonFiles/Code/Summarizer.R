@@ -175,7 +175,8 @@ for (i in 1:length(abrilist)) {
   if(!exists("out.abri")){
     out.abri<-dummy
   }else{
-    if(length(setdiff(colnames(out.abri), colnames(dummy) ))>0){
+    if(length(setdiff(colnames(out.abri), colnames(dummy) ))>0 |
+       length(setdiff(colnames(dummy), colnames(out.abri) ))>0){
       dummy[setdiff(names(out.abri), names(dummy))] <- NA
       out.abri[setdiff(names(dummy), names(out.abri))] <- NA  
     }
@@ -241,8 +242,11 @@ for (i in 1:length(serolist)) {
 out.seroba$Sample<-gsub("_.*","",out.seroba$Sample)
 summ<-merge(summ, out.seroba, by="Sample", all.x=TRUE)
 
+empty.col<-apply(summ, 2, function(x) length(which(is.na(x))))
+empty.col<-as.numeric(empty.col)
+empty.col<-as.numeric(which(empty.col==nrow(summ)))
 
-
+if(length(empty.col)>0) summ<-summ[,-empty.col]
 
 write.csv(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".csv",sep = ""), row.names = FALSE)
 write_xlsx(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".xlsx",sep = ""))
