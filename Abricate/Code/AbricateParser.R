@@ -13,12 +13,12 @@ for (i in 1:length(files.to.take)) {
       output.temp$Abricate_Resistance<-paste(dummy$RESISTANCE,collapse = ", ")
       
       for (l in 1:nrow(dummy)) {
-       if(length(which(colnames(output.temp)==paste("Resistance",dummy$RESISTANCE[l], sep="") ))==0){
+       if(length(which(colnames(output.temp)==paste("AMR.",dummy$RESISTANCE[l], sep="") ))==0){
          output.temp$dummy<-NA
          output.temp$dummy<-dummy$GENE[l]
-         colnames(output.temp)[which(colnames(output.temp)=="dummy")]<-paste(output.temp$Abricate_Resistance,"_Resistance", sep="")
+         colnames(output.temp)[which(colnames(output.temp)=="dummy")]<-paste("AMR.",dummy$RESISTANCE[l], sep="")
        }else{
-         col.to.use<-which(colnames(output.temp)==paste("Resistance",dummy$RESISTANCE[l], sep="") )
+         col.to.use<-which(colnames(output.temp)==paste("AMR.",dummy$RESISTANCE[l], sep="") )
          output.temp[,col.to.use]<-paste(output.temp[,col.to.use],dummy$GENE[l],sep = ", ")
        } 
       }
@@ -59,9 +59,7 @@ for (i in 1:length(files.to.take)) {
     }else{
       output<-merge(output, output.temp,by="Sample")
     }
-    
 }
-
 }
   write.csv(output,"Abricate.csv",row.names = FALSE)
 
