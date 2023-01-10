@@ -240,7 +240,37 @@ for (i in 1:length(serolist)) {
 }
 
 out.seroba$Sample<-gsub("_.*","",out.seroba$Sample)
-summ<-merge(summ, out.seroba, by="Sample", all.x=TRUE)
+
+
+
+#EMM
+
+emlist<-list.files(pattern = "_emmtyper.tsv")
+
+for (i in 1:length(emlist)) {
+  if(dummy[1,1]=="NoSpy"){ 
+    dummy<-as.data.frame(matrix(NA,nrow = 1, ncol = 5))
+    colnames(dummy)<-c("Sample","Cluster.N","emm-type","emm-like","emm-cluster")
+    dummy$emm.warning<-NA
+    dummy$Sample<-gsub("_.*","",emlist[i])
+  }else{
+  
+  
+  dummy<-read.csv(emlist[i],sep = "\t",header = FALSE)
+  colnames(dummy)<-c("Sample","Cluster.N","emm-type","emm-like","emm-cluster")
+  dummy$emm.warning<-NA
+  if(as.numeric(dummy$Cluster.N)>3) dummy$emm.warning<-"Possible Contamination"
+  if(!exists("out.emm")){
+    out.emm<-dummy
+  }else{
+    out.emm<-rbind(out.emm,dummy)
+  }
+
+  }
+}
+
+out.emm$Sample<-gsub("_.*","",out.emm$Sample)
+summ<-merge(summ, out.emm, by="Sample", all.x=TRUE)
 
 empty.col<-apply(summ, 2, function(x) length(which(is.na(x))))
 empty.col<-as.numeric(empty.col)

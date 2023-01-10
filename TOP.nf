@@ -250,6 +250,7 @@ process Integration {
     path(hicap)
     path(seroba)
     path(depth)
+    path(emmtyp)
   
     output:
     path ("*")
@@ -273,6 +274,7 @@ process Integration {
     mv *.json ./QC
     mv *vfdb.tsv ./QC
     mv *ncbi.tsv ./QC
+    mv *depth.tsv ./QC
   
     mv *_Abricate.csv ./QC
 
@@ -390,6 +392,36 @@ process Seroba {
 }
 
 
+process EMMtyper { 
+    container 'garcianacho/top:emmtyper'
+    cpus 1
+    maxForks = 1
+
+    input:
+    path(fastaclean)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*.tsv"), emit: emm_results
+
+    script:
+
+    """
+    if test -f "Spyo.agent"; 
+    then
+      emmtyper ${sample}_clean_contigs.fasta > ${sample}_emmtyper.tsv  
+
+    else
+      echo "NoSpy" > ${sample}_emmtyper.tsv
+
+    fi
+
+    """
+
+}
+
+
 workflow {
    sample_reads = Channel.fromFilePairs( params.reads )
    trimmed=Trimming(sample_reads)
@@ -402,6 +434,7 @@ workflow {
    abri=Abricate(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    hicap=Hicap(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    seroba=Seroba(mlst.r1mlst, mlst.r2mlst, mlst.sample_frommlst, mlst.agent)
+   emmtyp=EMMtyper(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    integ=Integration(kkraw.collect(),
                      kkcon.collect(),
                      ktrim.collect(),
@@ -415,5 +448,6 @@ workflow {
                      abri.abricate_results.collect(),
                      hicap.hicap_results.collect(),
                      seroba.seroba_results.collect(),
-                     mapped.bt2depth.collect())
+                     mapped.bt2depth.collect(),
+                     emmtyp.emm_results.collect())
 }
