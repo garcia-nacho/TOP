@@ -42,7 +42,7 @@ df<-fromJSON(input)
   colnames(output)<-"ST"
   output$ClonalComplex<-df$fields$clonal_complex
   for (i in 1:length(df$exact_matches)) {
-    output$dummy<-df$exact_matches[[i]]$allele_id
+    paste(df$exact_matches[[i]]$allele_id,collapse = "/")
     colnames(output)[which(colnames(output)=="dummy")]<-names(df$exact_matches)[i]
   }
   }else{
@@ -50,7 +50,7 @@ df<-fromJSON(input)
   colnames(output)<-"ST"
   output$ClonalComplex<-df$fields$clonal_complex
   for (i in 1:length(df$exact_matches)) {
-    output$dummy<-df$exact_matches[[i]]$allele_id
+    paste(df$exact_matches[[i]]$allele_id,collapse = "/")
     colnames(output)[which(colnames(output)=="dummy")]<-names(df$exact_matches)[i]
   }
   }

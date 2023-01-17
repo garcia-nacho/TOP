@@ -23,7 +23,7 @@ summ$AgentContigs<-NA
 
 for (i in 1:length(kraken.fasta)) {
   dummy<-read.csv(kraken.fasta[i])
-  summ$AgentContigs[which(summ$Sample==gsub("_.*","",kraken.fasta[i]))]<-dummy$Specie[which(dummy$Ratio==max(dummy$Ratio))]
+  summ$AgentContigs[which(summ$Sample==gsub("_.*","",kraken.fasta[i]))]<-dummy$Specie[which(dummy$Ratio==max(dummy$Ratio))][1]
 }
 
 kraken.raw<-krakens[grep("Raw.resultskraken.csv",krakens)]
@@ -137,10 +137,11 @@ for (i in 1:length(rmlist)) {
   if(!exists("out.mlst")){
     out.mlst<-dummy
   }else{
-    if(length(setdiff(colnames(out.mlst), colnames(dummy) ))>0){
+    if(length(setdiff(colnames(out.mlst), colnames(dummy) ))>0 | length(setdiff(colnames(dummy), colnames(out.mlst) ))>0){
       dummy[setdiff(names(out.mlst), names(dummy))] <- NA
       out.mlst[setdiff(names(dummy), names(out.mlst))] <- NA  
     }
+
     out.mlst<-rbind(out.mlst, dummy)
   }
 }
@@ -248,6 +249,7 @@ out.seroba$Sample<-gsub("_.*","",out.seroba$Sample)
 emlist<-list.files(pattern = "_emmtyper.tsv")
 
 for (i in 1:length(emlist)) {
+  dummy<-read.csv(emlist[i],sep = "\t",header = FALSE)
   if(dummy[1,1]=="NoSpy"){ 
     dummy<-as.data.frame(matrix(NA,nrow = 1, ncol = 5))
     colnames(dummy)<-c("Sample","Cluster.N","emm-type","emm-like","emm-cluster")
@@ -256,16 +258,15 @@ for (i in 1:length(emlist)) {
   }else{
   
   
-  dummy<-read.csv(emlist[i],sep = "\t",header = FALSE)
   colnames(dummy)<-c("Sample","Cluster.N","emm-type","emm-like","emm-cluster")
   dummy$emm.warning<-NA
   if(as.numeric(dummy$Cluster.N)>3) dummy$emm.warning<-"Possible Contamination"
+
+  }
   if(!exists("out.emm")){
     out.emm<-dummy
   }else{
     out.emm<-rbind(out.emm,dummy)
-  }
-
   }
 }
 
