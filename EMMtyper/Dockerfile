@@ -18,6 +18,8 @@ RUN conda install -c conda-forge -c bioconda -c defaults snippy
 RUN conda install -c conda-forge ncurses
 RUN conda install -c conda-forge -c bioconda -c defaults gubbins
 RUN conda install -c conda-forge -c r -c bioconda -c defaults snp-sites
+RUN conda install -c bioconda fasttree
+
 
 USER root  
 RUN mkdir -p /Data 
