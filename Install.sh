@@ -20,17 +20,3 @@ tar -xvzf ${1}/krakenDB https://genome-idx.s3.amazonaws.com/kraken/k2_standard_2
 
 echo "Installing docker images"
 echo ""
-
-docker get garcianacho/top:spades
-docker get garcianacho/top:seroba
-docker get garcianacho/top:hicap
-docker get garcianacho/top:abricate
-docker get garcianacho/top:prokka
-
-docker build -t garcianacho/top:spades Spades/
-docker build -t garcianacho/top:seroba Seroba/
-docker build -t garcianacho/top:hicap HiCap/
-docker build -t garcianacho/top:abricate Abricate/
-docker build -t garcianacho/top:prokka Prokka/
-
-sudo cp top.sh top.nf /usr/bin/
