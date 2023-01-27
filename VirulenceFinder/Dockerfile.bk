@@ -1,0 +1,43 @@
+FROM garcianacho/fhibase:v1
+LABEL maintainer="Nacho Garcia <iggl@fhi.no>"
+
+USER docker
+RUN cd /home/docker \
+    && wget \
+    https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+    && mkdir /home/docker/.conda \
+    && bash Miniconda3-latest-Linux-x86_64.sh -b \
+    && rm -f Miniconda3-latest-Linux-x86_64.sh \
+    && conda config --add channels defaults \
+    && conda config --add channels bioconda \
+    && conda config --add channels conda-forge 
+
+RUN cd /home/docker && \
+    git clone https://bitbucket.org/genomicepidemiology/kma.git && \
+    cd kma && make 
+
+USER root
+RUN cp /home/docker/kma/kma /usr/bin/kma
+USER docker
+
+# ./kma -i reads_se.fq.gz -o output/name -t_db templates
+RUN cd /home/docker && \
+    git clone https://bitbucket.org/genomicepidemiology/virulencefinder.git
+
+
+RUN cd /home/docker && \
+    mkdir /home/docker/db &&\
+    git clone https://bitbucket.org/genomicepidemiology/virulencefinder_db.git && \
+    cd db &&\
+    kma index -i /home/docker/virulencefinder_db/stx.fsa -o stx && \
+    kma index -i /home/docker/virulencefinder_db/virulence_ecoli.fsa -o virulence_ecoli && \
+    kma index -i /home/docker/virulencefinder_db/virulence_ent.fsa -o virulence_ent
+
+USER root
+RUN mkdir -p /Data /home/docker/Code
+RUN ln -s /home/docker/db/* /usr/bin
+COPY Code/ /home/docker/Code
+RUN chmod -R +rwx /home/docker/Code/* \
+    && chmod 777 /Data 
+USER docker
+WORKDIR /Data

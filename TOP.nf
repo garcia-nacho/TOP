@@ -251,6 +251,7 @@ process Integration {
     path(seroba)
     path(depth)
     path(emmtyp)
+    path(stxtp)
   
     output:
     path ("*")
@@ -275,6 +276,8 @@ process Integration {
     mv *vfdb.tsv ./QC
     mv *ncbi.tsv ./QC
     mv *depth.tsv ./QC
+    mv *_seqmlst.csv ./QC
+    mv *_rmlst.csv ./QC
   
     mv *_Abricate.csv ./QC
 
@@ -305,17 +308,21 @@ process Abricate {
     then
         abricate-get_db --db ncbi --force
         abricate-get_db --db vfdb --force
+        abricate-get_db --db plasmidfinder --force
         abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv 
         abricate --db HinfFtsI --quiet *.fasta > ${sample}_HinfFtsI.tsv
         abricate --db HinfGyrSubA --quiet *.fasta > ${sample}_HinfGyrSubA.tsv
         abricate --db HinfTopoIVsubA --quiet *.fasta > ${sample}_HinfTopoIVSubA.tsv
         abricate --db ncbi --quiet *.fasta > ${sample}_ncbi.tsv
+        abricate --db plasmidfinder --quiet *.fasta > ${sample}_plasmidfinder.tsv
         #Integration Abricate
     else
         abricate-get_db --db ncbi --force
         abricate-get_db --db vfdb --force
+        abricate-get_db --db plasmidfinder --force
         abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv
         abricate --db ncbi --quiet *.fasta > ${sample}_ncbi.tsv
+        abricate --db plasmidfinder --quiet *.fasta > ${sample}_plasmidfinder.tsv
         #Dummy file
     fi
 
@@ -391,6 +398,37 @@ process Seroba {
     """
 }
 
+process STX { 
+    container 'garcianacho/top:virfinder'
+    cpus 1
+    maxForks = 1
+
+    input:
+    path(r1)
+    path(r2)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*"), emit: stx_results
+
+    script:
+
+    """
+    if test -f "Ecol.agent"; 
+    then
+    
+    virulencefinder.py -i ${r1} ${r2} -o .
+    mv data.json ${sample}_virfinder.json
+
+    else
+        echo "NoEcol" > ${sample}_virfinder.json
+    fi
+
+    """
+}
+
+
 
 process EMMtyper { 
     container 'garcianacho/top:emmtyper'
@@ -421,7 +459,6 @@ process EMMtyper {
 
 }
 
-
 workflow {
    sample_reads = Channel.fromFilePairs( params.reads )
    trimmed=Trimming(sample_reads)
@@ -435,6 +472,7 @@ workflow {
    hicap=Hicap(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    seroba=Seroba(mlst.r1mlst, mlst.r2mlst, mlst.sample_frommlst, mlst.agent)
    emmtyp=EMMtyper(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+   stxtyp=STX(mlst.r1mlst, mlst.r2mlst, mlst.sample_frommlst, mlst.agent)
    integ=Integration(kkraw.collect(),
                      kkcon.collect(),
                      ktrim.collect(),
@@ -449,5 +487,6 @@ workflow {
                      hicap.hicap_results.collect(),
                      seroba.seroba_results.collect(),
                      mapped.bt2depth.collect(),
-                     emmtyp.emm_results.collect())
+                     emmtyp.emm_results.collect(),
+                     stxtyp.stx_results.collect())
 }

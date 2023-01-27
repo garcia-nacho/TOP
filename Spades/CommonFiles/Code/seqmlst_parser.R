@@ -25,9 +25,15 @@ if(nrow(results)>1) results<-results[1,]
 
 dumm.db<-document$databases[[which(document$name==tolower(gsub(" .*","",results$rMLST_taxon)))]]
 
-isolatesurl<-dumm.db$href[grep(paste(results$rMLST_taxon,"isolates"),dumm.db$description)]
-sequrl<-dumm.db$href[grep(paste(results$rMLST_taxon,"sequence"),dumm.db$description)]
+if(length(grep("Escherichia",results$rMLST_taxon))==1){
+  isolatesurl<-dumm.db$href[grep("isolates",dumm.db$description)]
+  sequrl<-dumm.db$href[grep("sequence",dumm.db$description)]  
+}else{
+  isolatesurl<-dumm.db$href[grep(paste(results$rMLST_taxon,"isolates"),dumm.db$description)]
+  sequrl<-dumm.db$href[grep(paste(results$rMLST_taxon,"sequence"),dumm.db$description)]  
+} 
 
+  
 #write(paste(sequrl,"/schemes/1/sequence",sep = ""), stdout())
 inputfasta<-list.files(pattern = "clean_contigs.fasta")
 #system(paste("/media/nacho/Data/DockerImages/TOP/Spades/CommonFiles/Code/REST_Runner.sh",inputfasta,paste(sequrl,"/schemes/1/sequence",sep = ""),"dummy.json"))
@@ -39,27 +45,30 @@ df<-fromJSON(input)
 
   if(!is.null(df$fields$ST)){
   output<-as.data.frame(df$fields$ST )
-  colnames(output)<-"ST"
+  colnames(output)<-"MLST.Type"
   output$ClonalComplex<-df$fields$clonal_complex
+  sch<-vector()
   for (i in 1:length(df$exact_matches)) {
-    paste(df$exact_matches[[i]]$allele_id,collapse = "/")
-    colnames(output)[which(colnames(output)=="dummy")]<-names(df$exact_matches)[i]
+    sch<-c(sch,paste(names(df$exact_matches)[i],":",df$exact_matches[[i]]$allele_id,sep = ""))
+    #output$dummy<-paste(df$exact_matches[[i]]$allele_id,collapse = "/")
+    #colnames(output)[which(colnames(output)=="dummy")]<-names(df$exact_matches)[i]
   }
   }else{
   output<-as.data.frame(NA)  
-  colnames(output)<-"ST"
+  colnames(output)<-"MLST.Type"
   output$ClonalComplex<-df$fields$clonal_complex
+  sch<-vector()
   for (i in 1:length(df$exact_matches)) {
-    paste(df$exact_matches[[i]]$allele_id,collapse = "/")
-    colnames(output)[which(colnames(output)=="dummy")]<-names(df$exact_matches)[i]
+    sch<-c(sch,paste(names(df$exact_matches)[i],":",df$exact_matches[[i]]$allele_id,sep = ""))
+    #output$dummy<-paste(df$exact_matches[[i]]$allele_id,collapse = "/")
+    #colnames(output)[which(colnames(output)=="dummy")]<-names(df$exact_matches)[i]
   }
   }
 
 }else{
   output<-as.data.frame(NA)  
-  colnames(output)<-"ST"
+  colnames(output)<-"MLST.Type"
 }
-
 
 output$Sample<-gsub(".*/","",gsub("_clean_contigs.fasta","",inputfasta))
 output$MLST_Date<-date
@@ -68,9 +77,12 @@ shortname<-results$rMLST_taxon
 shortname<-paste(unlist(base::strsplit(gsub(" .*", "",shortname),""))[1] ,
       paste(unlist(base::strsplit(gsub(".* ", "",shortname),""))[c(1:3)],collapse = ""),sep = "")
 
-colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))]<-paste(shortname, colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))],sep = "_")
+output$MLST.Scheme<-paste(sch,collapse = " | ")
+
+#colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))]<-paste(shortname, colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))],sep = "_")
 
 write.csv(output, gsub("_clean_contigs.fasta","_seqmlst.csv", inputfasta),row.names = FALSE )
 if(exists("input")) file.rename(input, gsub("_clean_contigs.fasta","_seqmlst.json", inputfasta))
 write.table(shortname, paste(shortname,".agent",sep=""), row.names =FALSE, col.names=FALSE, quote = FALSE )
-write.table(results$rMLST_genus, paste(results$rMLST_genus,".genus",sep=""), row.names =FALSE, col.names=FALSE, quote = FALSE )
+
+write.table(results$rMLST_genus, paste(gsub("/","_",results$rMLST_genus),".genus",sep=""), row.names =FALSE, col.names=FALSE, quote = FALSE )

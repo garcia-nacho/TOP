@@ -273,6 +273,107 @@ for (i in 1:length(emlist)) {
 out.emm$Sample<-gsub("_.*","",out.emm$Sample)
 summ<-merge(summ, out.emm, by="Sample", all.x=TRUE)
 
+
+# STXTyping ---------------------------------------------------------------
+library(jsonlite)
+stxlist<-list.files(pattern = "_virfinder.json")
+for (i in 1:length(stxlist)) {
+  if(exists("dum.json")) rm(dum.json)
+  try(dum.json<-fromJSON(stxlist[i]),silent = TRUE)
+  if(!exists("dum.json")) dum.json<-vector()
+  if(exists("stx.table.out")) rm(stx.table.out)
+  if(exists("output.stx"))rm(output.stx)
+  if(length(dum.json)>0){
+    output.stx<-dum.json$virulencefinder$results$`Escherichia coli`$stx  
+  }else{
+    output.stx<-vector()
+  }
+  
+  if(length(output.stx)>0){
+    for (j in 1:length(output.stx)) {
+      stx.table<-as.data.frame(t(unlist(output.stx[[j]])))
+      if(!exists("stx.table.out")){
+        stx.table.out<-stx.table
+      }else{
+        stx.table.out<-rbind(stx.table.out,stx.table)
+      }
+    }
+   stx.table.out$Sample<-gsub("_.*","",stxlist[i])
+   stx.table.out<-stx.table.out[c(1,2,10,13)]
+   colnames(stx.table.out)<-c("StxType","StxIdentity","StxInfo","Sample")
+   write.csv(stx.table.out, paste(gsub("_.*","",stxlist[i]),"_STXType.csv",sep = ""),row.names = FALSE)
+   if(nrow(stx.table.out)>1){
+     stx.table.out$StxType[1]<-paste(stx.table.out$StxType, collapse ="/" )
+     stx.table.out$StxIdentity[1]<-paste(stx.table.out$StxIdentity, collapse ="/" )
+     stx.table.out$StxInfo[1]<-paste(stx.table.out$StxInfo, collapse ="/" )
+     stx.table.out<-stx.table.out[1,,drop=FALSE]
+   }
+  }else{
+    stx.table.out<-as.data.frame(matrix(NA, ncol =4, nrow = 1 ))
+    colnames(stx.table.out)<-c("StxType","StxIdentity","StxInfo","Sample")
+    stx.table.out$Sample<-gsub("_.*","",stxlist[i])
+  }
+ if(!exists("stx.out.final")){
+   stx.out.final<-stx.table.out
+ }else{
+   stx.out.final<-rbind(stx.out.final, stx.table.out)
+ }
+  }
+
+
+summ<-merge(summ, stx.out.final, by="Sample", all.x=TRUE)
+rm(stx.out.final)
+# VFyping ---------------------------------------------------------------
+library(jsonlite)
+stxlist<-list.files(pattern = "_virfinder.json")
+for (i in 1:length(stxlist)) {
+  if(exists("dum.json")) rm(dum.json)
+  try(dum.json<-fromJSON(stxlist[i]),silent = TRUE)
+  if(!exists("dum.json")) dum.json<-vector()
+  if(exists("stx.table.out")) rm(stx.table.out)
+  if(exists("output.stx"))rm(output.stx)
+  if(length(dum.json)>0){
+    output.stx<-dum.json$virulencefinder$results$`Escherichia coli`$virulence_ecoli 
+  }else{
+    output.stx<-vector()
+  }
+  
+  if(length(output.stx)>0){
+    for (j in 1:length(output.stx)) {
+      stx.table<-as.data.frame(t(unlist(output.stx[[j]])))
+      if(!exists("stx.table.out")){
+        stx.table.out<-stx.table
+      }else{
+        stx.table.out<-rbind(stx.table.out,stx.table)
+      }
+    }
+    stx.table.out$Sample<-gsub("_.*","",stxlist[i])
+    stx.table.out<-stx.table.out[c(1,2,10,13)]
+    colnames(stx.table.out)<-c("VirulenceFactorEcoli","VFEcoli_Identity","VFEcoli_Info","Sample")
+    write.csv(stx.table.out, paste(gsub("_.*","",stxlist[i]),"_Virulencefactors.csv",sep = ""),row.names = FALSE)
+    if(nrow(stx.table.out)>1){
+      stx.table.out$VirulenceFactorEcoli[1]<-paste(stx.table.out$VirulenceFactorEcoli, collapse ="/" )
+      stx.table.out$VFEcoli_Identity[1]<-paste(stx.table.out$VFEcoli_Identity, collapse ="/" )
+      stx.table.out$VFEcoli_Info[1]<-paste(stx.table.out$VFEcoli_Info, collapse ="/" )
+      stx.table.out<-stx.table.out[1,,drop=FALSE]
+    }
+    
+  }else{
+    stx.table.out<-as.data.frame(matrix(NA, ncol =4, nrow = 1 ))
+    colnames(stx.table.out)<-c("VirulenceFactorEcoli","VFEcoli_Identity","VFEcoli_Info","Sample")
+    stx.table.out$Sample<-gsub("_.*","",stxlist[i])
+  }
+  if(!exists("stx.out.final")){
+    stx.out.final<-stx.table.out
+  }else{
+    stx.out.final<-rbind(stx.out.final, stx.table.out)
+  }
+}
+
+summ<-merge(summ, stx.out.final, by="Sample", all.x=TRUE)
+# Last Stage --------------------------------------------------------------
+
+
 empty.col<-apply(summ, 2, function(x) length(which(is.na(x))))
 empty.col<-as.numeric(empty.col)
 empty.col<-as.numeric(which(empty.col==nrow(summ)))
