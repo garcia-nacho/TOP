@@ -278,6 +278,8 @@ process Integration {
     mv *depth.tsv ./QC
     mv *_seqmlst.csv ./QC
     mv *_rmlst.csv ./QC
+    mv *_Virulencefactors.csv ./
+    mv *_STXType.csv ./
   
     mv *_Abricate.csv ./QC
 

@@ -1,5 +1,6 @@
 library(data.table)
 library(writexl)
+library(jsonlite)
 summaries<-list.files(pattern = "*contigs.stats.csv")
 krakens<-list.files(pattern = "*resultskraken.csv")
 fastqc<-list.files(pattern = "*fastqc.zip")
@@ -156,7 +157,8 @@ for (i in 1:length(rmlist)) {
   if(!exists("out.seqmlst")){
     out.seqmlst<-dummy
   }else{
-    if(length(setdiff(colnames(out.seqmlst), colnames(dummy) ))>0){
+    if(length(setdiff(colnames(out.seqmlst), colnames(dummy) ))>0 | 
+       length(setdiff(colnames(dummy), colnames(out.seqmlst) ))>0){
       dummy[setdiff(names(out.seqmlst), names(dummy))] <- NA
       out.seqmlst[setdiff(names(dummy), names(out.seqmlst))] <- NA  
     }
@@ -275,7 +277,9 @@ summ<-merge(summ, out.emm, by="Sample", all.x=TRUE)
 
 
 # STXTyping ---------------------------------------------------------------
-library(jsonlite)
+
+if(exists("stx.table.out")) rm(stx.table.out)
+if(exists("stx.out.final"))rm(stx.out.final)
 stxlist<-list.files(pattern = "_virfinder.json")
 for (i in 1:length(stxlist)) {
   if(exists("dum.json")) rm(dum.json)
@@ -299,13 +303,27 @@ for (i in 1:length(stxlist)) {
       }
     }
    stx.table.out$Sample<-gsub("_.*","",stxlist[i])
-   stx.table.out<-stx.table.out[c(1,2,10,13)]
-   colnames(stx.table.out)<-c("StxType","StxIdentity","StxInfo","Sample")
+   
+   if(stx.table.out[1,1]=="No hit found"){
+     colnames(stx.table.out)[1]<-"StxType"
+     stx.table.out$StxIdentity<-NA
+     stx.table.out$StxInfo<-NA
+     stx.table.out$StxVariant<-NA
+   }else{
+     stx.table.out<-stx.table.out[c(1,2,10,13)]
+     colnames(stx.table.out)<-c("StxType","StxIdentity","StxInfo","Sample")
+     stx.table.out$StxVariant<-paste(stx.table.out$StxType, gsub(".*, ","",stx.table.out$StxInfo ),sep = ":")
+     stx.table.out$StxInfo<-gsub(", .*","",stx.table.out$StxInfo )
+   }
+     
+
    write.csv(stx.table.out, paste(gsub("_.*","",stxlist[i]),"_STXType.csv",sep = ""),row.names = FALSE)
    if(nrow(stx.table.out)>1){
-     stx.table.out$StxType[1]<-paste(stx.table.out$StxType, collapse ="/" )
-     stx.table.out$StxIdentity[1]<-paste(stx.table.out$StxIdentity, collapse ="/" )
-     stx.table.out$StxInfo[1]<-paste(stx.table.out$StxInfo, collapse ="/" )
+     stx.table.out$StxType[1]<-paste(stx.table.out$StxType, collapse =" | " )
+     stx.table.out$StxIdentity[1]<-paste(stx.table.out$StxIdentity, collapse =" | " )
+     stx.table.out$StxInfo[1]<-paste(stx.table.out$StxInfo, collapse =" | " )
+     stx.table.out$StxVariant[1]<-paste(stx.table.out$StxVariant, collapse =" | " )
+     
      stx.table.out<-stx.table.out[1,,drop=FALSE]
    }
   }else{
@@ -318,14 +336,17 @@ for (i in 1:length(stxlist)) {
  }else{
    stx.out.final<-rbind(stx.out.final, stx.table.out)
  }
-  }
+}
 
+stx.out.final<-stx.out.final[,c(1,5,2,3,4)]
 
 summ<-merge(summ, stx.out.final, by="Sample", all.x=TRUE)
 rm(stx.out.final)
 # VFyping ---------------------------------------------------------------
-library(jsonlite)
+
 stxlist<-list.files(pattern = "_virfinder.json")
+if(exists("stx.table.out")) rm(stx.table.out)
+if(exists("stx.out.final"))rm(stx.out.final)
 for (i in 1:length(stxlist)) {
   if(exists("dum.json")) rm(dum.json)
   try(dum.json<-fromJSON(stxlist[i]),silent = TRUE)
@@ -348,13 +369,25 @@ for (i in 1:length(stxlist)) {
       }
     }
     stx.table.out$Sample<-gsub("_.*","",stxlist[i])
-    stx.table.out<-stx.table.out[c(1,2,10,13)]
-    colnames(stx.table.out)<-c("VirulenceFactorEcoli","VFEcoli_Identity","VFEcoli_Info","Sample")
+    
+    if(stx.table.out[1,1]=="No hit found"){
+      colnames(stx.table.out)[1]<-"VirulenceFactorEcoli"
+      stx.table.out$VFEcoli_Identity<-NA
+      stx.table.out$VFEcoli_Info<-NA
+    }else{
+      stx.table.out<-stx.table.out[c(1,2,10,13)]
+      colnames(stx.table.out)<-c("VirulenceFactorEcoli","VFEcoli_Identity","VFEcoli_Info","Sample")
+    }
+    
+    
     write.csv(stx.table.out, paste(gsub("_.*","",stxlist[i]),"_Virulencefactors.csv",sep = ""),row.names = FALSE)
+    stx.table.out$VFEcoli_Info<-gsub("^ +","",stx.table.out$VFEcoli_Info) 
+    
     if(nrow(stx.table.out)>1){
-      stx.table.out$VirulenceFactorEcoli[1]<-paste(stx.table.out$VirulenceFactorEcoli, collapse ="/" )
-      stx.table.out$VFEcoli_Identity[1]<-paste(stx.table.out$VFEcoli_Identity, collapse ="/" )
-      stx.table.out$VFEcoli_Info[1]<-paste(stx.table.out$VFEcoli_Info, collapse ="/" )
+      stx.table.out$VirulenceFactorEcoli[1]<-paste(stx.table.out$VirulenceFactorEcoli, collapse =" | " )
+      stx.table.out$VFEcoli_Identity[1]<-paste(stx.table.out$VFEcoli_Identity, collapse =" | " )
+      stx.table.out$VFEcoli_Info[1]<-paste(stx.table.out$VFEcoli_Info, collapse =" | " )
+      
       stx.table.out<-stx.table.out[1,,drop=FALSE]
     }
     
