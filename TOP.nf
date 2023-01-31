@@ -252,6 +252,7 @@ process Integration {
     path(depth)
     path(emmtyp)
     path(stxtp)
+    path(stxtp_contig)
   
     output:
     path ("*")
@@ -278,9 +279,8 @@ process Integration {
     mv *depth.tsv ./QC
     mv *_seqmlst.csv ./QC
     mv *_rmlst.csv ./QC
-    mv *_Virulencefactors.csv ./
-    mv *_STXType.csv ./
-  
+    mv *_Virulencefactors.csv ./QC
+    mv *_STXType.csv ./QC
     mv *_Abricate.csv ./QC
 
     if test -f "*.tsv"; then mv *.tsv ./QC; fi
@@ -412,7 +412,7 @@ process STX {
     path(agent)
 
     output:
-    path("*"), emit: stx_results
+    path("*_fastq_virfinder.json"), emit: stx_results
 
     script:
 
@@ -421,15 +421,43 @@ process STX {
     then
     
     virulencefinder.py -i ${r1} ${r2} -o .
-    mv data.json ${sample}_virfinder.json
+    mv data.json ${sample}_fastq_virfinder.json
 
     else
-        echo "NoEcol" > ${sample}_virfinder.json
+        echo "NoEcol" > ${sample}_fastq_virfinder.json
     fi
 
     """
 }
 
+process STX_Contigs { 
+    container 'garcianacho/top:virfinder'
+    cpus 1
+    maxForks = 1
+
+    input:
+    path(fastaclean)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*_contigs_virfinder.json"), emit: stx_contigs_results
+
+    script:
+
+    """
+    if test -f "Ecol.agent"; 
+    then
+    
+    virulencefinder.py -i ${sample}_clean_contigs.fasta -o .
+    mv data.json ${sample}_contigs_virfinder.json
+
+    else
+        echo "NoEcol" > ${sample}_contigs_virfinder.json
+    fi
+
+    """
+}
 
 
 process EMMtyper { 
@@ -475,6 +503,7 @@ workflow {
    seroba=Seroba(mlst.r1mlst, mlst.r2mlst, mlst.sample_frommlst, mlst.agent)
    emmtyp=EMMtyper(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    stxtyp=STX(mlst.r1mlst, mlst.r2mlst, mlst.sample_frommlst, mlst.agent)
+   stxtypcontig=STX_Contigs(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    integ=Integration(kkraw.collect(),
                      kkcon.collect(),
                      ktrim.collect(),
@@ -490,5 +519,6 @@ workflow {
                      seroba.seroba_results.collect(),
                      mapped.bt2depth.collect(),
                      emmtyp.emm_results.collect(),
-                     stxtyp.stx_results.collect())
+                     stxtyp.stx_results.collect(),
+                     stxtypcontig.stx_contigs_results.collect())
 }

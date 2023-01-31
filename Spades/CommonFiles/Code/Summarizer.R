@@ -243,6 +243,7 @@ for (i in 1:length(serolist)) {
 }
 
 out.seroba$Sample<-gsub("_.*","",out.seroba$Sample)
+summ<-merge(summ, out.seroba, by="Sample", all.x=TRUE)
 
 
 
@@ -277,10 +278,14 @@ summ<-merge(summ, out.emm, by="Sample", all.x=TRUE)
 
 
 # STXTyping ---------------------------------------------------------------
+patterns<- c("_fastq_virfinder.json", "_contigs_virfinder.json")
+lab<-c("Mapping", "Contigs")
 
+for (hl in 1:length(patterns)) {
+  
 if(exists("stx.table.out")) rm(stx.table.out)
 if(exists("stx.out.final"))rm(stx.out.final)
-stxlist<-list.files(pattern = "_virfinder.json")
+stxlist<-list.files(pattern = patterns[hl])
 for (i in 1:length(stxlist)) {
   if(exists("dum.json")) rm(dum.json)
   try(dum.json<-fromJSON(stxlist[i]),silent = TRUE)
@@ -340,11 +345,22 @@ for (i in 1:length(stxlist)) {
 
 stx.out.final<-stx.out.final[,c(1,5,2,3,4)]
 
+colnames(stx.out.final)[-which(colnames(stx.out.final)=="Sample")]<-
+  paste(colnames(stx.out.final)[-which(colnames(stx.out.final)=="Sample")], lab[hl],sep = "_")
+
 summ<-merge(summ, stx.out.final, by="Sample", all.x=TRUE)
 rm(stx.out.final)
+
+}
+
 # VFyping ---------------------------------------------------------------
 
-stxlist<-list.files(pattern = "_virfinder.json")
+patterns<- c("_fastq_virfinder.json", "_contigs_virfinder.json")
+lab<-c("Mapping", "Contigs")
+
+for (hl in 1:length(patterns)) {
+
+stxlist<-list.files(pattern = patterns[hl])
 if(exists("stx.table.out")) rm(stx.table.out)
 if(exists("stx.out.final"))rm(stx.out.final)
 for (i in 1:length(stxlist)) {
@@ -403,7 +419,11 @@ for (i in 1:length(stxlist)) {
   }
 }
 
+colnames(stx.out.final)[-which(colnames(stx.out.final)=="Sample")]<-
+  paste(colnames(stx.out.final)[-which(colnames(stx.out.final)=="Sample")], lab[hl],sep = "_")
+
 summ<-merge(summ, stx.out.final, by="Sample", all.x=TRUE)
+}
 # Last Stage --------------------------------------------------------------
 
 
