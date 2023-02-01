@@ -77,7 +77,7 @@ shortname<-results$rMLST_taxon
 shortname<-paste(unlist(base::strsplit(gsub(" .*", "",shortname),""))[1] ,
       paste(unlist(base::strsplit(gsub(".* ", "",shortname),""))[c(1:3)],collapse = ""),sep = "")
 
-output$MLST.Scheme<-paste(sch,collapse = " | ")
+output$MLST.Scheme<-paste(sch[order(sch)],collapse = " | ")
 
 #colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))]<-paste(shortname, colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))],sep = "_")
 
