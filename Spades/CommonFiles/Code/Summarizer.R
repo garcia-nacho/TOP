@@ -322,7 +322,6 @@ for (i in 1:length(stxlist)) {
    }
      
 
-   write.csv(stx.table.out, paste(gsub("_.*","",stxlist[i]),"_STXType.csv",sep = ""),row.names = FALSE)
    if(nrow(stx.table.out)>1){
      stx.table.out$StxType[1]<-paste(stx.table.out$StxType, collapse =" | " )
      stx.table.out$StxIdentity[1]<-paste(stx.table.out$StxIdentity, collapse =" | " )
@@ -336,6 +335,8 @@ for (i in 1:length(stxlist)) {
     colnames(stx.table.out)<-c("StxType","StxIdentity","StxInfo","Sample")
     stx.table.out$Sample<-gsub("_.*","",stxlist[i])
   }
+  write.csv(stx.table.out, paste(gsub("_.*","",stxlist[i]),"_STXType.csv",sep = ""),row.names = FALSE)
+  
  if(!exists("stx.out.final")){
    stx.out.final<-stx.table.out
  }else{
@@ -343,7 +344,7 @@ for (i in 1:length(stxlist)) {
  }
 }
 
-stx.out.final<-stx.out.final[,c(1,5,2,3,4)]
+#stx.out.final<-stx.out.final[,c(1,5,2,3,4)]
 
 colnames(stx.out.final)[-which(colnames(stx.out.final)=="Sample")]<-
   paste(colnames(stx.out.final)[-which(colnames(stx.out.final)=="Sample")], lab[hl],sep = "_")
@@ -411,6 +412,8 @@ for (i in 1:length(stxlist)) {
     stx.table.out<-as.data.frame(matrix(NA, ncol =4, nrow = 1 ))
     colnames(stx.table.out)<-c("VirulenceFactorEcoli","VFEcoli_Identity","VFEcoli_Info","Sample")
     stx.table.out$Sample<-gsub("_.*","",stxlist[i])
+    write.csv(stx.table.out, paste(gsub("_.*","",stxlist[i]),"_Virulencefactors.csv",sep = ""),row.names = FALSE)
+    
   }
   if(!exists("stx.out.final")){
     stx.out.final<-stx.table.out
