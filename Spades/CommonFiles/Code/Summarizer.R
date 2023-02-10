@@ -201,7 +201,8 @@ for (i in 1:length(hicaplist)) {
   if(!exists("out.hicap")){
     out.hicap<-dummy
   }else{
-    if(length(setdiff(colnames(out.hicap), colnames(dummy) ))>0){
+    if(length(setdiff(colnames(out.hicap), colnames(dummy) ))>0 | 
+       length(setdiff(colnames(dummy), colnames(out.hicap) ))>0){
       dummy[setdiff(names(out.hicap), names(dummy))] <- NA
       out.hicap[setdiff(names(dummy), names(out.hicap))] <- NA  
     }
@@ -304,6 +305,14 @@ for (i in 1:length(stxlist)) {
       if(!exists("stx.table.out")){
         stx.table.out<-stx.table
       }else{
+        
+        if(length(setdiff(colnames(stx.table.out), colnames(stx.table) ))>0 | 
+           length(setdiff(colnames(stx.table), colnames(stx.table.out) ))>0){
+          stx.table[setdiff(names(stx.table.out), names(stx.table))] <- NA
+          stx.table.out[setdiff(names(stx.table), names(stx.table.out))] <- NA
+        }
+        
+        
         stx.table.out<-rbind(stx.table.out,stx.table)
       }
     }
@@ -340,6 +349,12 @@ for (i in 1:length(stxlist)) {
  if(!exists("stx.out.final")){
    stx.out.final<-stx.table.out
  }else{
+   if(length(setdiff(colnames(stx.table.out), colnames(stx.out.final) ))>0 | 
+      length(setdiff(colnames(stx.out.final), colnames(stx.table.out) ))>0){
+     stx.out.final[setdiff(names(stx.table.out), names(stx.out.final))] <- NA
+     stx.table.out[setdiff(names(stx.out.final), names(stx.table.out))] <- NA
+   }
+   
    stx.out.final<-rbind(stx.out.final, stx.table.out)
  }
 }
