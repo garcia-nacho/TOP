@@ -84,4 +84,8 @@ COPY Code/ /home/docker/Code
 RUN chmod -R +rwx /home/docker/Code/* \
     && chmod 777 /Data 
 USER docker
+RUN abricate-get_db --db ncbi --force &&\
+    abricate-get_db --db vfdb --force &&\
+    abricate-get_db --db plasmidfinder --force
+
 WORKDIR /Data

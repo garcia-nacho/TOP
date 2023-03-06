@@ -451,5 +451,28 @@ empty.col<-as.numeric(which(empty.col==nrow(summ)))
 
 if(length(empty.col)>0) summ<-summ[,-empty.col]
 
-write.csv(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".csv",sep = ""), row.names = FALSE)
+
+#summary.txt in .fastq.gz. If Basic statistics = PASS -> OK else -> WARN
+
 write_xlsx(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".xlsx",sep = ""))
+
+
+
+#Implementation for LW
+summ$MLST.Scheme<-paste("| ", summ$MLST.Scheme," |",sep = "")
+to.separate<-apply(summ, 2, function(x)length(grep(",",x)))
+to.separate<-which(to.separate>0)
+if(length(to.separate)>0){
+  for (col.to.sep in to.separate) {
+    summ[,col.to.sep]<-paste("| ",gsub(","," |",summ[,col.to.sep])," |",sep = "")
+  }
+}
+
+to.delete<-apply(summ, 2, function(x)length(which(x=="| NA |")))
+to.delete<-which(to.delete>0)
+if(length(to.delete)>0){
+  for (col.to.del in to.delete) {
+    summ[which(summ[,col.to.del]=="| NA |"),col.to.del]<-NA
+  }
+}
+write.csv(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".csv",sep = ""), row.names = FALSE)

@@ -15,7 +15,7 @@ process Trimming {
  
     container 'garcianacho/top:spades'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
-
+    errorStrategy 'ignore'
     maxForks = params.threads - 1
     tag { sample }
 
@@ -104,6 +104,10 @@ process Spades {
 process Rmlst {
     container 'garcianacho/top:spades'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
+    errorStrategy 'retry'
+    maxRetries 10
+    maxForks = 1
+
     input:
     path(input)
     val(sample)
@@ -218,7 +222,8 @@ process Mapping {
     samtools sort ${sample}.bam -o ${sample}.sorted.bam
     samtools index ${sample}.sorted.bam
     samtools depth -a ${sample}.sorted.bam > ${sample}_depth.tsv
-    
+    rm ${sample}.sam
+    rm ${sample}.bam
     """ 
 
 }
@@ -308,9 +313,9 @@ process Abricate {
     """
     if test -f "Hinf.agent"; 
     then
-        abricate-get_db --db ncbi --force
-        abricate-get_db --db vfdb --force
-        abricate-get_db --db plasmidfinder --force
+        #abricate-get_db --db ncbi --force
+        #abricate-get_db --db vfdb --force
+        #abricate-get_db --db plasmidfinder --force
         abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv 
         abricate --db HinfFtsI --quiet *.fasta > ${sample}_HinfFtsI.tsv
         abricate --db HinfGyrSubA --quiet *.fasta > ${sample}_HinfGyrSubA.tsv
@@ -406,10 +411,11 @@ process STX {
     maxForks = 1
 
     input:
-    path(r1)
-    path(r2)
+    //path(r1)
+    //path(r2)
     val(sample)
     path(agent)
+    path(rawreads)
 
     output:
     path("*_fastq_virfinder.json"), emit: stx_results
@@ -419,8 +425,10 @@ process STX {
     """
     if test -f "Ecol.agent"; 
     then
-    
-    virulencefinder.py -i ${r1} ${r2} -o .
+    r1=\$(ls ${sample}*R1*.fastq.gz)
+    r2=\$(ls ${sample}*R2*.fastq.gz)
+
+    virulencefinder.py -i \${r1} \${r2} -o .
     mv data.json ${sample}_fastq_virfinder.json
 
     else
@@ -491,6 +499,7 @@ process EMMtyper {
 
 workflow {
    sample_reads = Channel.fromFilePairs( params.reads )
+   all_raw_reads = Channel.fromPath(params.reads)
    trimmed=Trimming(sample_reads)
    ktrim=KrakenTrimmed(trimmed)
    kkraw=KrakenRaw(sample_reads)
@@ -502,7 +511,8 @@ workflow {
    hicap=Hicap(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    seroba=Seroba(mlst.r1mlst, mlst.r2mlst, mlst.sample_frommlst, mlst.agent)
    emmtyp=EMMtyper(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
-   stxtyp=STX(mlst.r1mlst, mlst.r2mlst, mlst.sample_frommlst, mlst.agent)
+   //stxtyp=STX(mlst.r1mlst, mlst.r2mlst, mlst.sample_frommlst, mlst.agent, all_raw_reads)
+   stxtyp=STX(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    stxtypcontig=STX_Contigs(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    integ=Integration(kkraw.collect(),
                      kkcon.collect(),

@@ -18,5 +18,10 @@ echo "Unpacking Kraken database"
 echo ""
 tar -xvzf ${1}/krakenDB https://genome-idx.s3.amazonaws.com/kraken/k2_standard_20220926.tar.gz
 
-echo "Installing docker images"
+echo "Downloading docker images"
 echo ""
+docker pull 
+
+source activate top_nf
+ln -s ${1}/krakenDB ${CONDA_PREFIX}/krakenDB
+conda deactivate

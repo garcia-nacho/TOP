@@ -33,15 +33,40 @@ if(length(grep("Escherichia",results$rMLST_taxon))==1){
   sequrl<-dumm.db$href[grep(paste(results$rMLST_taxon,"sequence"),dumm.db$description)]  
 } 
 
+schemes.url<-paste(sequrl,"/schemes",sep = "")
+system(paste("GET ", schemes.url, " > ", "schemes.json",sep = ""))
+
+if(file.exists("schemes.json")){
+  schemes <- fromJSON(txt="schemes.json")
+  sequrl<- schemes$schemes$scheme[which(schemes$schemes$description=="cgMLST")]
+  system("rm current_db.json")
+}else{
+  rm(sequrl)
+}
+
+system("GET https://rest.pubmlst.org/db/pubmlst_escherichia_seqdef/schemes/6/profiles_csv > profiles.csv" )
+a<-read.csv("/media/nacho/Data/temp/test/profiles.list",sep = "\t")
 
 #write(paste(sequrl,"/schemes/1/sequence",sep = ""), stdout())
 inputfasta<-list.files(pattern = "clean_contigs.fasta")
-#system(paste("/media/nacho/Data/DockerImages/TOP/Spades/CommonFiles/Code/REST_Runner.sh",inputfasta,paste(sequrl,"/schemes/2/sequence",sep = ""),"dummy.json"))
+#system(paste("/media/nacho/Data/DockerImages/TOP/Spades/CommonFiles/Code/REST_Runner.sh",inputfasta,paste(sequrl,"/sequence",sep = ""),"dummy.json"))
 if(length(sequrl)==1){
-  system(paste("/home/docker/CommonFiles/Code/REST_Runner.sh",inputfasta,paste(sequrl,"/schemes/1/sequence",sep = ""),"dummy.json"))
+  system(paste("/home/docker/CommonFiles/Code/REST_Runner.sh",inputfasta,paste(sequrl,"/sequence",sep = ""),"dummy.json"))
   
   input<-list.files(pattern = "dummy.json")
   df<-fromJSON(input)
+  db<-as.data.frame(db)
+  
+  intersector<-list()
+  pb<-txtProgressBar(min = 1, max=length(df$exact_matches), initial = 1)
+  for (i in 1:length(df$exact_matches)) {
+    setTxtProgressBar(pb,i)
+    intersector[[i]]<- db$ST[which(db[,which(colnames(db)==names(df$exact_matches)[[i]])]== as.numeric(df$exact_matches[[i]]$allele_id))]
+  }
+  
+  intersector.tab<-as.data.frame(table(unlist(intersector)))
+  #Test enterobase
+  #Test how it works
   
   if(!is.null(df$fields$ST)){
     output<-as.data.frame(df$fields$ST )
