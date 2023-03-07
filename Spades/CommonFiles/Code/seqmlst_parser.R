@@ -71,23 +71,33 @@ df<-fromJSON(input)
   colnames(output)<-"MLST.Type"
   output$ClonalComplex<-df$fields$clonal_complex
   sch<-vector()
+
   for (i in 1:length(df$exact_matches)) {
     sch<-c(sch,paste(names(df$exact_matches)[i],":",df$exact_matches[[i]]$allele_id,sep = ""))
     #output$dummy<-paste(df$exact_matches[[i]]$allele_id,collapse = "/")
     #colnames(output)[which(colnames(output)=="dummy")]<-names(df$exact_matches)[i]
   }
+  
   }else{
   output<-as.data.frame(NA)  
   colnames(output)<-"MLST.Type"
   output$ClonalComplex<-df$fields$clonal_complex
   sch<-vector()
-  for (i in 1:length(df$exact_matches)) {
-    sch<-c(sch,paste(names(df$exact_matches)[i],":",df$exact_matches[[i]]$allele_id,sep = ""))
-    #output$dummy<-paste(df$exact_matches[[i]]$allele_id,collapse = "/")
-    #colnames(output)[which(colnames(output)=="dummy")]<-names(df$exact_matches)[i]
+  if(length(df$exact_matches)>0){ 
+
+    for (i in 1:length(df$exact_matches)) {
+      sch<-c(sch,paste(names(df$exact_matches)[i],":",df$exact_matches[[i]]$allele_id,sep = ""))
+      #output$dummy<-paste(df$exact_matches[[i]]$allele_id,collapse = "/")
+      #colnames(output)[which(colnames(output)=="dummy")]<-names(df$exact_matches)[i]
+    }
+  }else{
+      sch<-NA
+    }
   }
-  }
+
 output$MLST.Scheme<-paste(sch[order(sch)],collapse = " | ")
+if(is.na(sch)) output$MLST.Scheme<-NA
+
 }else{
   output<-as.data.frame(NA)  
   colnames(output)<-"MLST.Type"
