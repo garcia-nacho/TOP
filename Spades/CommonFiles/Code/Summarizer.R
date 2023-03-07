@@ -442,6 +442,32 @@ colnames(stx.out.final)[-which(colnames(stx.out.final)=="Sample")]<-
 
 summ<-merge(summ, stx.out.final, by="Sample", all.x=TRUE)
 }
+
+#summary.txt in .fastq.gz. If Basic statistics = PASS -> OK else -> WARN
+sum.txts<-list.files(recursive = FALSE,pattern = "Bowtie2summary.txt")
+for (i in 1:length(sum.txts)) {
+  sumdum<-read.csv(sum.txts[i],header = FALSE)
+  qual<- sumdum[grep("overall alignment rate",sumdum$V1),]
+  if(length(qual)>0){
+    qual<-(100-as.numeric(gsub("%.*","",qual)))/100
+    qual<-as.data.frame(qual)
+    colnames(qual)<-"UnmappedFraction"
+    qual$Sample<-gsub("_.*","",sum.txts[i])
+  }else{
+    qual<-as.data.frame(NA)
+    colnames(qual)<-"UnmappedFraction"
+    qual$Sample<-gsub("_.*","",sum.txts[i])
+  }
+  if(!exists("qualout")){
+    qualout<-qual
+  }else{
+    qualout<-rbind(qualout,qual)
+  }
+}
+
+
+summ<-merge(summ, qualout, by="Sample", all.x=TRUE)
+
 # Last Stage --------------------------------------------------------------
 
 
@@ -452,7 +478,7 @@ empty.col<-as.numeric(which(empty.col==nrow(summ)))
 if(length(empty.col)>0) summ<-summ[,-empty.col]
 
 
-#summary.txt in .fastq.gz. If Basic statistics = PASS -> OK else -> WARN
+
 
 write_xlsx(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".xlsx",sep = ""))
 

@@ -53,6 +53,8 @@ if(exists("dumm.db")){
     rm(sequrl)
   }
   
+}else{
+  sequrl<-vector()
 }
   
 #write(paste(sequrl,"/schemes/1/sequence",sep = ""), stdout())
