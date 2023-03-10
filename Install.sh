@@ -10,7 +10,8 @@ conda deactivate
 
 echo "Downloading Kraken database"
 echo ""
-wget -O krakenDB.tar.gz https://genome-idx.s3.amazonaws.com/kraken/k2_standard_20220926.tar.gz
+#wget -O krakenDB.tar.gz https://genome-idx.s3.amazonaws.com/kraken/k2_standard_20220926.tar.gz
+wget -O krakenDB.tar.gz https://genome-idx.s3.amazonaws.com/kraken/k2_standard_08gb_20221209.tar.gz
 
 echo "Preparing Kraken database"
 echo ""
