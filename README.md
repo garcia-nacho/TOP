@@ -10,10 +10,12 @@ The One Pipeline (aka TOP) can take fastq sequences from many different bacteria
 
 Under development   
 
-##Installation   
+## Installation   
 
-##Running TOP   
+## Running TOP   
 
-##Updating TOP   
+## Updating TOP   
 
-##Under the hood   
+## Uninstalling TOP
+
+## Under the hood   
