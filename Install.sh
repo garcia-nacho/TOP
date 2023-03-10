@@ -18,8 +18,9 @@ mkdir krakenDB
 tar -xvzf krakenDB.tar.gz -C krakenDB
 
 source activate top_nf
-ln -s krakenDB ${CONDA_PREFIX}/krakenDB
+conda env config vars set KRAKENDB=$(pwd)/krakenDB
 conda deactivate
+
 
 echo "Downloading docker images"
 echo ""
