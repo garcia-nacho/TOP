@@ -14,7 +14,8 @@ wget -O krakenDB.tar.gz https://genome-idx.s3.amazonaws.com/kraken/k2_standard_2
 
 echo "Preparing Kraken database"
 echo ""
-tar -xvzf krakenDB.tar.gz
+mkdir krakenDB
+tar -xvzf krakenDB.tar.gz -C krakenDB
 
 source activate top_nf
 ln -s krakenDB ${CONDA_PREFIX}/krakenDB
