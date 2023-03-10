@@ -27,7 +27,7 @@ The pipeline gets the last nextflow script from this github repository and there
 If any major update is eventually implemented you should uninstall TOP and install it again using the information on this repository.
    
 ## Uninstalling TOP
-Under development   
-   
+remove the TOP folder and run the following command <code>conda remove -n top_nf --all</code>
+
 ## Under the hood   
 Under development

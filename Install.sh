@@ -8,15 +8,17 @@ cp nextflow.config ${CONDA_PREFIX}/bin/nexflow.config
 
 conda deactivate
 
-#If ${1} doesnt exist go to pwd
-#echo "Downloading Kraken database"
-#echo ""
-#wget -O ${1}/krakenDB https://genome-idx.s3.amazonaws.com/kraken/k2_standard_20220926.tar.gz
+echo "Downloading Kraken database"
+echo ""
+wget -O krakenDB.tar.gz https://genome-idx.s3.amazonaws.com/kraken/k2_standard_20220926.tar.gz
 
-#echo "Unpacking Kraken database"
-#echo ""
-#tar -xvzf ${1}/krakenDB https://genome-idx.s3.amazonaws.com/kraken/k2_standard_20220926.tar.gz
+echo "Preparing Kraken database"
+echo ""
+tar -xvzf krakenDB.tar.gz
 
+source activate top_nf
+ln -s krakenDB ${CONDA_PREFIX}/krakenDB
+conda deactivate
 
 echo "Downloading docker images"
 echo ""
@@ -28,6 +30,3 @@ docker pull ghcr.io/garcia-nacho/top_seroba
 docker pull ghcr.io/garcia-nacho/top_virfinder
 docker pull ghcr.io/garcia-nacho/top_prokka
 
-source activate top_nf
-ln -s ${1}/krakenDB ${CONDA_PREFIX}/krakenDB
-conda deactivate
