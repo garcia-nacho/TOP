@@ -8,12 +8,13 @@ params.publishDir = params.readsfolder+"/TOPresults"
 params.threads = 10
 params.toolcores = 2
 params.forceSp="none"
+params.krakenDB="/media/nacho/Data/kraken2_standard_20220926/"
 
 params.reads=params.readsfolder+"/*/*_{R1,R2}*.fastq.gz"
 
 process Trimming {
  
-    container 'garcianacho/top:spades'
+    container 'ghcr.io/garcia-nacho/top_spades'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
     errorStrategy 'ignore'
     maxForks = params.threads - 1
@@ -42,8 +43,8 @@ process Trimming {
 }
 
 process KrakenRaw {
-    container 'garcianacho/top:spades'
-    containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
+    container 'ghcr.io/garcia-nacho/top_spades'
+    containerOptions '--volume '+params.krakenDB+':/Kraken2DB'
     maxForks = 1
     
     input:
@@ -70,7 +71,7 @@ process KrakenRaw {
 
 process Spades {
 
-    container 'garcianacho/top:spades'
+    container 'ghcr.io/garcia-nacho/top_spades'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
 
     maxForks = params.threads - 2
@@ -102,7 +103,7 @@ process Spades {
 }
 
 process Rmlst {
-    container 'garcianacho/top:spades'
+    container 'ghcr.io/garcia-nacho/top_spades'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
     errorStrategy 'retry'
     maxRetries 10
@@ -136,7 +137,7 @@ process Rmlst {
 }
 
 process Prokka {
-    container = 'garcianacho/prokka'
+    container = 'ghcr.io/garcia-nacho/top_prokka'
 
     input:
     path(input)
@@ -153,8 +154,8 @@ process Prokka {
 }
 
 process KrakenClean {
-    container 'garcianacho/top:spades'
-    containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
+    container 'ghcr.io/garcia-nacho/top_spades'
+    containerOptions '--volume '+params.krakenDB+':/Kraken2DB'
     maxForks = 2
     
     input:
@@ -174,7 +175,7 @@ process KrakenClean {
 
 process KrakenTrimmed {
     container 'garcianacho/top:spades'
-    containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
+    containerOptions '--volume '+params.krakenDB+':/Kraken2DB'
     maxForks = 1
     
     input:
@@ -199,8 +200,8 @@ process KrakenTrimmed {
 }
 
 process Mapping {
-    container 'garcianacho/top:spades'
-    containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
+    container 'ghcr.io/garcia-nacho/top_spades'
+    //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
 
     maxForks = 2
     
@@ -229,8 +230,7 @@ process Mapping {
 }
 
 process Integration {
-    container 'garcianacho/top:spades'
-    //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
+    container 'ghcr.io/garcia-nacho/top_spades'
     cpus 1
     maxForks = 1
 
@@ -296,7 +296,7 @@ process Integration {
 }
 
 process Abricate { 
-    container 'garcianacho/top:abricate'
+    container 'ghcr.io/garcia-nacho/top_abricate'
     cpus 1
     maxForks = 1
 
@@ -344,7 +344,7 @@ process Abricate {
 
 
 process Hicap { 
-    container 'garcianacho/top:hicap'
+    container 'ghcr.io/garcia-nacho/top_hicap'
     cpus 1
     maxForks = 1
 
@@ -374,7 +374,7 @@ process Hicap {
 }
 
 process Seroba { 
-    container 'garcianacho/top:seroba'
+    container 'ghcr.io/garcia-nacho/top_seroba'
     cpus 1
     maxForks = 1
 
@@ -406,7 +406,7 @@ process Seroba {
 }
 
 process STX { 
-    container 'garcianacho/top:virfinder'
+    container 'ghcr.io/garcia-nacho/top_virfinder'
     cpus 1
     maxForks = 1
 
@@ -439,7 +439,7 @@ process STX {
 }
 
 process STX_Contigs { 
-    container 'garcianacho/top:virfinder'
+    container 'ghcr.io/garcia-nacho/top_virfinder'
     cpus 1
     maxForks = 1
 
@@ -469,7 +469,7 @@ process STX_Contigs {
 
 
 process EMMtyper { 
-    container 'garcianacho/top:emmtyper'
+    container 'ghcr.io/garcia-nacho/top_emmtyper'
     cpus 1
     maxForks = 1
 
