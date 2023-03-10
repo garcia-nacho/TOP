@@ -1,4 +1,6 @@
 # The One Pipeline: *One pipeline to rule them all*
+[![Linux](https://svgshare.com/i/Zhy.svg)](https://svgshare.com/i/Zhy.svg)   [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://https://docker.com/)   
+
 
 The One Pipeline (aka TOP) can take fastq sequences from many different bacterial species and generate a report with
 
