@@ -2,13 +2,14 @@
 [![Linux](https://svgshare.com/i/Zhy.svg)](https://www.linux.org/)   [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://https://docker.com/) ![NF](https://badgen.net/badge/_/Nextflow/green?icon=terminal)
 
 
-The One Pipeline (aka TOP) uses Illumina paired-reads from many different bacterial species and generate a report with:
+The One Pipeline (aka TOP) uses Illumina paired-reads from many different bacterial species to generate a report with:
 
 -Species   
 -MLST   
 -AMR genes   
 -Virulence factors   
--Specific analysis for *E. coli*, *S. pyogenes*, *S. pneumonia* and *H. influenze*     
+-Specific analysis for *E. coli* (Stx genes), *S. pyogenes* (EMM type), *S. pneumonia* (Serotype) and *H. influenze* (Serotype, AMR-related-genes alleles)     
+-A lot of quality parameters (N50, L50, Q30, depth, contaminants, etc)
     
  It generates fasta files containing the genomes and bam files containing the reads aligned against these genomes. It saves all the information regarding the tools included in the pipeline.
 
