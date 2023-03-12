@@ -20,6 +20,15 @@ tar -xvzf krakenDB.tar.gz -C krakenDB
 
 source activate top_nf
 conda env config vars set KRAKENDB=$(pwd)/krakenDB
+if [[ ${1} == "--cores" ]]
+then
+conda env config vars set TOPCORES=${2}
+
+else
+conda env config vars set TOPCORES=10
+
+fi
+
 conda deactivate
 
 
