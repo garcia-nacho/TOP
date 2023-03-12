@@ -17,8 +17,7 @@ The One Pipeline (aka TOP) uses Illumina paired-reads from many different bacter
 
 ## Installation   
 To install TOP you need a computer with docker and conda installed.    
-The Install.sh script will take care of the rest of dependencies. 
-Note that the this script is under development at the moment and it will require for you to point to the kraken database. In the future the script will also install the database.     
+The <code>Install.sh</code> script will take care of the rest of dependencies. 
    
 ## Running TOP   
 The command <code>TOP.sh FolderWithFastq</code> will run the pipeline using the fastq files present in the *./FolderWithFastq* folder.   
