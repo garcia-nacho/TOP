@@ -15,7 +15,7 @@ The One Pipeline (aka TOP) uses Illumina paired-reads from many different bacter
     
  It generates fasta files containing the genomes and bam files containing the reads aligned against these genomes. It saves all the information regarding the tools included in the pipeline.
 
-## Installation   
+## Installing TOP   
 To install TOP you need a computer with docker and conda installed.    
 The <code>Install.sh</code> script will take care of the rest of dependencies. 
    
