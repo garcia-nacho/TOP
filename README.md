@@ -16,8 +16,12 @@ The One Pipeline (aka TOP) uses Illumina paired-reads from many different bacter
  It generates fasta files containing the genomes and bam files containing the reads aligned against these genomes. It saves all the information regarding the tools included in the pipeline.
 
 ## Installing TOP   
-To install TOP you need a computer with docker and conda installed.    
+To install TOP you need a computer with docker and conda installed.   
+<code>git clone https://github.com/garcia-nacho/TOP</code>   
+<code>cd TOP</code>   
+<code>./Install.sh</code>   
 The <code>Install.sh</code> script will take care of the rest of dependencies. 
+You can now link the <code>TOP.sh</code> script to any folder on your path or run it from there.   
    
 ## Running TOP   
 The command <code>TOP.sh FolderWithFastq</code> will run the pipeline using the fastq files present in the *./FolderWithFastq* folder.   
