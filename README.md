@@ -24,12 +24,14 @@ Note that the this script is under development at the moment and it will require
 The command <code>TOP.sh FolderWithFastq</code> will run the pipeline using the fastq files present in the *./FolderWithFastq* folder.   
 The pipeline is expecting a set of subfolders with two fastq files per folder. The fastq files must contain the strings R1/R2 to identify the FW and RV reads. 
 
-## Updating TOP   
-The pipeline gets the last nextflow script from this github repository and therefore it is always updated. Same with the docker images, they will we pulled on-the-fly. 
-If any major update is eventually implemented you should uninstall TOP and install it again using the information on this repository.
+## Updating TOP main script   
+To update TOP script and docker images, run <code>TOP.sh --update</code>
+      
+## Updating TOP databases and internal tools    
+TO BE DONE
    
 ## Uninstalling TOP
-remove the TOP folder and run the following command <code>conda remove -n top_nf --all</code>
+Remove the TOP folder and run the following command <code>conda remove -n top_nf --all</code>
 
 ## Under the hood   
 Under development
