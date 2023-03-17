@@ -48,6 +48,8 @@ if(exists("dumm.db")){
   if(file.exists("schemes.json")){
     schemes <- fromJSON(txt="schemes.json")
     sequrl<- schemes$schemes$scheme[which(schemes$schemes$description=="MLST")]
+    if(length(grep("Escherichia",results$rMLST_taxon))==1) sequrl<- schemes$schemes$scheme[which(schemes$schemes$description=="MLST (Achtman)")]
+    
     system("rm schemes.json")
   }else{
     rm(sequrl)
