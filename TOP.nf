@@ -6,7 +6,7 @@ nextflow.enable.dsl=2
 params.readsfolder = "."
 params.publishDir = params.readsfolder+"/TOPresults"
 params.threads = 10
-params.toolcores = 2
+params.spadescores = 8
 params.forceSp="none"
 params.krakenDB="/media/nacho/Data/kraken2_standard_20220926/"
 
@@ -74,7 +74,7 @@ process Spades {
     container 'ghcr.io/garcia-nacho/top_spades'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
 
-    maxForks = params.threads - 2
+    maxForks = spadescores
 
     input:
     tuple val(sample), path (trimmedR1), path(trimmedR2) 
