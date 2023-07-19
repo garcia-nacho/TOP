@@ -1,7 +1,7 @@
 # The One Pipeline   
 #### *One Pipeline to rule them all, One Pipeline to find them, One Pipeline to bring them all, and in the darkness bind them*   
    
-[![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)]   [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://https://docker.com/) ![NF](https://badgen.net/badge/_/Nextflow/green?icon=terminal)   
+ [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://https://docker.com/) ![NF](https://badgen.net/badge/_/Nextflow/green?icon=terminal)   
 
 
 The One Pipeline (aka TOP) uses Illumina paired-reads from many different bacterial species to generate a report with:
