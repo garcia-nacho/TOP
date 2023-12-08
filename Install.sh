@@ -80,7 +80,8 @@ source activate top_nf
 conda env config vars set KRAKENDB=${kraken}
 conda env config vars set TBDB=${tbdb}
 conda env config vars set TempDB=${CONDA_PREFIX}/top_temp
-conda env config vars set TOPCORES=${2}
+conda env config vars set TOPCORES=${cores}
+conda env config vars set SPADESCORES=$((${cores}-2))
 
 conda deactivate
 

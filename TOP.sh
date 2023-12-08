@@ -27,9 +27,7 @@ docker pull push ghcr.io/garcia-nacho/top_tbpipeline
 else
 
 echo "Running The One Pipeline"
-nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${1}" --krakenDB ${KRAKENDB} --TBDB ${TBDB} --tempfolder ${TempDB}
-mv report*html ${1}/TOPresults
-mv timeline*html ${1}/TOPresults
+nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${1}" --krakenDB ${KRAKENDB} --TBDB ${TBDB} --tempfolder ${TempDB} --spadescores ${SPADESCORES} --threads ${CORES}
 #Delete working directory if there is no error
 if test -f "${1}/TOPresults/Summaries_*.xlsx"; then echo "Cleaning up..." && nextflow clean; fi
 #rm -rf ./work
