@@ -55,11 +55,12 @@ fi
 echo "Using TBDB located in "${tbdb}
 echo ""
 
-conda create -n top_nf -y -c bioconda nextflow
+conda create -n top_nf -y
 source activate top_nf
+conda install -c bioconda nextflow
 cp TOP.nf ${CONDA_PREFIX}/bin/TOP.nf
 #cp TOP.sh ${CONDA_PREFIX}/bin/TOP
-cp nextflow.config ${CONDA_PREFIX}/bin/nexflow.config
+cp nextflow.config ${CONDA_PREFIX}/bin/
 mkdir ${CONDA_PREFIX}/top_temp
 conda deactivate
 
@@ -102,4 +103,4 @@ docker pull ghcr.io/garcia-nacho/top_ngmaster
 docker pull ghcr.io/garcia-nacho/top_ecoli
 docker pull ghcr.io/garcia-nacho/top_meningotype
 docker pull ghcr.io/garcia-nacho/top_tartrate
-docker pull push ghcr.io/garcia-nacho/top_tbpipeline
+docker pull ghcr.io/garcia-nacho/top_tbpipeline

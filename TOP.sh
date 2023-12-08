@@ -22,12 +22,12 @@ docker pull ghcr.io/garcia-nacho/top_ngmaster
 docker pull ghcr.io/garcia-nacho/top_ecoli
 docker pull ghcr.io/garcia-nacho/top_meningotype
 docker pull ghcr.io/garcia-nacho/top_tartrate
-docker pull push ghcr.io/garcia-nacho/top_tbpipeline
+docker pull ghcr.io/garcia-nacho/top_tbpipeline
 
 else
 
 echo "Running The One Pipeline"
-nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${1}" --krakenDB ${KRAKENDB} --TBDB ${TBDB} --tempfolder ${TempDB} --spadescores ${SPADESCORES} --threads ${CORES}
+nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${1}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TempDB}" --spadescores ${SPADESCORES} --threads ${CORES}
 #Delete working directory if there is no error
 if test -f "${1}/TOPresults/Summaries_*.xlsx"; then echo "Cleaning up..." && nextflow clean; fi
 #rm -rf ./work
