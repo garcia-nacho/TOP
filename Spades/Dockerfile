@@ -43,7 +43,7 @@ RUN wget https://github.com/DerrickWood/kraken2/archive/v${K2VER}.tar.gz && \
  ./install_kraken2.sh . && \
  mkdir /kraken2-db
 
-RUN Rscript -e "install.packages('jsonlite')"
+RUN Rscript -e "install.packages(c('jsonlite', 'R.utils'))"
 
 RUN mkdir -p /Data /home/docker/CommonFiles
 COPY CommonFiles/ /home/docker/CommonFiles/

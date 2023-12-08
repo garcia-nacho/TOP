@@ -104,7 +104,7 @@ summ$RatioReadsTrimmed<-NA
 
 
 for (i in 1:length(samps)) {
-  out.samp<-out[grep(samps[i],out$file ),]
+  out.samp<-out[grep(paste(samps[i],"_",sep = ""),out$file ),]
   summ$TotalReadCount[which(summ$Sample==samps[i])]<- unique(out.samp$TotalCount[grep("_R1_", out.samp$file)])
   summ$RawQ30_R1[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_R1_", out.samp$file)])
   summ$RawQ30_R2[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_R2_", out.samp$file)])
@@ -467,6 +467,276 @@ for (i in 1:length(sum.txts)) {
 
 
 summ<-merge(summ, qualout, by="Sample", all.x=TRUE)
+
+
+
+# MeningoType ------------------------------------------------------------
+meningo.list<-list.files(pattern = "_meningotype.txt")
+
+for (i in 1:length(meningo.list)) {
+  dummy<-read.csv(meningo.list[i],sep = "\t",header = FALSE)
+  if(dummy[1,1]=="NoNmen"){ 
+    dummy<-as.data.frame(matrix(NA,nrow = 1, ncol = 11))
+    colnames(dummy)<-c("SAMPLE_ID", 
+                       "SEROGROUP",
+                       "ctrA",
+                       "MLST",
+                       "PorA",
+                       "FetA",
+                       "PorB",
+                       "fHbp" ,
+                       "NHBA",
+                       "NadA"   ,
+                       "BAST"   )
+
+    dummy$SAMPLE_ID<-gsub("_.*","",meningo.list[i])
+  }else{
+    colnames(dummy)<-dummy[1,]
+    dummy<-dummy[-1,]
+  }
+  if(!exists("out.meningotype")){
+    out.meningotype<-dummy
+  }else{
+    out.meningotype<-rbind(out.meningotype,dummy)
+  }
+}
+
+out.meningotype$Sample<-gsub("_.*","",out.meningotype$SAMPLE_ID)
+out.meningotype$SAMPLE_ID<-NULL
+colnames(out.meningotype)[-which(colnames(out.meningotype)=="Sample")]<-
+  paste("Meningotype_",colnames(out.meningotype)[-which(colnames(out.meningotype)=="Sample")],sep = "")
+summ<-merge(summ, out.meningotype, by="Sample", all.x=TRUE)
+
+
+# NGMaster ----------------------------------------------------------------
+gono.list<-list.files(pattern = "_ngmast_results.txt")
+for (i in 1:length(gono.list)) {
+  dummy<-read.csv(gono.list[i],sep = "\t",header = FALSE)
+  if(dummy[1,1]=="NoNgon"){
+    dummy<-as.data.frame(matrix(NA,nrow = 1, ncol = 4))
+    colnames(dummy)<-c("ID",
+                       "NG-MAST",
+                       "POR",
+                       "TBPB")
+    
+    dummy$ID<-gsub("_.*","",gono.list[i])
+  }else{
+    colnames(dummy)<-dummy[1,]
+    dummy<-dummy[-1,]
+  }
+  if(!exists("out.gono")){
+    out.gono<-dummy
+  }else{
+    out.gono<-rbind(out.gono,dummy)
+  }
+}
+
+out.gono$Sample<-gsub("_.*","",out.gono$ID)
+out.gono$ID<-NULL
+colnames(out.gono)[-which(colnames(out.gono)%in% c("Sample","NG-MAST"))]<-
+  paste("NG-MAST_",colnames(out.gono)[-which(colnames(out.gono)%in% c("Sample","NG-MAST"))],sep = "")
+summ<-merge(summ, out.gono, by="Sample", all.x=TRUE)
+rm(out.gono)
+
+
+# Seqsero -----------------------------------------------------------------
+salmo.list<-list.files(pattern = "_seqsero_results.tsv")
+
+for (i in 1:length(salmo.list)) {
+  dummy<-read.csv(salmo.list[i],sep = "\t",header = FALSE)
+  if(dummy[1,1]=="NoSalmo"){
+    dummy<-as.data.frame(matrix(NA,nrow = 1, ncol = 8))
+    colnames(dummy)<-c( "O antigen prediction",
+                       "H1 antigen prediction(fliC)",
+                       "H2 antigen prediction(fljB)",
+                       "Predicted identification",
+                       "Predicted antigenic profile",
+                       "Predicted serotype",
+                       "Potential inter-serotype contamination",
+                       "Note" )
+    
+    dummy$ID<-gsub("_.*","",salmo.list[i])
+  }else{
+    colnames(dummy)<-dummy[1,]
+    dummy<-dummy[-1,]
+    dummy<-dummy[,-which(colnames(dummy) %in% c("Output directory","Input files"))]
+    colnames(dummy)[which(colnames(dummy)=="Sample name")]<-"ID"
+  }
+  if(!exists("out.salmo")){
+    out.salmo<-dummy
+  }else{
+    out.salmo<-rbind(out.salmo,dummy)
+  }
+}
+
+out.salmo$Sample<-gsub("_.*","",out.salmo$ID)
+out.salmo$ID<-NULL
+colnames(out.salmo)<-gsub(" ","_",colnames(out.salmo))
+colnames(out.salmo)[-which(colnames(out.salmo)=="Sample")]<-
+  paste("SeqSero_",colnames(out.salmo)[-which(colnames(out.salmo)=="Sample")],sep = "")
+summ<-merge(summ, out.salmo, by="Sample", all.x=TRUE)
+rm(out.salmo)
+
+
+# Tartrate  -----------------------------------------------------------------
+tart.list<-list.files(pattern = "_tartrate.txt")
+if(exists("out.tart")) rm(out.tart)
+for (i in 1:length(tart.list)) {
+  dummy<-read.csv(tart.list[i],sep = "-", header = FALSE)
+  
+  
+  if(dummy[1,1]=="NoSalmo"){
+    dummy<-as.data.frame(matrix(NA,nrow = 1, ncol = 4))
+    colnames(dummy)<-c( "ID",
+                        "Tratatre_STM3356_Codon",
+                        "Predicted_Tartrate_Fermentation",
+                        "Tartrate_Notes")
+    
+    dummy$ID<-gsub("_.*","",tart.list[i])
+  }else{
+    if(ncol(dummy)>4){
+      dummy2<-dummy[,c((ncol(dummy)-2):ncol(dummy))]
+      dummy2<-cbind(gsub(" ","",paste(dummy[,c(1:(ncol(dummy)-3) )], collapse = "-")), dummy2) 
+      dummy<-dummy2
+    } 
+    colnames(dummy)<-c( "ID",
+                        "Tratatre_STM3356_Codon",
+                        "Predicted_Tartrate_Fermentation",
+                        "Tartrate_Notes")
+  }
+  if(!exists("out.tart")){
+    out.tart<-dummy
+  }else{
+    out.tart<-rbind(out.tart,dummy)
+  }
+}
+
+out.tart$Sample<-gsub("_.*","",out.tart$ID)
+out.tart$ID<-NULL
+
+summ<-merge(summ, out.tart, by="Sample", all.x=TRUE)
+rm(out.tart)
+
+
+# TB_Pipeline -------------------------------------------------------------
+tbp.list<-list.files(pattern = "_tbp.csv")
+if(exists("out.tbp")) rm(out.tbp)
+for (i in 1:length(tbp.list)) {
+  dummy<-read.csv(tbp.list[i], header = TRUE)
+  if(colnames(dummy)[1]=="NoMyco"){
+    dummy<-as.data.frame(matrix(NA,nrow = 1, ncol = 1))
+    colnames(dummy)<-"Sample"
+    dummy$Sample<-gsub("_.*","",tbp.list[i])
+  }
+  if(!exists("out.tbp")){
+    out.tbp<-dummy
+  }else{
+    
+    missing.dummy<- colnames(out.tbp)[-which(colnames(out.tbp) %in% colnames(dummy) )]
+    if(length(missing.dummy)>0){
+      padd<-as.data.frame(matrix(NA, nrow = nrow(dummy), ncol = length(missing.dummy)))
+      colnames(padd)<-missing.dummy
+      dummy<-cbind(dummy, padd)
+    }
+    
+    missing.tbp<- colnames(dummy)[-which(colnames(dummy) %in% colnames(out.tbp) )]
+    if(length(missing.tbp)>0){
+      padd<-as.data.frame(matrix(NA, nrow = nrow(out.tbp), ncol = length(missing.tbp)))
+      colnames(padd)<-missing.tbp
+      out.tbp<-cbind(out.tbp, padd)
+    }
+    
+    out.tbp<-rbind(out.tbp,dummy)
+  }
+  
+}
+
+out.tbp$Sample<-gsub("_.*","",out.tbp$Sample)
+summ<-merge(summ, out.tbp, by="Sample", all.x=TRUE)
+rm(out.tbp)
+
+
+
+# EcoliPipeline -----------------------------------------------------------
+
+#Raw 
+eco.list<-list.files(pattern = "raw_ecopipeline.csv")
+
+if(exists("out.eco")) rm(out.eco)
+for (i in 1:length(eco.list)) {
+  dummy<-read.csv(eco.list[i])
+  if(colnames(dummy)[1]=="NoEcol"){
+    dummy<-as.data.frame(matrix(NA,nrow = 1, ncol = 1))
+    colnames(dummy)<-"Sample"
+    dummy$Sample<-gsub("_.*","",eco.list[i])
+  }else{
+    dummy$Sample<-gsub("_.*","",eco.list[i])
+  }
+  if(!exists("out.eco")){
+    out.eco<-dummy
+  }else{
+    
+    missing.dummy<- colnames(out.eco)[-which(colnames(out.eco) %in% colnames(dummy) )]
+    if(length(missing.dummy)>0){
+      padd<-as.data.frame(matrix(NA, nrow = nrow(dummy), ncol = length(missing.dummy)))
+      colnames(padd)<-missing.dummy
+      dummy<-cbind(dummy, padd)
+    }
+    
+    missing.eco<- colnames(dummy)[-which(colnames(dummy) %in% colnames(out.eco) )]
+    if(length(missing.eco)>0){
+      padd<-as.data.frame(matrix(NA, nrow = nrow(out.eco), ncol = length(missing.eco)))
+      colnames(padd)<-missing.eco
+      out.eco<-cbind(out.eco, padd)
+    }
+    
+    out.eco<-rbind(out.eco,dummy)
+    
+  }
+}
+colnames(out.eco)[-which(colnames(out.eco)=="Sample")]<-paste("EcoPipeFastq:",colnames(out.eco)[-which(colnames(out.eco)=="Sample")],sep = "")
+
+summ<-merge(summ, out.eco, by="Sample", all.x=TRUE)
+rm(out.eco)
+
+#Fasta 
+eco.list<-list.files(pattern = "fasta_ecopipeline.csv")
+
+if(exists("out.eco")) rm(out.eco)
+for (i in 1:length(eco.list)) {
+  dummy<-read.csv(eco.list[i])
+  if(colnames(dummy)[1]=="NoEcol"){
+    dummy<-as.data.frame(matrix(NA,nrow = 1, ncol = 1))
+    colnames(dummy)<-"Sample"
+    dummy$Sample<-gsub("_.*","",eco.list[i])
+  }else{
+    dummy$Sample<-gsub("_.*","",eco.list[i])
+  }
+  if(!exists("out.eco")){
+    out.eco<-dummy
+  }else{
+    
+    missing.dummy<- colnames(out.eco)[-which(colnames(out.eco) %in% colnames(dummy) )]
+    if(length(missing.dummy)>0){
+      padd<-as.data.frame(matrix(NA, nrow = nrow(dummy), ncol = length(missing.dummy)))
+      colnames(padd)<-missing.dummy
+      dummy<-cbind(dummy, padd)
+    }
+    
+    missing.eco<- colnames(dummy)[-which(colnames(dummy) %in% colnames(out.eco) )]
+    if(length(missing.eco)>0){
+      padd<-as.data.frame(matrix(NA, nrow = nrow(out.eco), ncol = length(missing.eco)))
+      colnames(padd)<-missing.eco
+      out.eco<-cbind(out.eco, padd)
+    }
+    
+    out.eco<-rbind(out.eco,dummy)
+    
+  }
+}
+colnames(out.eco)[-which(colnames(out.eco)=="Sample")]<-paste("EcoPipeAssemblies:",colnames(out.eco)[-which(colnames(out.eco)=="Sample")],sep = "")
+summ<-merge(summ, out.eco, by="Sample", all.x=TRUE)
+rm(out.eco)
 
 # Last Stage --------------------------------------------------------------
 

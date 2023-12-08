@@ -4,14 +4,22 @@ library(jsonlite)
 input<-list.files(pattern = "*_rmlst.json")
 df<-fromJSON(input)
 
-output<-df$taxon_prediction
+if(!is.null(df$taxon_prediction)){
+  output<-df$taxon_prediction
+}else{
+  output<-as.data.frame("NotFound")
+  colnames(output)<-"taxon"
+  output$Warning<-"No hits on rMLST. Unknown species/Low quality"
+}
+
 
 #output$species<-df$fields$species
 if(!is.null(df$fields$genus)){ 
-output$genus<-df$fields$genus
+  output$genus<-df$fields$genus
 }else{
-output$genus<- gsub(" .*","",output$taxon)   
-}
+  output$genus<- gsub(" .*","",output$taxon)
+}   
+
 colnames(output)<-paste("rMLST_",colnames(output),sep="")
 
 if(!is.null(df$fields$rST)){ 
@@ -22,7 +30,7 @@ output$rST<-NA
 
 output$Sample<-gsub(".*/","",gsub("_.*","",input))
 
-if(!is.null(df$exact_matches)){
+if(!is.null(df$exact_matches) & length(df$exact_matches)!=0){
  for (i in 1:length(df$exact_matches)) {
    dummy<-df$exact_matches[i][[1]] 
    AlleleID<-vector()

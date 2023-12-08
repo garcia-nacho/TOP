@@ -9,6 +9,8 @@ params.threads = 10
 params.spadescores = 8
 params.forceSp="none"
 params.krakenDB="/media/nacho/Data/kraken2_standard_20220926/"
+params.TBDB="/mnt/N/NGS/TB_pipeline/TB_pipeline_database/DB/"
+params.tempfolder="/media/nacho/Data/temp/toptest/tempdb/"
 
 params.reads=params.readsfolder+"/*/*_{R1,R2}*.fastq.gz"
 
@@ -74,7 +76,7 @@ process Spades {
     container 'ghcr.io/garcia-nacho/top_spades'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
 
-    maxForks = spadescores
+    maxForks = params.spadescores
 
     input:
     tuple val(sample), path (trimmedR1), path(trimmedR2) 
@@ -256,8 +258,17 @@ process Integration {
     path(seroba)
     path(depth)
     path(emmtyp)
+    path(meningotype)
+    path(ngmast)
     path(stxtp)
     path(stxtp_contig)
+    path(seqsero)
+    path(seqsero_tar_gz)
+    path(tartrate_res)
+    path(tbres)
+    path(tbulky)
+    path(ecopipelinefiles)
+    path(ecopipelinefilesfasta)
   
     output:
     path ("*")
@@ -288,10 +299,20 @@ process Integration {
     mv *_STXType.csv ./QC
     mv *_Abricate.csv ./QC
 
+    if test -f "*dummy_seqsero_tar.gz"; then rm *dummy_seqsero_tar.gz; fi
+    if test -f "*seqsero_tar.gz"; then mv seqsero_tar.gz ./QC; fi
+
     if test -f "*.tsv"; then mv *.tsv ./QC; fi
     if test -f "*.gbk"; then mv *.gbk ./QC; fi
     if test -f "*.log"; then mv *.log ./QC; fi
     if test -f "*.svg"; then mv *.svg ./QC; fi
+    if test -f "*.csv"; then mv *.csv ./QC; fi
+
+    Rscript /home/docker/CommonFiles/Code/FileParserSummary.R
+
+
+
+    
     """
 }
 
@@ -313,9 +334,9 @@ process Abricate {
     """
     if test -f "Hinf.agent"; 
     then
-        #abricate-get_db --db ncbi --force
-        #abricate-get_db --db vfdb --force
-        #abricate-get_db --db plasmidfinder --force
+        abricate-get_db --db ncbi --force
+        abricate-get_db --db vfdb --force
+        abricate-get_db --db plasmidfinder --force
         abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv 
         abricate --db HinfFtsI --quiet *.fasta > ${sample}_HinfFtsI.tsv
         abricate --db HinfGyrSubA --quiet *.fasta > ${sample}_HinfGyrSubA.tsv
@@ -407,8 +428,11 @@ process Seroba {
 
 process STX { 
     container 'ghcr.io/garcia-nacho/top_virfinder'
-    cpus 1
+    cpus 2
     maxForks = 1
+    time '15m'
+    //errorStrategy 'ignore'
+    errorStrategy { task.exitStatus == null ? 'ignore' : 'terminate' }
 
     input:
     //path(r1)
@@ -425,11 +449,22 @@ process STX {
     """
     if test -f "Ecol.agent"; 
     then
-    r1=\$(ls ${sample}*R1*.fastq.gz)
-    r2=\$(ls ${sample}*R2*.fastq.gz)
+    r1=\$(ls ${sample}_R1*.fastq.gz)
+    r2=\$(ls ${sample}_R2*.fastq.gz)
+    r1_count=\$(ls -1 ${sample}_R1*.fastq.gz | wc -l) 
+
+    if [ \${r1_count} == 1 ];
+    then
 
     virulencefinder.py -i \${r1} \${r2} -o .
+
     mv data.json ${sample}_fastq_virfinder.json
+
+    else
+    
+    error "Invalid Sample Name: ${sample}"
+
+    fi
 
     else
         echo "NoEcol" > ${sample}_fastq_virfinder.json
@@ -467,7 +502,6 @@ process STX_Contigs {
     """
 }
 
-
 process EMMtyper { 
     container 'ghcr.io/garcia-nacho/top_emmtyper'
     cpus 1
@@ -497,6 +531,268 @@ process EMMtyper {
 
 }
 
+process MeningoTyper { 
+    container 'ghcr.io/garcia-nacho/top_meningotype'
+    cpus 1
+    maxForks = 1
+
+    input:
+    path(fastaclean)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*meningotype.txt"), emit: meningotype_results
+
+    script:
+
+    """
+    if test -f "Nmen.agent"; 
+    then
+      meningotype --all ${sample}_clean_contigs.fasta >> ${sample}_meningotype.txt
+
+    else
+      echo "NoNmen" > ${sample}_meningotype.txt
+
+    fi
+
+    """
+
+}
+
+process NGmaster { 
+    container 'ghcr.io/garcia-nacho/top_ngmaster'
+    cpus 1
+    maxForks = 1
+
+    input:
+    path(fastaclean)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*ngmast_results.txt"), emit: ngmaster_results
+
+    script:
+
+    """
+    if test -f "Ngon.agent"; 
+    then
+      ngmaster ${sample}_clean_contigs.fasta >> ${sample}_ngmast_results.txt
+
+    else
+      echo "NoNgon" > ${sample}_ngmast_results.txt
+
+    fi
+
+    """
+
+}
+
+process Seqsero { 
+    container 'ghcr.io/garcia-nacho/top_seqsero'
+    cpus 2
+    maxForks = 1
+
+    input:
+    val(sample)
+    path(agent)
+    path(rawreads)
+
+    output:
+    path("*seqsero_results.tsv"), emit: seqsero_results
+    path("*seqsero.tar.gz"), emit: seqsero_gzip
+
+    script:
+
+    """
+    if test -f "Salmo.agent"; 
+    then
+    R1=\$(ls ${sample}*R1*.fastq.gz)
+    R2=\$(ls ${sample}*R2*.fastq.gz)
+      SeqSero2_package.py -p 2 -t 2 -n ${sample} -i \${R1} \${R2}
+      mv \$(ls -d */) SeqSeroResults_allele
+      mv SeqSeroResults_allele/SeqSero_result.tsv ./${sample}_seqsero_results.tsv
+      tar -zcvf ${sample}_seqsero.tar.gz SeqSeroResults_allele 
+      
+    else
+      echo "NoSalmo" > ${sample}_seqsero_results.tsv
+      echo "NoSalmo" > ${sample}_dummy_seqsero.tar.gz
+    fi
+
+    """
+
+}
+
+process Tartrate { 
+    container 'ghcr.io/garcia-nacho/top_tartrate'
+    cpus 1
+    maxForks = 1
+
+    input:
+    path(fastaclean)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*tartrate.txt"), emit: tartrate_results
+
+    script:
+
+    """
+    if test -f "Salmo.agent"; 
+    then
+      tartrate ${sample}_clean_contigs.fasta > ${sample}_tartrate.txt  
+
+    else
+      echo "NoSalmo" > ${sample}_tartrate.txt 
+
+    fi
+
+    """
+
+}
+
+process TBpipeline{
+    container 'ghcr.io/garcia-nacho/top_tbpipeline'
+    containerOptions '--volume '+params.TBDB+':/mnt/global_collection --volume ' +params.tempfolder+':/mnt/local_collection'
+    
+    cpus 2
+    maxForks = 2
+
+    publishDir "${params.tempfolder}", pattern: "localdb_*", mode: 'copy'
+
+    input:
+    val(sample)
+    path(agent)
+    path(rawreads)
+
+    output:
+    path("*tbp.csv"), emit: tbpipeline_results
+    path("*tbp_bulk.tar.gz"), emit: tbpipeline_bulk
+    path("localdb_*"), emit: tbpipeline_localdb
+
+    script:
+
+    """
+    if test -f "Myco.agent"; 
+    then
+      if test -d "/mnt/local_collection/localdb_dummy"; then rm -rf /mnt/local_collection/localdb_dummy; fi
+      mkdir ${sample}
+    
+      r1=\$(ls ${sample}_R1*.fastq.gz)
+      r2=\$(ls ${sample}_R2*.fastq.gz)
+       
+      mv \${r1} ${sample}
+      mv \${r2} ${sample}
+      rm ./*.fastq.gz
+
+      niph_tb_pipeline
+      Rscript /home/tbuser/Code/TBParser.R
+      mkdir localdb_${sample}
+      mkdir tb_bulk
+      mkdir tb_bulk/${sample}
+
+      rm ${sample}/*.fastq.gz
+      mv ${sample}/* tb_bulk/${sample}/
+      
+      cp -R COPY_TO_TB_PIPELINE_DATABASE/*/* localdb_${sample}  
+      mv COPY_TO_TB_PIPELINE_DATABASE/ tb_bulk
+      mv COPY_TO_REPORTS/ tb_bulk
+      mv *.log tb_bulk
+      mv *.nwk tb_bulk
+      mv TB* tb_bulk
+      tar -czvf ${sample}_tbp_bulk.tar.gz tb_bulk
+      rm -rf ${sample}
+
+    else
+      if test -d "/mnt/local_collection/localdb_dummy"; then rm -rf /mnt/local_collection/localdb_dummy; fi
+      echo "dummy" > ${sample}_dummy_tbp_bulk.tar.gz
+      echo "NoMyco" > ${sample}_tbp.csv
+      mkdir localdb_dummy
+      echo "dummy" > localdb_dummy/dummy.txt   
+
+    fi
+
+    """
+}
+
+process JonEcoPipe { 
+    container 'ghcr.io/garcia-nacho/top_ecoli'
+    cpus 2
+    maxForks = 1
+
+    input:
+    //path(r1)
+    //path(r2)
+    val(sample)
+    path(agent)
+    path(rawreads)
+
+    output:
+    path("*_ecopipeline.csv"), emit: eco_results
+
+    script:
+
+    """
+    if test -f "Ecol.agent"; 
+    then
+        r1=\$(ls ${sample}_R1*.fastq.gz)
+        r2=\$(ls ${sample}_R2*.fastq.gz)
+        mkdir Fasta Forward Reverse
+        mv \${r1} Forward
+        mv \${r2} Reverse
+
+        EcoliPipelineTOP.sh Fasta/ Forward/ Reverse/
+        Rscript /home/docker/Ecoparsing.R
+
+        mv ecopipeline.csv ${sample}_raw_ecopipeline.csv
+        mv EcoliPipelineReceiptFile* ${sample}_ecopipeline_ReceiptFileRaw.txt
+
+    else
+        echo "NoEcol" > ${sample}_raw_ecopipeline.csv
+        echo "NoEcol" > ${sample}_ecopipeline_ReceiptFileRaw.txt
+    fi
+
+    """
+}
+
+process JonEcoPipeFasta { 
+    container 'ghcr.io/garcia-nacho/top_ecoli'
+    cpus 1
+    maxForks = 1
+
+    input:
+    path(fastaclean)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*_ecopipeline*"), emit: eco_results_fasta
+
+    script:
+
+    """
+    if test -f "Ecol.agent"; 
+    then
+
+        mkdir Fasta Forward Reverse
+        mv ${sample}_clean_contigs.fasta Fasta/${sample}_clean_contigs.fasta
+
+        EcoliPipelineTOP.sh Fasta/ Forward/ Reverse/
+        Rscript /home/docker/Ecoparsing.R
+
+        mv ecopipeline.csv ${sample}_fasta_ecopipeline.csv
+        mv EcoliPipelineReceiptFile* ${sample}_ecopipeline_ReceiptFileFasta.txt
+
+    else
+        echo "NoEcol" > ${sample}_fasta_ecopipeline.csv
+        echo "NoEcol" > ${sample}_ecopipeline_ReceiptFileFasta.txt
+    fi
+
+    """
+}
+
 workflow {
    sample_reads = Channel.fromFilePairs( params.reads )
    all_raw_reads = Channel.fromPath(params.reads)
@@ -511,9 +807,17 @@ workflow {
    hicap=Hicap(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    seroba=Seroba(mlst.r1mlst, mlst.r2mlst, mlst.sample_frommlst, mlst.agent)
    emmtyp=EMMtyper(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+   meningotype=MeningoTyper(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+   ngmast=NGmaster(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent) 
    //stxtyp=STX(mlst.r1mlst, mlst.r2mlst, mlst.sample_frommlst, mlst.agent, all_raw_reads)
    stxtyp=STX(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    stxtypcontig=STX_Contigs(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+   seqsero=Seqsero(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+   tartrate=Tartrate(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+   tbpipe=TBpipeline(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+   ecopipe=JonEcoPipe(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+   ecopipefasta=JonEcoPipeFasta(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+
    integ=Integration(kkraw.collect(),
                      kkcon.collect(),
                      ktrim.collect(),
@@ -529,6 +833,15 @@ workflow {
                      seroba.seroba_results.collect(),
                      mapped.bt2depth.collect(),
                      emmtyp.emm_results.collect(),
+                     meningotype.meningotype_results.collect(),
+                     ngmast.ngmaster_results.collect(),
                      stxtyp.stx_results.collect(),
-                     stxtypcontig.stx_contigs_results.collect())
+                     stxtypcontig.stx_contigs_results.collect(),
+                     seqsero.seqsero_results.collect(),
+                     seqsero.seqsero_gzip.collect(),  
+                     tartrate.tartrate_results.collect(), 
+                     tbpipe.tbpipeline_results.collect(),
+                     tbpipe.tbpipeline_bulk.collect(),
+                     ecopipe.eco_results.collect(),
+                     ecopipefasta.eco_results_fasta.collect() )
 }

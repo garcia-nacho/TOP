@@ -2,6 +2,7 @@
 
 source activate top_nf
 
+
 if [[ ${1} == "--update" ]]
 then
 echo "Updating The One Pipeline"
@@ -13,11 +14,26 @@ docker pull ghcr.io/garcia-nacho/top_emmtyper
 docker pull ghcr.io/garcia-nacho/top_hicap
 docker pull ghcr.io/garcia-nacho/top_seroba
 docker pull ghcr.io/garcia-nacho/top_virfinder
-docker pull ghcr.io/garcia-nacho/top_prokka
+#docker pull ghcr.io/garcia-nacho/top_prokka
+docker pull ghcr.io/garcia-nacho/top_ngstar
+docker pull ghcr.io/garcia-nacho/top_tbpipeline
+docker pull ghcr.io/garcia-nacho/top_seqsero
+docker pull ghcr.io/garcia-nacho/top_ngmaster
+docker pull ghcr.io/garcia-nacho/top_ecoli
+docker pull ghcr.io/garcia-nacho/top_meningotype
+docker pull ghcr.io/garcia-nacho/top_tartrate
+docker pull push ghcr.io/garcia-nacho/top_tbpipeline
+
 else
+
 echo "Running The One Pipeline"
-nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${1}" --krakenDB ${KRAKENDB}
-rm -rf ./work
+nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${1}" --krakenDB ${KRAKENDB} --TBDB ${TBDB} --tempfolder ${TempDB}
+mv report*html ${1}/TOPresults
+mv timeline*html ${1}/TOPresults
+#Delete working directory if there is no error
+if test -f "${1}/TOPresults/Summaries_*.xlsx"; then echo "Cleaning up..." && nextflow clean; fi
+#rm -rf ./work
+rm ${CONDA_PREFIX}/top_temp/*
 fi
 
 conda deactivate

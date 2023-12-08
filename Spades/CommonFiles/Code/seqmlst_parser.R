@@ -113,7 +113,8 @@ shortname<-paste(unlist(base::strsplit(gsub(" .*", "",shortname),""))[1] ,
       paste(unlist(base::strsplit(gsub(".* ", "",shortname),""))[c(1:3)],collapse = ""),sep = "")
 
 
-
+if(length(grep("Salmonella",results$rMLST_taxon))==1) shortname<-"Salmo"
+if(length(grep("Mycobact",results$rMLST_taxon))==1) shortname<-"Myco"
 
 #colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))]<-paste(shortname, colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))],sep = "_")
 

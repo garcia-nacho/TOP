@@ -1,0 +1,313 @@
+Starting
+WARNING: Unable to locate Metadata.csv in root directory
+Running sample 968269
+Sample name: 968269
+Current dir: /data/968269 
+Found R1: ['968269_merged_R1_001.fastq.gz'], 	 R2: ['968269_merged_R2_001.fastq.gz']
+Running cmd: fastqc 968269_merged_R1_001.fastq.gz 968269_merged_R2_001.fastq.gz in dir /data/968269
+Started analysis of 968269_merged_R1_001.fastq.gz
+Approx 5% complete for 968269_merged_R1_001.fastq.gz
+Approx 10% complete for 968269_merged_R1_001.fastq.gz
+Approx 15% complete for 968269_merged_R1_001.fastq.gz
+Approx 20% complete for 968269_merged_R1_001.fastq.gz
+Approx 25% complete for 968269_merged_R1_001.fastq.gz
+Approx 30% complete for 968269_merged_R1_001.fastq.gz
+Approx 35% complete for 968269_merged_R1_001.fastq.gz
+Approx 40% complete for 968269_merged_R1_001.fastq.gz
+Approx 45% complete for 968269_merged_R1_001.fastq.gz
+Approx 50% complete for 968269_merged_R1_001.fastq.gz
+Approx 55% complete for 968269_merged_R1_001.fastq.gz
+Approx 60% complete for 968269_merged_R1_001.fastq.gz
+Approx 65% complete for 968269_merged_R1_001.fastq.gz
+Approx 70% complete for 968269_merged_R1_001.fastq.gz
+Approx 75% complete for 968269_merged_R1_001.fastq.gz
+Approx 80% complete for 968269_merged_R1_001.fastq.gz
+Approx 85% complete for 968269_merged_R1_001.fastq.gz
+Approx 90% complete for 968269_merged_R1_001.fastq.gz
+Approx 95% complete for 968269_merged_R1_001.fastq.gz
+Analysis complete for 968269_merged_R1_001.fastq.gz
+Started analysis of 968269_merged_R2_001.fastq.gz
+Approx 5% complete for 968269_merged_R2_001.fastq.gz
+Approx 10% complete for 968269_merged_R2_001.fastq.gz
+Approx 15% complete for 968269_merged_R2_001.fastq.gz
+Approx 20% complete for 968269_merged_R2_001.fastq.gz
+Approx 25% complete for 968269_merged_R2_001.fastq.gz
+Approx 30% complete for 968269_merged_R2_001.fastq.gz
+Approx 35% complete for 968269_merged_R2_001.fastq.gz
+Approx 40% complete for 968269_merged_R2_001.fastq.gz
+Approx 45% complete for 968269_merged_R2_001.fastq.gz
+Approx 50% complete for 968269_merged_R2_001.fastq.gz
+Approx 55% complete for 968269_merged_R2_001.fastq.gz
+Approx 60% complete for 968269_merged_R2_001.fastq.gz
+Approx 65% complete for 968269_merged_R2_001.fastq.gz
+Approx 70% complete for 968269_merged_R2_001.fastq.gz
+Approx 75% complete for 968269_merged_R2_001.fastq.gz
+Approx 80% complete for 968269_merged_R2_001.fastq.gz
+Approx 85% complete for 968269_merged_R2_001.fastq.gz
+Approx 90% complete for 968269_merged_R2_001.fastq.gz
+Approx 95% complete for 968269_merged_R2_001.fastq.gz
+Analysis complete for 968269_merged_R2_001.fastq.gz
+Checking species ID with MASH
+Loading /media/mash/refseq.genomes.k21s1000.msh...
+   16160796 distinct hashes.
+Streaming from 2 inputs...
+   Estimated distinct k-mers in pool: 93106482
+Summing shared...
+Reallocating to winners...
+Computing coverage medians...
+Writing output...
+[07:55:06] This is snippy 4.6.0
+[07:55:06] Written by Torsten Seemann
+[07:55:06] Obtained from https://github.com/tseemann/snippy
+[07:55:06] Detected operating system: linux
+[07:55:06] Enabling bundled linux tools.
+[07:55:06] Found bwa - /opt/conda/envs/snippy/bin/bwa
+[07:55:06] Found bcftools - /opt/conda/envs/snippy/bin/bcftools
+[07:55:06] Found samtools - /opt/conda/envs/snippy/bin/samtools
+[07:55:06] Found java - /opt/conda/envs/snippy/bin/java
+[07:55:06] Found snpEff - /opt/conda/envs/snippy/bin/snpEff
+[07:55:06] Found samclip - /opt/conda/envs/snippy/bin/samclip
+[07:55:06] Found seqtk - /opt/conda/envs/snippy/bin/seqtk
+[07:55:06] Found parallel - /opt/conda/envs/snippy/bin/parallel
+[07:55:06] Found freebayes - /opt/conda/envs/snippy/bin/freebayes
+[07:55:06] Found freebayes-parallel - /opt/conda/envs/snippy/bin/freebayes-parallel
+[07:55:06] Found fasta_generate_regions.py - /opt/conda/envs/snippy/bin/fasta_generate_regions.py
+[07:55:06] Found vcfstreamsort - /opt/conda/envs/snippy/bin/vcfstreamsort
+[07:55:06] Found vcfuniq - /opt/conda/envs/snippy/bin/vcfuniq
+[07:55:06] Found vcffirstheader - /opt/conda/envs/snippy/bin/vcffirstheader
+[07:55:06] Found gzip - /bin/gzip
+[07:55:06] Found vt - /opt/conda/envs/snippy/bin/vt
+[07:55:06] Found snippy-vcf_to_tab - /opt/conda/envs/snippy/bin/snippy-vcf_to_tab
+[07:55:06] Found snippy-vcf_report - /opt/conda/envs/snippy/bin/snippy-vcf_report
+[07:55:06] Checking version: samtools --version is >= 1.7 - ok, have 1.15
+[07:55:06] Checking version: bcftools --version is >= 1.7 - ok, have 1.15
+[07:55:06] Checking version: freebayes --version is >= 1.1 - ok, have 1.3.2
+[07:55:06] Checking version: snpEff -version is >= 4.3 - ok, have 4.5
+[07:55:06] Checking version: bwa is >= 0.7.12 - ok, have 0.7.17
+[07:55:06] Invalid --reference filename
+Checking coverage
+/bin/bash: snippy/snps.depth: No such file or directory
+cat: snippy/snps.depth: No such file or directory
+Cleaning up snippy data
+Snippy data already cleaned up
+Typing according to Coll (2014) scheme
+ERROR: Failed to read VCF file. Exiting.
+[mykrobe 2023-11-06T07:55:07 INFO] Start runnning mykrobe predict. Command line: /opt/conda/envs/mykrobe/bin/mykrobe predict -s 968269 -S tb --output mykrobe_output.csv --format csv --min_proportion_expected_depth 0.15 -1 968269_merged_R1_001.fastq.gz 968269_merged_R2_001.fastq.gz
+[mykrobe 2023-11-06T07:55:07 INFO] Running mykrobe predict using species tb, and panel version 20220705
+[mykrobe 2023-11-06T07:55:07 INFO] Run command: /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/cortex/mccortex31 build -q -m 1GB -t 1 -k 21 -s tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1 -1 /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-species-170421.fasta.gz -1 /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-probe-set-202206.fasta.gz -1 /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb.lineage.20200930.probes.fa.gz -1 /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-lineage-bcg-rd1.fasta.gz mykrobe/data/skeletons/tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1_21.ctx
+[mykrobe 2023-11-06T07:55:23 INFO] Run command: /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/cortex/mccortex31 geno -t 1 -m 1GB -k 21 -o /tmp/tmpuxv1da8z/968269-21_tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1.covgs -I mykrobe/data/skeletons/tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1_21.ctx -s 968269-21 -1 968269_merged_R1_001.fastq.gz -1 968269_merged_R2_001.fastq.gz -c /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-species-170421.fasta.gz -c /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-probe-set-202206.fasta.gz -c /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb.lineage.20200930.probes.fa.gz -c /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-lineage-bcg-rd1.fasta.gz /tmp/tmpuxv1da8z/968269-21_tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1.ctx
+[mykrobe 2023-11-06T07:58:30 INFO] Progress: finished making AMR predictions
+[mykrobe 2023-11-06T07:58:30 INFO] Progress: writing output
+[mykrobe 2023-11-06T07:58:30 INFO] Progress: finished
+Running sample 967746
+Sample name: 967746
+Current dir: /data/967746 
+Found R1: ['967746_merged_R1_001.fastq.gz'], 	 R2: ['967746_merged_R2_001.fastq.gz']
+Running cmd: fastqc 967746_merged_R1_001.fastq.gz 967746_merged_R2_001.fastq.gz in dir /data/967746
+Started analysis of 967746_merged_R1_001.fastq.gz
+Approx 5% complete for 967746_merged_R1_001.fastq.gz
+Approx 10% complete for 967746_merged_R1_001.fastq.gz
+Approx 15% complete for 967746_merged_R1_001.fastq.gz
+Approx 20% complete for 967746_merged_R1_001.fastq.gz
+Approx 25% complete for 967746_merged_R1_001.fastq.gz
+Approx 30% complete for 967746_merged_R1_001.fastq.gz
+Approx 35% complete for 967746_merged_R1_001.fastq.gz
+Approx 40% complete for 967746_merged_R1_001.fastq.gz
+Approx 45% complete for 967746_merged_R1_001.fastq.gz
+Approx 50% complete for 967746_merged_R1_001.fastq.gz
+Approx 55% complete for 967746_merged_R1_001.fastq.gz
+Approx 60% complete for 967746_merged_R1_001.fastq.gz
+Approx 65% complete for 967746_merged_R1_001.fastq.gz
+Approx 70% complete for 967746_merged_R1_001.fastq.gz
+Approx 75% complete for 967746_merged_R1_001.fastq.gz
+Approx 80% complete for 967746_merged_R1_001.fastq.gz
+Approx 85% complete for 967746_merged_R1_001.fastq.gz
+Approx 90% complete for 967746_merged_R1_001.fastq.gz
+Approx 95% complete for 967746_merged_R1_001.fastq.gz
+Analysis complete for 967746_merged_R1_001.fastq.gz
+Started analysis of 967746_merged_R2_001.fastq.gz
+Approx 5% complete for 967746_merged_R2_001.fastq.gz
+Approx 10% complete for 967746_merged_R2_001.fastq.gz
+Approx 15% complete for 967746_merged_R2_001.fastq.gz
+Approx 20% complete for 967746_merged_R2_001.fastq.gz
+Approx 25% complete for 967746_merged_R2_001.fastq.gz
+Approx 30% complete for 967746_merged_R2_001.fastq.gz
+Approx 35% complete for 967746_merged_R2_001.fastq.gz
+Approx 40% complete for 967746_merged_R2_001.fastq.gz
+Approx 45% complete for 967746_merged_R2_001.fastq.gz
+Approx 50% complete for 967746_merged_R2_001.fastq.gz
+Approx 55% complete for 967746_merged_R2_001.fastq.gz
+Approx 60% complete for 967746_merged_R2_001.fastq.gz
+Approx 65% complete for 967746_merged_R2_001.fastq.gz
+Approx 70% complete for 967746_merged_R2_001.fastq.gz
+Approx 75% complete for 967746_merged_R2_001.fastq.gz
+Approx 80% complete for 967746_merged_R2_001.fastq.gz
+Approx 85% complete for 967746_merged_R2_001.fastq.gz
+Approx 90% complete for 967746_merged_R2_001.fastq.gz
+Approx 95% complete for 967746_merged_R2_001.fastq.gz
+Analysis complete for 967746_merged_R2_001.fastq.gz
+Checking species ID with MASH
+Loading /media/mash/refseq.genomes.k21s1000.msh...
+   16160796 distinct hashes.
+Streaming from 2 inputs...
+   Estimated distinct k-mers in pool: 89293357
+Summing shared...
+Reallocating to winners...
+Computing coverage medians...
+Writing output...
+[08:01:25] This is snippy 4.6.0
+[08:01:25] Written by Torsten Seemann
+[08:01:25] Obtained from https://github.com/tseemann/snippy
+[08:01:25] Detected operating system: linux
+[08:01:25] Enabling bundled linux tools.
+[08:01:25] Found bwa - /opt/conda/envs/snippy/bin/bwa
+[08:01:25] Found bcftools - /opt/conda/envs/snippy/bin/bcftools
+[08:01:25] Found samtools - /opt/conda/envs/snippy/bin/samtools
+[08:01:25] Found java - /opt/conda/envs/snippy/bin/java
+[08:01:25] Found snpEff - /opt/conda/envs/snippy/bin/snpEff
+[08:01:25] Found samclip - /opt/conda/envs/snippy/bin/samclip
+[08:01:25] Found seqtk - /opt/conda/envs/snippy/bin/seqtk
+[08:01:25] Found parallel - /opt/conda/envs/snippy/bin/parallel
+[08:01:25] Found freebayes - /opt/conda/envs/snippy/bin/freebayes
+[08:01:25] Found freebayes-parallel - /opt/conda/envs/snippy/bin/freebayes-parallel
+[08:01:25] Found fasta_generate_regions.py - /opt/conda/envs/snippy/bin/fasta_generate_regions.py
+[08:01:25] Found vcfstreamsort - /opt/conda/envs/snippy/bin/vcfstreamsort
+[08:01:25] Found vcfuniq - /opt/conda/envs/snippy/bin/vcfuniq
+[08:01:25] Found vcffirstheader - /opt/conda/envs/snippy/bin/vcffirstheader
+[08:01:25] Found gzip - /bin/gzip
+[08:01:25] Found vt - /opt/conda/envs/snippy/bin/vt
+[08:01:25] Found snippy-vcf_to_tab - /opt/conda/envs/snippy/bin/snippy-vcf_to_tab
+[08:01:25] Found snippy-vcf_report - /opt/conda/envs/snippy/bin/snippy-vcf_report
+[08:01:25] Checking version: samtools --version is >= 1.7 - ok, have 1.15
+[08:01:25] Checking version: bcftools --version is >= 1.7 - ok, have 1.15
+[08:01:25] Checking version: freebayes --version is >= 1.1 - ok, have 1.3.2
+[08:01:25] Checking version: snpEff -version is >= 4.3 - ok, have 4.5
+[08:01:25] Checking version: bwa is >= 0.7.12 - ok, have 0.7.17
+[08:01:25] Invalid --reference filename
+Checking coverage
+/bin/bash: snippy/snps.depth: No such file or directory
+cat: snippy/snps.depth: No such file or directory
+Cleaning up snippy data
+Snippy data already cleaned up
+Typing according to Coll (2014) scheme
+ERROR: Failed to read VCF file. Exiting.
+[mykrobe 2023-11-06T08:01:26 INFO] Start runnning mykrobe predict. Command line: /opt/conda/envs/mykrobe/bin/mykrobe predict -s 967746 -S tb --output mykrobe_output.csv --format csv --min_proportion_expected_depth 0.15 -1 967746_merged_R1_001.fastq.gz 967746_merged_R2_001.fastq.gz
+[mykrobe 2023-11-06T08:01:26 INFO] Running mykrobe predict using species tb, and panel version 20220705
+[mykrobe 2023-11-06T08:01:26 INFO] Run command: /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/cortex/mccortex31 build -q -m 1GB -t 1 -k 21 -s tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1 -1 /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-species-170421.fasta.gz -1 /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-probe-set-202206.fasta.gz -1 /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb.lineage.20200930.probes.fa.gz -1 /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-lineage-bcg-rd1.fasta.gz mykrobe/data/skeletons/tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1_21.ctx
+[mykrobe 2023-11-06T08:01:42 INFO] Run command: /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/cortex/mccortex31 geno -t 1 -m 1GB -k 21 -o /tmp/tmpdv0k75m8/967746-21_tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1.covgs -I mykrobe/data/skeletons/tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1_21.ctx -s 967746-21 -1 967746_merged_R1_001.fastq.gz -1 967746_merged_R2_001.fastq.gz -c /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-species-170421.fasta.gz -c /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-probe-set-202206.fasta.gz -c /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb.lineage.20200930.probes.fa.gz -c /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-lineage-bcg-rd1.fasta.gz /tmp/tmpdv0k75m8/967746-21_tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1.ctx
+[mykrobe 2023-11-06T08:04:49 INFO] Progress: finished making AMR predictions
+[mykrobe 2023-11-06T08:04:49 INFO] Progress: writing output
+[mykrobe 2023-11-06T08:04:49 INFO] Progress: finished
+Running sample 968296
+Sample name: 968296
+Current dir: /data/968296 
+Found R1: ['968296_merged_R1_001.fastq.gz'], 	 R2: ['968296_merged_R2_001.fastq.gz']
+Running cmd: fastqc 968296_merged_R1_001.fastq.gz 968296_merged_R2_001.fastq.gz in dir /data/968296
+Started analysis of 968296_merged_R1_001.fastq.gz
+Approx 5% complete for 968296_merged_R1_001.fastq.gz
+Approx 10% complete for 968296_merged_R1_001.fastq.gz
+Approx 15% complete for 968296_merged_R1_001.fastq.gz
+Approx 20% complete for 968296_merged_R1_001.fastq.gz
+Approx 25% complete for 968296_merged_R1_001.fastq.gz
+Approx 30% complete for 968296_merged_R1_001.fastq.gz
+Approx 35% complete for 968296_merged_R1_001.fastq.gz
+Approx 40% complete for 968296_merged_R1_001.fastq.gz
+Approx 45% complete for 968296_merged_R1_001.fastq.gz
+Approx 50% complete for 968296_merged_R1_001.fastq.gz
+Approx 55% complete for 968296_merged_R1_001.fastq.gz
+Approx 60% complete for 968296_merged_R1_001.fastq.gz
+Approx 65% complete for 968296_merged_R1_001.fastq.gz
+Approx 70% complete for 968296_merged_R1_001.fastq.gz
+Approx 75% complete for 968296_merged_R1_001.fastq.gz
+Approx 80% complete for 968296_merged_R1_001.fastq.gz
+Approx 85% complete for 968296_merged_R1_001.fastq.gz
+Approx 90% complete for 968296_merged_R1_001.fastq.gz
+Approx 95% complete for 968296_merged_R1_001.fastq.gz
+Analysis complete for 968296_merged_R1_001.fastq.gz
+Started analysis of 968296_merged_R2_001.fastq.gz
+Approx 5% complete for 968296_merged_R2_001.fastq.gz
+Approx 10% complete for 968296_merged_R2_001.fastq.gz
+Approx 15% complete for 968296_merged_R2_001.fastq.gz
+Approx 20% complete for 968296_merged_R2_001.fastq.gz
+Approx 25% complete for 968296_merged_R2_001.fastq.gz
+Approx 30% complete for 968296_merged_R2_001.fastq.gz
+Approx 35% complete for 968296_merged_R2_001.fastq.gz
+Approx 40% complete for 968296_merged_R2_001.fastq.gz
+Approx 45% complete for 968296_merged_R2_001.fastq.gz
+Approx 50% complete for 968296_merged_R2_001.fastq.gz
+Approx 55% complete for 968296_merged_R2_001.fastq.gz
+Approx 60% complete for 968296_merged_R2_001.fastq.gz
+Approx 65% complete for 968296_merged_R2_001.fastq.gz
+Approx 70% complete for 968296_merged_R2_001.fastq.gz
+Approx 75% complete for 968296_merged_R2_001.fastq.gz
+Approx 80% complete for 968296_merged_R2_001.fastq.gz
+Approx 85% complete for 968296_merged_R2_001.fastq.gz
+Approx 90% complete for 968296_merged_R2_001.fastq.gz
+Approx 95% complete for 968296_merged_R2_001.fastq.gz
+Analysis complete for 968296_merged_R2_001.fastq.gz
+Checking species ID with MASH
+Loading /media/mash/refseq.genomes.k21s1000.msh...
+   16160796 distinct hashes.
+Streaming from 2 inputs...
+   Estimated distinct k-mers in pool: 82589654
+Summing shared...
+Reallocating to winners...
+Computing coverage medians...
+Writing output...
+[08:07:30] This is snippy 4.6.0
+[08:07:30] Written by Torsten Seemann
+[08:07:30] Obtained from https://github.com/tseemann/snippy
+[08:07:30] Detected operating system: linux
+[08:07:30] Enabling bundled linux tools.
+[08:07:30] Found bwa - /opt/conda/envs/snippy/bin/bwa
+[08:07:30] Found bcftools - /opt/conda/envs/snippy/bin/bcftools
+[08:07:30] Found samtools - /opt/conda/envs/snippy/bin/samtools
+[08:07:30] Found java - /opt/conda/envs/snippy/bin/java
+[08:07:30] Found snpEff - /opt/conda/envs/snippy/bin/snpEff
+[08:07:30] Found samclip - /opt/conda/envs/snippy/bin/samclip
+[08:07:30] Found seqtk - /opt/conda/envs/snippy/bin/seqtk
+[08:07:30] Found parallel - /opt/conda/envs/snippy/bin/parallel
+[08:07:30] Found freebayes - /opt/conda/envs/snippy/bin/freebayes
+[08:07:30] Found freebayes-parallel - /opt/conda/envs/snippy/bin/freebayes-parallel
+[08:07:30] Found fasta_generate_regions.py - /opt/conda/envs/snippy/bin/fasta_generate_regions.py
+[08:07:30] Found vcfstreamsort - /opt/conda/envs/snippy/bin/vcfstreamsort
+[08:07:30] Found vcfuniq - /opt/conda/envs/snippy/bin/vcfuniq
+[08:07:30] Found vcffirstheader - /opt/conda/envs/snippy/bin/vcffirstheader
+[08:07:30] Found gzip - /bin/gzip
+[08:07:30] Found vt - /opt/conda/envs/snippy/bin/vt
+[08:07:30] Found snippy-vcf_to_tab - /opt/conda/envs/snippy/bin/snippy-vcf_to_tab
+[08:07:30] Found snippy-vcf_report - /opt/conda/envs/snippy/bin/snippy-vcf_report
+[08:07:30] Checking version: samtools --version is >= 1.7 - ok, have 1.15
+[08:07:30] Checking version: bcftools --version is >= 1.7 - ok, have 1.15
+[08:07:30] Checking version: freebayes --version is >= 1.1 - ok, have 1.3.2
+[08:07:30] Checking version: snpEff -version is >= 4.3 - ok, have 4.5
+[08:07:30] Checking version: bwa is >= 0.7.12 - ok, have 0.7.17
+[08:07:30] Invalid --reference filename
+Checking coverage
+/bin/bash: snippy/snps.depth: No such file or directory
+cat: snippy/snps.depth: No such file or directory
+Cleaning up snippy data
+Snippy data already cleaned up
+Typing according to Coll (2014) scheme
+ERROR: Failed to read VCF file. Exiting.
+[mykrobe 2023-11-06T08:07:30 INFO] Start runnning mykrobe predict. Command line: /opt/conda/envs/mykrobe/bin/mykrobe predict -s 968296 -S tb --output mykrobe_output.csv --format csv --min_proportion_expected_depth 0.15 -1 968296_merged_R1_001.fastq.gz 968296_merged_R2_001.fastq.gz
+[mykrobe 2023-11-06T08:07:30 INFO] Running mykrobe predict using species tb, and panel version 20220705
+[mykrobe 2023-11-06T08:07:30 INFO] Run command: /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/cortex/mccortex31 build -q -m 1GB -t 1 -k 21 -s tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1 -1 /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-species-170421.fasta.gz -1 /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-probe-set-202206.fasta.gz -1 /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb.lineage.20200930.probes.fa.gz -1 /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-lineage-bcg-rd1.fasta.gz mykrobe/data/skeletons/tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1_21.ctx
+[mykrobe 2023-11-06T08:07:47 INFO] Run command: /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/cortex/mccortex31 geno -t 1 -m 1GB -k 21 -o /tmp/tmpj3u7eeue/968296-21_tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1.covgs -I mykrobe/data/skeletons/tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1_21.ctx -s 968296-21 -1 968296_merged_R1_001.fastq.gz -1 968296_merged_R2_001.fastq.gz -c /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-species-170421.fasta.gz -c /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-probe-set-202206.fasta.gz -c /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb.lineage.20200930.probes.fa.gz -c /opt/conda/envs/mykrobe/lib/python3.6/site-packages/mykrobe/data/tb/tb-lineage-bcg-rd1.fasta.gz /tmp/tmpj3u7eeue/968296-21_tb-species-170421-tb-probe-set-202206-tb-tb-lineage-bcg-rd1.ctx
+[mykrobe 2023-11-06T08:10:35 INFO] Progress: finished making AMR predictions
+[mykrobe 2023-11-06T08:10:35 INFO] Progress: writing output
+[mykrobe 2023-11-06T08:10:35 INFO] Progress: finished
+Running snippy-core
+Finding distances between all isolates in global collection
+This is snp-dists 0.6.3
+ERROR: Could not open filename 'TB_all*.aln'
+Reading distances between all isolates in global collection
+Traceback (most recent call last):
+  File "/opt/conda/bin/niph_tb_pipeline", line 8, in <module>
+    sys.exit(main())
+  File "/opt/conda/lib/python3.10/site-packages/niph_tb_pipeline/niph_tb_pipeline.py", line 789, in main
+    usedists, samplesindb = ReadSnpDistsObject(dists)
+  File "/opt/conda/lib/python3.10/site-packages/niph_tb_pipeline/niph_tb_pipeline.py", line 565, in ReadSnpDistsObject
+    header = next(dists)[1:]
+StopIteration
+

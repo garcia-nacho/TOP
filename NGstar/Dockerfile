@@ -11,11 +11,15 @@ RUN cd /home/docker \
     && conda config --add channels defaults \
     && conda config --add channels bioconda \
     && conda config --add channels conda-forge 
+
+RUN conda install -c bioconda blast
+
 RUN pip3 install pandas pyfaidx biopython pyahocorasick \
     && cd /home/docker && git clone https://github.com/leosanbu/pyngSTar 
 
 COPY DB/ /home/docker/pyngSTar/pyngSTarDB_050923
 COPY Code /home/docker/Code
+
 USER root
 RUN chmod -R +rwx /home/docker/pyngSTar/pyngSTarDB_050923/* \
     && chmod 777 /home/docker/pyngSTar/pyngSTarDB_050923
