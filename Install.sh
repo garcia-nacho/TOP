@@ -51,14 +51,14 @@ if [ -z ${tbdb+x} ]
 then
 mkdir $(pwd)/TBDB
 ${tbdb}=$(pwd)/TBDB
-echo "Creating TBDB in "$(pwd)/TBDB
-echo ""
 fi
+echo "Using TBDB located in "${tbdb}
+echo ""
 
 conda create -n top_nf -y -c bioconda nextflow
 source activate top_nf
 cp TOP.nf ${CONDA_PREFIX}/bin/TOP.nf
-cp TOP.sh ${CONDA_PREFIX}/bin/TOP
+#cp TOP.sh ${CONDA_PREFIX}/bin/TOP
 cp nextflow.config ${CONDA_PREFIX}/bin/nexflow.config
 mkdir ${CONDA_PREFIX}/top_temp
 conda deactivate
@@ -74,7 +74,8 @@ echo ""
 tar -xvzf krakenDB.tar.gz -C krakenDB
 kraken=$(pwd)/krakenDB
 fi
-
+echo "Using krakenDB located in "${kraken}
+echo ""
 
 source activate top_nf
 conda env config vars set KRAKENDB=${kraken}
