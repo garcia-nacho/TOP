@@ -22,16 +22,21 @@ docker pull ghcr.io/garcia-nacho/top_ngmaster
 docker pull ghcr.io/garcia-nacho/top_ecoli
 docker pull ghcr.io/garcia-nacho/top_meningotype
 docker pull ghcr.io/garcia-nacho/top_tartrate
-docker pull ghcr.io/garcia-nacho/top_tbpipeline
 
 else
 
 echo "Running The One Pipeline"
-nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${1}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TempDB}" --spadescores ${SPADESCORES} --threads ${CORES}
+nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${1}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${CORES}
 #Delete working directory if there is no error
-if test -f "${1}/TOPresults/Summaries_*.xlsx"; then echo "Cleaning up..." && nextflow clean; fi
+if test -f "${1}/TOPresults/Summaries_*.xlsx"; then echo "Cleaning up..." && nextflow clean && rm ${CONDA_PREFIX}/top_temp/* ; fi
+#Copy template
+
+if test -f "${1}/TOPresults/Summaries_*.xlsx"
+then
+nextflow log $(nextflow log | tail -1 | awk '{print $5}') -t ${CONDA_PREFIX}/top_template.html > top_output.html
 #rm -rf ./work
-rm ${CONDA_PREFIX}/top_temp/*
+fi
+
 fi
 
 conda deactivate

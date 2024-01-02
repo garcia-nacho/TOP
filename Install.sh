@@ -62,6 +62,7 @@ cp TOP.nf ${CONDA_PREFIX}/bin/TOP.nf
 #cp TOP.sh ${CONDA_PREFIX}/bin/TOP
 cp nextflow.config ${CONDA_PREFIX}/bin/
 mkdir ${CONDA_PREFIX}/top_temp
+cp top_template.html ${CONDA_PREFIX}/top_template.html
 conda deactivate
 
 if [ -z ${kraken+x} ]
@@ -81,26 +82,8 @@ echo ""
 source activate top_nf
 conda env config vars set KRAKENDB=${kraken}
 conda env config vars set TBDB=${tbdb}
-conda env config vars set TempDB=${CONDA_PREFIX}/top_temp
+conda env config vars set TEMPDB=${CONDA_PREFIX}/top_temp
 conda env config vars set TOPCORES=${cores}
 conda env config vars set SPADESCORES=$((${cores}-2))
 
 conda deactivate
-
-echo "Downloading docker images"
-echo ""
-docker pull ghcr.io/garcia-nacho/top_spades
-docker pull ghcr.io/garcia-nacho/top_abricate
-docker pull ghcr.io/garcia-nacho/top_emmtyper
-docker pull ghcr.io/garcia-nacho/top_hicap
-docker pull ghcr.io/garcia-nacho/top_seroba
-docker pull ghcr.io/garcia-nacho/top_virfinder
-#docker pull ghcr.io/garcia-nacho/top_prokka
-docker pull ghcr.io/garcia-nacho/top_ngstar
-docker pull ghcr.io/garcia-nacho/top_tbpipeline
-docker pull ghcr.io/garcia-nacho/top_seqsero
-docker pull ghcr.io/garcia-nacho/top_ngmaster
-docker pull ghcr.io/garcia-nacho/top_ecoli
-docker pull ghcr.io/garcia-nacho/top_meningotype
-docker pull ghcr.io/garcia-nacho/top_tartrate
-docker pull ghcr.io/garcia-nacho/top_tbpipeline
