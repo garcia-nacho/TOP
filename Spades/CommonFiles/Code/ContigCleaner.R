@@ -38,5 +38,6 @@ while(!found){
 }
 
 names(dummyfa)<-paste(summaries$Sample[1],gsub("_length.*","",names(dummyfa)),sep="")
+names(dummyfa)<-gsub("NODE","_NODE",names(dummyfa))
 write.fasta(dummyfa, names = names(dummyfa), file.out ="clean_contigs.fasta")
 write.csv(summaries, "clean_contigs.stats.csv", row.names = FALSE)

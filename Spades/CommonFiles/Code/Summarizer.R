@@ -539,6 +539,52 @@ summ<-merge(summ, out.gono, by="Sample", all.x=TRUE)
 rm(out.gono)
 
 
+
+# NGStar ------------------------------------------------------------------
+
+gono.list2<-list.files(pattern = "ngstar_results.tsv")
+for (i in 1:length(gono.list2)) {
+  dummy<-read.csv(gono.list2[i],sep = "\t",header = FALSE)
+  if(dummy[1,1]=="NoNgon"){
+    dummy<-as.data.frame(matrix(NA,nrow = 1, ncol = 1))
+    colnames(dummy)<-c("strain")
+    
+    dummy$ID<-gsub("_.*","",gono.list[i])
+  }else{
+    colnames(dummy)<-dummy[1,]
+    dummy<-dummy[-1,]
+  }
+  if(!exists("out.gono2")){
+    out.gono2<-dummy
+  }else{
+    
+    missing.dummy<- colnames(out.gono2)[-which(colnames(out.gono2) %in% colnames(dummy) )]
+    if(length(missing.dummy)>0){
+      padd<-as.data.frame(matrix(NA, nrow = nrow(dummy), ncol = length(missing.dummy)))
+      colnames(padd)<-missing.dummy
+      dummy<-cbind(dummy, padd)
+    }
+    
+    missing.gono<- colnames(dummy)[-which(colnames(dummy) %in% colnames(out.gono2) )]
+    if(length(missing.gono)>0){
+      padd<-as.data.frame(matrix(NA, nrow = nrow(out.gono2), ncol = length(missing.gono)))
+      colnames(padd)<-missing.gono
+      out.gono2<-cbind(out.gono2, padd)
+    }
+    
+    out.gono2<-rbind(out.gono2,dummy)
+  }
+}
+
+out.gono2$Sample<-gsub("_.*","",out.gono2$strain)
+out.gono2$strain<-NULL
+colnames(out.gono2)[-which(colnames(out.gono2)%in% c("Sample"))]<-
+  paste("NGstar_",colnames(out.gono2)[-which(colnames(out.gono2)%in% c("Sample"))],sep = "")
+summ<-merge(summ, out.gono2, by="Sample", all.x=TRUE)
+rm(out.gono2)
+
+
+
 # Seqsero -----------------------------------------------------------------
 salmo.list<-list.files(pattern = "_seqsero_results.tsv")
 

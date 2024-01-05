@@ -260,6 +260,7 @@ process Integration {
     path(emmtyp)
     path(meningotype)
     path(ngmast)
+    path(ngstar)
     path(stxtp)
     path(stxtp_contig)
     path(seqsero)
@@ -309,6 +310,7 @@ process Integration {
     if test -f "*.csv"; then mv *.csv ./QC; fi
 
     Rscript /home/docker/CommonFiles/Code/FileParserSummary.R
+    #breakpointing
 
 
 
@@ -363,6 +365,36 @@ process Abricate {
 
 }
 
+process NGstar { 
+    container 'ghcr.io/garcia-nacho/top_ngstar'
+    cpus 1
+    maxForks = 1
+
+    input:
+    path(fastaclean)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*ngstar_results.tsv"), emit: ngstar_results
+
+    script:
+
+    """
+    if test -f "Ngon.agent"; 
+    then
+      cp -L ${sample}_clean_contigs.fasta ${sample}_clean_contigs_nolink.fasta
+      cat ${sample}_clean_contigs_nolink.fasta | tr 'a-z' 'A-Z' > ${sample}_clean_contigs_nocap.fasta
+      python3 /home/docker/pyngSTar/pyngSTar.py -f -i ${sample}_clean_contigs_nocap.fasta -p /home/docker/pyngSTar/pyngSTarDB_02012024/ -o ${sample}_ngstar_results.tsv 
+      
+    else
+      echo "NoNgon" > ${sample}_ngstar_results.tsv
+
+    fi
+
+    """
+
+}
 
 process Hicap { 
     container 'ghcr.io/garcia-nacho/top_hicap'
@@ -809,6 +841,7 @@ workflow {
    emmtyp=EMMtyper(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    meningotype=MeningoTyper(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    ngmast=NGmaster(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent) 
+   ngstar=NGstar(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent) 
    //stxtyp=STX(mlst.r1mlst, mlst.r2mlst, mlst.sample_frommlst, mlst.agent, all_raw_reads)
    stxtyp=STX(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    stxtypcontig=STX_Contigs(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
@@ -835,6 +868,7 @@ workflow {
                      emmtyp.emm_results.collect(),
                      meningotype.meningotype_results.collect(),
                      ngmast.ngmaster_results.collect(),
+                     ngstar.ngstar_results.collect(),
                      stxtyp.stx_results.collect(),
                      stxtypcontig.stx_contigs_results.collect(),
                      seqsero.seqsero_results.collect(),
