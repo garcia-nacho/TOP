@@ -26,9 +26,9 @@ docker pull ghcr.io/garcia-nacho/top_tartrate
 else
 
 echo "Running The One Pipeline"
-nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${1}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${CORES} -resume
+nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${1}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} -resume
 #Delete working directory if there is no error
-if test -f "${1}/TOPresults/Summaries_*.xlsx"; then echo "Cleaning up..." && nextflow clean && rm ${CONDA_PREFIX}/top_temp/* ; fi
+if test -f "${1}/TOPresults/Summaries_*.xlsx"; then echo "Cleaning up..." && nextflow clean && rm ${TEMPDB}/* ; fi
 #Copy template
 
 if test -f "${1}/TOPresults/Summaries_*.xlsx"
