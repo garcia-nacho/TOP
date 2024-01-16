@@ -129,7 +129,7 @@ for (i in 1:length(rmlist)) {
   dummy<-read.csv(rmlist[i])
   
   if(nrow(dummy)>1){
-    dummy$MLST_Conflict<-paste(paste(dummy$rMLST_support, dummy$rMLST_taxon,sep = "% "), collapse = " / ")
+    dummy$rMLST_Conflict<-paste(paste(dummy$rMLST_support, dummy$rMLST_taxon,sep = "% "), collapse = " / ")
     dummy<-dummy[which(dummy$rMLST_support==max(dummy$rMLST_support)),]
     if(nrow(dummy)>1) dummy<-dummy[1,]
   }
@@ -169,6 +169,51 @@ out.seqmlst$Sample<-gsub("_.*","",out.seqmlst$Sample)
 
 summ<-merge(summ, out.mlst, by="Sample", all.x=TRUE)
 summ<-merge(summ, out.seqmlst, by="Sample", all.x=TRUE)
+
+#local mlst
+
+
+localmlst<-list.files(pattern = "localmlst.tsv")
+
+if(exists("out.localmlst")) rm(out.localmlst)
+
+for (i in 1:length(localmlst)) {
+
+  dummy<-read.csv(localmlst[i], header = FALSE,sep = "\t")
+  dummy2<-as.data.frame(matrix(NA, nrow = 1, ncol = 3))
+  colnames(dummy2)<-c("Sample","LocalMLST","LocalScheme")
+  dummy2$LocalMLST<-dummy$V3
+  
+  if(ncol(dummy)>3){
+  scheme<-as.character(dummy[1,c(4:ncol(dummy))])
+  schemenames<-gsub("\\(.*","",scheme)
+  schemetype<-gsub(".*\\(","",gsub("\\)","",scheme))
+  schememerged<-paste(schemenames, schemetype, sep = ":")
+  schememerged<-schememerged[order(schememerged)]
+  schememerged<-paste(schememerged, collapse = " | ")
+  dummy2$LocalScheme<-schememerged
+  dummy2$Sample<-dummy$V1
+  }else{
+    dummy2$LocalScheme<-NA
+  }
+  if(dummy$V3=="-") dummy2$LocalMLST<-NA
+  if(!exists("out.localmlst")){
+    out.localmlst<-dummy2
+  }else{
+    out.localmlst<-rbind(out.localmlst, dummy2)
+  }
+}
+
+out.localmlst$Sample<-gsub("_.*","",out.localmlst$Sample)
+
+summ<-merge(summ, out.localmlst, by="Sample", all.x=TRUE)
+
+to.replace<-which(is.na(summ$MLST.Type))
+summ$MLST.Type[to.replace]<- summ$LocalMLST[to.replace]
+summ$MLST.Scheme[to.replace]<- summ$LocalScheme[to.replace]
+summ$MLST_Date[to.replace]<-"MLST_Database20240116"
+summ$LocalMLST<-NULL
+summ$LocalScheme<-NULL
 
 #Abricate
 abrilist<-list.files(pattern = "_Abricate.csv")
@@ -634,7 +679,7 @@ for (i in 1:length(tart.list)) {
   if(dummy[1,1]=="NoSalmo"){
     dummy<-as.data.frame(matrix(NA,nrow = 1, ncol = 4))
     colnames(dummy)<-c( "ID",
-                        "Tratatre_STM3356_Codon",
+                        "Tartratre_STM3356_Codon",
                         "Predicted_Tartrate_Fermentation",
                         "Tartrate_Notes")
     
@@ -783,6 +828,30 @@ for (i in 1:length(eco.list)) {
 colnames(out.eco)[-which(colnames(out.eco)=="Sample")]<-paste("EcoPipeAssemblies:",colnames(out.eco)[-which(colnames(out.eco)=="Sample")],sep = "")
 summ<-merge(summ, out.eco, by="Sample", all.x=TRUE)
 rm(out.eco)
+
+
+
+# SequencerID -------------------------------------------------------------
+
+sqid.list<-list.files(pattern = "sequencerID.tsv")
+if(exists("out.sqid")) rm(out.sqid)
+for (i in 1:length(sqid.list)) {
+  dum<-read.csv(sqid.list[i], sep = "\t", header = FALSE)
+  
+  dum2<-as.data.frame(t(c(gsub(":.*","",dum[1,1]), gsub("_sequencerID.tsv","",sqid.list[i]))))
+  
+  colnames(dum2)<-c("Instrument", "Sample")
+  if(!exists("out.sqid")){
+    out.sqid<-dum2
+  }else{
+    out.sqid<-rbind(out.sqid,dum2)
+  }
+}
+out.sqid$Sample<-gsub("_.*","",out.sqid$Sample)
+out.sqid$Instrument<-gsub("@","",out.sqid$Instrument)
+summ<-merge(summ, out.sqid, by="Sample", all.x=TRUE)
+rm(out.sqid)
+
 
 # Last Stage --------------------------------------------------------------
 

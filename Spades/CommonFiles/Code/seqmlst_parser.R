@@ -32,6 +32,16 @@ if(exists("dumm.db")){
   if(length(grep("Escherichia",results$rMLST_taxon))==1){
     isolatesurl<-dumm.db$href[grep("isolates",dumm.db$description)]
     sequrl<-dumm.db$href[grep("sequence",dumm.db$description)]  
+  }else if(length(grep("Campylobacter",results$rMLST_taxon))==1){
+    isolatesurl<-dumm.db$href[grep("isolates",dumm.db$description)]
+    sequrl<-dumm.db$href[grep("sequence",dumm.db$description)]
+    if(results$rMLST_taxon=="Campylobacter jejuni"){
+      isolatesurl<-isolatesurl[-grep("nonjejuni",isolatesurl)]
+      sequrl<-sequrl[-grep("nonjejuni",sequrl)]
+    }else{
+      isolatesurl<-isolatesurl[grep("nonjejuni",isolatesurl)]
+      sequrl<-sequrl[grep("nonjejuni",sequrl)]
+    }
   }else{
     isolatesurl<-dumm.db$href[grep(paste(results$rMLST_taxon,"isolates"),dumm.db$description)]
     sequrl<-dumm.db$href[grep(paste(results$rMLST_taxon,"sequence"),dumm.db$description)]  
@@ -115,6 +125,9 @@ shortname<-paste(unlist(base::strsplit(gsub(" .*", "",shortname),""))[1] ,
 
 if(length(grep("Salmonella",results$rMLST_taxon))==1) shortname<-"Salmo"
 if(length(grep("Mycobact",results$rMLST_taxon))==1) shortname<-"Myco"
+if(length(grep("Campylobacter",results$rMLST_taxon))==1 & shortname != "Cjej")shortname<-"Campyl"
+if(length(grep("Shigella",results$rMLST_taxon))==1) shortname<-"Shige"
+if(length(grep("Yersinia",results$rMLST_taxon))==1) shortname<-"Yersi"
 
 #colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))]<-paste(shortname, colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))],sep = "_")
 

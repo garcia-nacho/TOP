@@ -88,18 +88,22 @@ process Spades {
     path ("*raw_contigs.fasta"), emit: fastasraw
     path (trimmedR1), emit: r1spades
     path (trimmedR2), emit: r2spades
+    path ("*sequencerID.tsv"), emit: sqID
 
     val(sample), emit: sample_name
 
     script:
 
     """
+    sqid=\$(gzip -cd ${trimmedR1} | head -n 1)   
+    echo \${sqid}  > ${sample}_sequencerID.tsv
     spades.py -o . --careful --cov-cutoff auto -t 1 -1 ${trimmedR1} -2 ${trimmedR2} 
     mv contigs.fasta ${sample}_raw_contigs.fasta
     Rscript /home/docker/CommonFiles/Code/ContigCleaner.R
     mv clean_contigs.fasta ${sample}_clean_contigs.fasta
     mv clean_contigs.stats.csv ${sample}_contigs.stats.csv
     rm -rf ./corrected
+    
     
     """
 }
@@ -120,6 +124,7 @@ process Rmlst {
     output:
     path("*mlst{.json,.csv}"), emit: mlstresults
     path("*.agent"), emit: agent
+    path("*localmlst.tsv"), emit: localmlst
     path(input), emit: clean_contigs_frommlst
     val(sample), emit: sample_frommlst
     path (r1), emit: r1mlst
@@ -133,6 +138,9 @@ process Rmlst {
     Rscript /home/docker/CommonFiles/Code/rmlst_parser.R
     Rscript /home/docker/CommonFiles/Code/seqmlst_parser.R
     #Missing genus 
+    source activate mlst
+    mlst ${sample}_clean_contigs.fasta > ${sample}_localmlst.tsv
+    conda deactivate
 
     """
 
@@ -270,6 +278,8 @@ process Integration {
     path(tbulky)
     path(ecopipelinefiles)
     path(ecopipelinefilesfasta)
+    path(sequencerid)
+    path(localmlist)
   
     output:
     path ("*")
@@ -767,7 +777,7 @@ process JonEcoPipe {
     script:
 
     """
-    if test -f "Ecol.agent"; 
+    if [[ -f "Ecol.agent" ]] || [[ -f "Shige.agent" ]] ; 
     then
         r1=\$(ls ${sample}_R1*.fastq.gz)
         r2=\$(ls ${sample}_R2*.fastq.gz)
@@ -877,5 +887,7 @@ workflow {
                      tbpipe.tbpipeline_results.collect(),
                      tbpipe.tbpipeline_bulk.collect(),
                      ecopipe.eco_results.collect(),
-                     ecopipefasta.eco_results_fasta.collect() )
+                     outputspades.sqID.collect(),
+                     ecopipefasta.eco_results_fasta.collect(),
+                     mlst.localmlst.collect() )
 }
