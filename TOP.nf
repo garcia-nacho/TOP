@@ -473,8 +473,8 @@ process STX {
     cpus 2
     maxForks = 1
     time '15m'
-    //errorStrategy 'ignore'
-    errorStrategy { task.exitStatus == null ? 'ignore' : 'terminate' }
+    errorStrategy 'ignore'
+    //errorStrategy { task.exitStatus == null ? 'ignore' : 'terminate' }
 
     input:
     //path(r1)
