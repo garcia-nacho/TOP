@@ -346,9 +346,9 @@ process Abricate {
     """
     if test -f "Hinf.agent"; 
     then
-        abricate-get_db --db ncbi --force
-        abricate-get_db --db vfdb --force
-        abricate-get_db --db plasmidfinder --force
+        #abricate-get_db --db ncbi --force
+        #abricate-get_db --db vfdb --force
+        #abricate-get_db --db plasmidfinder --force
         abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv 
         abricate --db HinfFtsI --quiet *.fasta > ${sample}_HinfFtsI.tsv
         abricate --db HinfGyrSubA --quiet *.fasta > ${sample}_HinfGyrSubA.tsv
@@ -357,9 +357,9 @@ process Abricate {
         abricate --db plasmidfinder --quiet *.fasta > ${sample}_plasmidfinder.tsv
         #Integration Abricate
     else
-        abricate-get_db --db ncbi --force
-        abricate-get_db --db vfdb --force
-        abricate-get_db --db plasmidfinder --force
+        #abricate-get_db --db ncbi --force
+        #abricate-get_db --db vfdb --force
+        #abricate-get_db --db plasmidfinder --force
         abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv
         abricate --db ncbi --quiet *.fasta > ${sample}_ncbi.tsv
         abricate --db plasmidfinder --quiet *.fasta > ${sample}_plasmidfinder.tsv
@@ -474,7 +474,7 @@ process STX {
     maxForks = 1
     time '15m'
     errorStrategy 'ignore'
-    //errorStrategy { task.exitStatus == null ? 'ignore' : 'terminate' }
+    //errorStrategy { task.exitStatus == 143 ? 'ignore' : 'terminate' }
 
     input:
     //path(r1)
