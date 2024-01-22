@@ -691,7 +691,7 @@ for (i in 1:length(tart.list)) {
       dummy<-dummy2
     } 
     colnames(dummy)<-c( "ID",
-                        "Tratatre_STM3356_Codon",
+                        "Tartratre_STM3356_Codon",
                         "Predicted_Tartrate_Fermentation",
                         "Tartrate_Notes")
   }
