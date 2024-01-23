@@ -8,6 +8,7 @@ then
 echo "Updating The One Pipeline"
 wget -O ${CONDA_PREFIX}/bin/TOP.nf https://github.com/garcia-nacho/TOP/raw/master/TOP.nf
 wget -O ${CONDA_PREFIX}/bin/nextflow.config https://github.com/garcia-nacho/TOP/raw/master/nextflow.config
+wget -O ${CONDA_PREFIX}/top_template.html https://github.com/garcia-nacho/TOP/raw/master/top_template.html
 docker pull ghcr.io/garcia-nacho/top_spades
 docker pull ghcr.io/garcia-nacho/top_abricate
 docker pull ghcr.io/garcia-nacho/top_emmtyper
@@ -34,7 +35,7 @@ then
 echo "Cleaning up..."
 cp .nextflow.log ./
 nextflow log $(nextflow log | tail -1 | awk '{print $5}') -t ${CONDA_PREFIX}/top_template.html > TOP_PipelineSummary.html
-nextflow clean -f && rm ${TEMPDB}/*
+nextflow clean -f && rm -rf ${TEMPDB}/*
 fi
 
 conda deactivate
