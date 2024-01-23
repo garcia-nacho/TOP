@@ -212,8 +212,12 @@ to.replace<-which(is.na(summ$MLST.Type))
 summ$MLST.Type[to.replace]<- summ$LocalMLST[to.replace]
 summ$MLST.Scheme[to.replace]<- summ$LocalScheme[to.replace]
 summ$MLST_Date[to.replace]<-"MLST_Database20240116"
-summ$LocalMLST<-NULL
-summ$LocalScheme<-NULL
+#summ$LocalMLST<-NULL
+#summ$LocalScheme<-NULL
+
+if(length(which(is.na(df$MLST.Type)))>0 ) summ$MLST.Type[which(is.na(df$MLST.Type))]<-"Non Detected"
+if(length(which(is.na(df$MLST.Scheme)))>0 ) summ$MLST.Scheme[which(is.na(df$MLST.Scheme))]<-"Non Detected"
+
 
 #Abricate
 abrilist<-list.files(pattern = "_Abricate.csv")
@@ -852,6 +856,68 @@ out.sqid$Instrument<-gsub("@","",out.sqid$Instrument)
 summ<-merge(summ, out.sqid, by="Sample", all.x=TRUE)
 rm(out.sqid)
 
+
+
+
+
+
+# STXcolumns --------------------------------------------------------------
+
+summ$Stx1<-NA
+summ$Stx2<-NA
+
+if(length(which(summ$StxType_Contigs=="No hit found" &  summ$StxType_Mapping=="No hit found"))>0){
+  summ$Stx1[which(summ$StxType_Contigs=="No hit found" &  summ$StxType_Mapping=="No hit found")]<-"Assemblies:Non Detected | Reads:Non Detected"
+  summ$Stx2[which(summ$StxType_Contigs=="No hit found" &  summ$StxType_Mapping=="No hit found")]<-"Assemblies:Non Detected | Reads:Non Detected"
+}
+
+if(length(which(summ$StxType_Contigs=="No hit found" &  summ$StxType_Mapping!="No hit found" & !is.na(summ$StxType_Mapping)))>0){
+  summ$Stx1[which(summ$StxType_Contigs=="No hit found" &  summ$StxType_Mapping!="No hit found" & !is.na(summ$StxType_Mapping))]<-"Assemblies:Non Detected"
+  summ$Stx2[which(summ$StxType_Contigs=="No hit found" &  summ$StxType_Mapping!="No hit found" & !is.na(summ$StxType_Mapping))]<-"Assemblies:Non Detected"
+}
+
+if(length(which(summ$StxType_Contigs!="No hit found" &  summ$StxType_Mapping=="No hit found" & !is.na(summ$StxIdentity_Contigs)))>0){
+  summ$Stx1[which(summ$StxType_Contigs!="No hit found" &  summ$StxType_Mapping=="No hit found" & !is.na(summ$StxIdentity_Contigs))]<-"Reads:Non Detected"
+  summ$Stx2[which(summ$StxType_Contigs!="No hit found" &  summ$StxType_Mapping=="No hit found" & !is.na(summ$StxIdentity_Contigs))]<-"Reads:Non Detected"
+}
+
+for (i in 1:nrow(summ)) {
+  if(exists("stxvar"))rm(stxvar)
+  if(exists("stxvar2"))rm(stxvar2)
+  
+  if(!is.na(summ$StxVariant_Contigs[i])){
+    stxvar<- unique(unlist(strsplit(summ$StxVariant_Contigs[i], " \\| ")))
+    stxvar<-gsub("\\:variant ","",stxvar)
+    
+    if(length(grep("stx1", stxvar))>0){
+      summ$Stx1[i]<-paste("Assemblies:", paste(stxvar[grep("stx1", stxvar)], collapse = ";"),sep = "")
+    }
+    if(length(grep("stx2", stxvar))>0){
+      summ$Stx2[i]<-paste("Assemblies:", paste(stxvar[grep("stx2", stxvar)], collapse = ";"),sep = "")
+    }
+    
+  }
+  
+  if(!is.na(summ$StxVariant_Mapping[i])){
+    stxvar2<- unique(unlist(strsplit(summ$StxVariant_Mapping[i], " \\| ")))
+    stxvar2<-gsub("\\:variant ","",stxvar2)
+    
+    if(length(grep("stx1", stxvar2))>0){
+      if(is.na(summ$Stx1[i])){
+        summ$Stx1[i]<-paste("Reads:", paste(stxvar[grep("stx1", stxvar2)], collapse = ";"),sep = "")  
+      }else{
+        summ$Stx1[i]<-paste(summ$Stx1[i], paste("Reads:", paste(stxvar[grep("stx1", stxvar2)], collapse = ";"),sep = ""), sep = " | ")
+      }
+    }
+    if(length(grep("stx2", stxvar2))>0){
+      if(is.na(summ$Stx2[i])){
+        summ$Stx2[i]<-paste("Reads:", paste(stxvar[grep("stx2", stxvar2)], collapse = ";"),sep = "")  
+      }else{
+        summ$Stx2[i]<-paste(summ$Stx2[i], paste("Reads:", paste(stxvar[grep("stx2", stxvar2)], collapse = ";"),sep = ""), sep = " | ")
+      }
+    }
+  }
+}
 
 # Last Stage --------------------------------------------------------------
 

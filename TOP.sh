@@ -28,15 +28,13 @@ else
 echo "Running The One Pipeline"
 nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${1}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} -resume
 #Delete working directory if there is no error
-if test -f "${1}/TOPresults/Summaries_*.xlsx"; then echo "Cleaning up..." && nextflow clean && rm ${TEMPDB}/* ; fi
-#Copy template
 
-if test -f "${1}/TOPresults/Summaries_*.xlsx"
+if test -f "${1}/TOPresults/Summaries_"*".xlsx"
 then
-nextflow log $(nextflow log | tail -1 | awk '{print $5}') -t ${CONDA_PREFIX}/top_template.html > top_output.html
-#rm -rf ./work
-fi
-
+echo "Cleaning up..."
+cp .nextflow.log ./
+nextflow log $(nextflow log | tail -1 | awk '{print $5}') -t ${CONDA_PREFIX}/top_template.html > TOP_PipelineSummary.html
+nextflow clean -f && rm ${TEMPDB}/*
 fi
 
 conda deactivate

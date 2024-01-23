@@ -422,7 +422,7 @@ process Hicap {
     script:
 
     """
-    if test -f "Hinf.agent"; 
+    if [[ -f "Hinf.agent" ]] || [[ -f "Hpar.agent" ]] ; 
     then
         /home/docker/Code/hicapwrapper.sh
 
@@ -815,7 +815,7 @@ process JonEcoPipeFasta {
     script:
 
     """
-    if test -f "Ecol.agent"; 
+    if [[ -f "Ecol.agent" ]] || [[ -f "Shige.agent" ]] ; 
     then
 
         mkdir Fasta Forward Reverse
