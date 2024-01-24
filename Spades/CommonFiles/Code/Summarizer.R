@@ -215,8 +215,8 @@ summ$MLST_Date[to.replace]<-"MLST_Database20240116"
 #summ$LocalMLST<-NULL
 #summ$LocalScheme<-NULL
 
-if(length(which(is.na(df$MLST.Type)))>0 ) summ$MLST.Type[which(is.na(df$MLST.Type))]<-"Non Detected"
-if(length(which(is.na(df$MLST.Scheme)))>0 ) summ$MLST.Scheme[which(is.na(df$MLST.Scheme))]<-"Non Detected"
+if(length(which(is.na(summ$MLST.Type)))>0 ) summ$MLST.Type[which(is.na(summ$MLST.Type))]<-"Non Detected"
+if(length(which(is.na(summ$MLST.Scheme)))>0 ) summ$MLST.Scheme[which(is.na(summ$MLST.Scheme))]<-"Non Detected"
 
 
 #Abricate
@@ -880,6 +880,9 @@ if(length(which(summ$StxType_Contigs!="No hit found" &  summ$StxType_Mapping=="N
   summ$Stx1[which(summ$StxType_Contigs!="No hit found" &  summ$StxType_Mapping=="No hit found" & !is.na(summ$StxIdentity_Contigs))]<-"Reads:Non Detected"
   summ$Stx2[which(summ$StxType_Contigs!="No hit found" &  summ$StxType_Mapping=="No hit found" & !is.na(summ$StxIdentity_Contigs))]<-"Reads:Non Detected"
 }
+
+if(length(summ$StxVariant_Contigs)==0) summ$StxVariant_Contigs<-NA
+if(length(summ$StxVariant_Mapping)==0) summ$StxVariant_Mapping<-NA
 
 for (i in 1:nrow(summ)) {
   if(exists("stxvar"))rm(stxvar)
