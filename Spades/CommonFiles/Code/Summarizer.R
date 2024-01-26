@@ -212,8 +212,8 @@ to.replace<-which(is.na(summ$MLST.Type))
 summ$MLST.Type[to.replace]<- summ$LocalMLST[to.replace]
 summ$MLST.Scheme[to.replace]<- summ$LocalScheme[to.replace]
 summ$MLST_Date[to.replace]<-"MLST_Database20240116"
-#summ$LocalMLST<-NULL
-#summ$LocalScheme<-NULL
+summ$LocalMLST<-NULL
+summ$LocalScheme<-NULL
 
 if(length(which(is.na(summ$MLST.Type)))>0 ) summ$MLST.Type[which(is.na(summ$MLST.Type))]<-"Non Detected"
 if(length(which(is.na(summ$MLST.Scheme)))>0 ) summ$MLST.Scheme[which(is.na(summ$MLST.Scheme))]<-"Non Detected"
@@ -914,9 +914,9 @@ for (i in 1:nrow(summ)) {
     }
     if(length(grep("stx2", stxvar2))>0){
       if(is.na(summ$Stx2[i])){
-        summ$Stx2[i]<-paste("Reads:", paste(stxvar[grep("stx2", stxvar2)], collapse = ";"),sep = "")  
+        summ$Stx2[i]<-paste("Reads:", paste(stxvar2[grep("stx2", stxvar2)], collapse = ";"),sep = "")  
       }else{
-        summ$Stx2[i]<-paste(summ$Stx2[i], paste("Reads:", paste(stxvar[grep("stx2", stxvar2)], collapse = ";"),sep = ""), sep = " | ")
+        summ$Stx2[i]<-paste(summ$Stx2[i], paste("Reads:", paste(stxvar2[grep("stx2", stxvar2)], collapse = ";"),sep = ""), sep = " | ")
       }
     }
   }
