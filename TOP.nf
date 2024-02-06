@@ -275,7 +275,6 @@ process Integration {
     path(seqsero_tar_gz)
     path(tartrate_res)
     path(tbres)
-    path(tbulky)
     path(ecopipelinefiles)
     path(ecopipelinefilesfasta)
     path(sequencerid)
@@ -288,6 +287,7 @@ process Integration {
 
     """
     multiqc ./
+    
     Rscript /home/docker/CommonFiles/Code/Summarizer.R
     mkdir bam
     mv *.bam ./bam
@@ -319,11 +319,8 @@ process Integration {
     if test -f "*.svg"; then mv *.svg ./QC; fi
     if test -f "*.csv"; then mv *.csv ./QC; fi
 
-    Rscript /home/docker/CommonFiles/Code/FileParserSummary.R
-    #breakpointing
 
-
-
+    #Rscript /home/docker/CommonFiles/Code/FileParserSummary.R
     
     """
 }
@@ -656,10 +653,19 @@ process Seqsero {
       mv \$(ls -d */) SeqSeroResults_allele
       mv SeqSeroResults_allele/SeqSero_result.tsv ./${sample}_seqsero_results.tsv
       tar -zcvf ${sample}_seqsero.tar.gz SeqSeroResults_allele 
+      rm -rf SeqSeroResults_allele
+
+      SeqSero2_package.py -m k -p 2 -t 2 -n ${sample} -i \${R1} \${R2}
+      mv \$(ls -d */) SeqSeroResults_kmer
+      mv SeqSeroResults_kmer/SeqSero_result.tsv ./${sample}_kmer_seqsero_results.tsv
+      tar -zcvf ${sample}_kmer_seqsero.tar.gz SeqSeroResults_kmer
+      rm -rf SeqSeroResults_kmer
       
     else
       echo "NoSalmo" > ${sample}_seqsero_results.tsv
       echo "NoSalmo" > ${sample}_dummy_seqsero.tar.gz
+      echo "NoSalmo" > ${sample}_dummy_kmer_seqsero.tar.gz
+      echo "NoSalmo" > ${sample}_kmer_seqsero_results.tsv
     fi
 
     """
@@ -754,6 +760,102 @@ process TBpipeline{
       mkdir localdb_dummy
       echo "dummy" > localdb_dummy/dummy.txt   
 
+    fi
+
+    """
+}
+
+process TBpipelineP1{
+    container 'ghcr.io/garcia-nacho/top_tbpipeline'
+    containerOptions '--volume '+params.TBDB+':/mnt/global_collection'
+    
+    cpus 2
+    maxForks = 2
+
+    input:
+    val(sample)
+    path(agent)
+    path(rawreads)
+
+    output:
+    path("*.tar.gz"), emit: tbpipeline_p1_results
+
+    script:
+
+    """
+    if test -f "Myco.agent"; 
+    then
+      if test -d "/mnt/local_collection/localdb_dummy"; then rm -rf /mnt/local_collection/localdb_dummy; fi
+      mkdir ${sample}
+    
+      r1=\$(ls ${sample}_R1*.fastq.gz)
+      r2=\$(ls ${sample}_R2*.fastq.gz)
+       
+      mv \${r1} ${sample}
+      mv \${r2} ${sample}
+      rm ./*.fastq.gz
+
+      niph_tb_pipeline1
+      rm -rf COPY_TO_REPORTS
+      rm -rf COPY_TO_TB_PIPELINE_DATABASE
+      rm -rf ${sample}/*.fastq.gz
+      tar -zcvf ${sample}.tar.gz ${sample}
+      rm -rf ${sample}
+
+    else
+      
+      mkdir ${sample}_nonTB
+      echo "dummy" > ${sample}_nonTB/${sample}_nonTB.txt 
+      echo "dummy" > dummy_tbp.tar.gz
+
+    fi
+
+    """
+}
+
+process TBpipelineP2{
+    container 'ghcr.io/garcia-nacho/top_tbpipeline'
+    containerOptions '--volume '+params.TBDB+':/mnt/global_collection'
+    
+    cpus 2
+    maxForks = 2
+
+    input:
+    path(tbpiperes1)
+
+    output:
+    path("*"), emit: tbpipeline_p2_results
+
+    publishDir(
+    path: "${params.publishDir}/TB_Pipeline",
+    mode: 'copy',
+    saveAs: { fn -> fn.substring(fn.lastIndexOf('/')+1) },
+    )
+
+    script:
+
+    """
+    Rscript /home/tbuser/Code/TBCleaner.R 
+    mkdir topdummy_nonTB
+    counttb=\$(ls -dl */ | wc -l)
+    countnontb=\$(ls -dl *_nonTB/ | wc -l)
+    rm -rf topdummy_nonTB
+    countnontb=\$((\$countnontb-1))
+    
+    if [ \${counttb} -gt \${countnontb} ]
+    then
+        if [ \${countnontb} -gt 0 ]
+        then
+            rm -rf *_nonTB 
+        fi
+        #parsing
+        mkdir COPY_TO_REPORTS
+        mkdir COPY_TO_TB_PIPELINE_DATABASE
+        niph_tb_pipeline2
+        Rscript /home/tbuser/Code/TBParser.R
+        
+    else
+        echo "Non_MTBC_samples_in_the_run" > Non_MTBC_samples_in_the_run
     fi
 
     """
@@ -857,7 +959,9 @@ workflow {
    stxtypcontig=STX_Contigs(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    seqsero=Seqsero(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    tartrate=Tartrate(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
-   tbpipe=TBpipeline(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+   //tbpipe=TBpipeline(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+   tbpipe1=TBpipelineP1(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+   tbpipe2=TBpipelineP2(tbpipe1.tbpipeline_p1_results.collect())
    ecopipe=JonEcoPipe(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    ecopipefasta=JonEcoPipeFasta(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
 
@@ -884,8 +988,7 @@ workflow {
                      seqsero.seqsero_results.collect(),
                      seqsero.seqsero_gzip.collect(),  
                      tartrate.tartrate_results.collect(), 
-                     tbpipe.tbpipeline_results.collect(),
-                     tbpipe.tbpipeline_bulk.collect(),
+                     tbpipe2.tbpipeline_p2_results.collect(),
                      ecopipe.eco_results.collect(),
                      outputspades.sqID.collect(),
                      ecopipefasta.eco_results_fasta.collect(),

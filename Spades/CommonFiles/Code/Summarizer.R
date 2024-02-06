@@ -636,6 +636,7 @@ rm(out.gono2)
 
 # Seqsero -----------------------------------------------------------------
 salmo.list<-list.files(pattern = "_seqsero_results.tsv")
+if(length(grep("kmer",salmo.list))>0) salmo.list<-salmo.list[-grep("kmer",salmo.list)]
 
 for (i in 1:length(salmo.list)) {
   dummy<-read.csv(salmo.list[i],sep = "\t",header = FALSE)
@@ -668,7 +669,45 @@ out.salmo$Sample<-gsub("_.*","",out.salmo$ID)
 out.salmo$ID<-NULL
 colnames(out.salmo)<-gsub(" ","_",colnames(out.salmo))
 colnames(out.salmo)[-which(colnames(out.salmo)=="Sample")]<-
-  paste("SeqSero_",colnames(out.salmo)[-which(colnames(out.salmo)=="Sample")],sep = "")
+  paste("SeqSeroAllele_",colnames(out.salmo)[-which(colnames(out.salmo)=="Sample")],sep = "")
+summ<-merge(summ, out.salmo, by="Sample", all.x=TRUE)
+rm(out.salmo)
+
+
+# SeqseroKmer -------------------------------------------------------------
+salmo.list<-list.files(pattern = "_kmer_seqsero_results.tsv")
+
+for (i in 1:length(salmo.list)) {
+  dummy<-read.csv(salmo.list[i],sep = "\t",header = FALSE)
+  if(dummy[1,1]=="NoSalmo"){
+    dummy<-as.data.frame(matrix(NA,nrow = 1, ncol = 7))
+    colnames(dummy)<-c( "O antigen prediction",
+                        "H1 antigen prediction(fliC)",
+                        "H2 antigen prediction(fljB)",
+                        "Predicted identification",
+                        "Predicted antigenic profile",
+                        "Predicted serotype",
+                        "Note" )
+    
+    dummy$ID<-gsub("_.*","",salmo.list[i])
+  }else{
+    colnames(dummy)<-dummy[1,]
+    dummy<-dummy[-1,]
+    dummy<-dummy[,-which(colnames(dummy) %in% c("Output directory","Input files"))]
+    colnames(dummy)[which(colnames(dummy)=="Sample name")]<-"ID"
+  }
+  if(!exists("out.salmo")){
+    out.salmo<-dummy
+  }else{
+    out.salmo<-rbind(out.salmo,dummy)
+  }
+}
+
+out.salmo$Sample<-gsub("_.*","",out.salmo$ID)
+out.salmo$ID<-NULL
+colnames(out.salmo)<-gsub(" ","_",colnames(out.salmo))
+colnames(out.salmo)[-which(colnames(out.salmo)=="Sample")]<-
+  paste("SeqSeroKmer_",colnames(out.salmo)[-which(colnames(out.salmo)=="Sample")],sep = "")
 summ<-merge(summ, out.salmo, by="Sample", all.x=TRUE)
 rm(out.salmo)
 
@@ -715,6 +754,10 @@ rm(out.tart)
 
 # TB_Pipeline -------------------------------------------------------------
 tbp.list<-list.files(pattern = "_tbp.csv")
+mash.list<-list.files(pattern = "mashmykrobe.csv")
+mashtb<-read.csv(mash.list,sep = "\t")
+
+
 if(exists("out.tbp")) rm(out.tbp)
 for (i in 1:length(tbp.list)) {
   dummy<-read.csv(tbp.list[i], header = TRUE)
@@ -747,7 +790,15 @@ for (i in 1:length(tbp.list)) {
 }
 
 out.tbp$Sample<-gsub("_.*","",out.tbp$Sample)
-summ<-merge(summ, out.tbp, by="Sample", all.x=TRUE)
+
+
+
+if(mashtb[1,1]!="NonTB_in_the_run"){
+  colnames(mashtb)[-1]<-paste("TB_",colnames(mashtb)[-1],sep = "")
+  out.tbp<-merge(mashtb, out.tbp,by.x = "samples", by.y="Sample", all.x = TRUE)
+}
+
+summ<-merge(summ, out.tbp, by.x="Sample", by.y="samples", all.x=TRUE)
 rm(out.tbp)
 
 
@@ -956,3 +1007,4 @@ if(length(to.delete)>0){
   }
 }
 write.csv(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".csv",sep = ""), row.names = FALSE)
+
