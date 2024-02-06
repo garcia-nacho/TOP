@@ -973,6 +973,10 @@ for (i in 1:nrow(summ)) {
   }
 }
 
+
+if(length(which(is.na(summ$Stx2) & !is.na(summ$Stx1)))>0) summ$Stx2[which(is.na(summ$Stx2) & !is.na(summ$Stx1))]<-"Assemblies:Non Detected | Reads:Non Detected"
+if(length(which(is.na(summ$Stx1) & !is.na(summ$Stx2)))>0) summ$Stx1[which(is.na(summ$Stx1) & !is.na(summ$Stx2))]<-"Assemblies:Non Detected | Reads:Non Detected"
+
 # Last Stage --------------------------------------------------------------
 
 
