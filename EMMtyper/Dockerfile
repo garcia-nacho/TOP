@@ -19,10 +19,18 @@ RUN conda install -c conda-forge ncurses
 RUN conda install -c conda-forge -c bioconda -c defaults gubbins
 RUN conda install -c conda-forge -c r -c bioconda -c defaults snp-sites
 RUN conda install -c bioconda fasttree
-
+RUN conda create -n emmtip
+RUN /bin/bash -c ". activate emmtip && \
+    pip install git+https://github.com/admiralenola/emm_typing"
 
 USER root  
 RUN mkdir -p /Data 
+RUN mkdir -p /emmdb07022024 
+COPY emmdb.nhr /emmdb07022024/emmdb.tfa.nhr
+COPY emmdb.nin /emmdb07022024/emmdb.tfa.nin
+COPY emmdb.nsq /emmdb07022024/emmdb.tfa.nsq
+COPY alltrimmed.fa /emmdb07022024/emmdb.tfa
+RUN chmod -R +rx /emmdb07022024/*
 
 RUN chmod 777 /Data 
 USER docker

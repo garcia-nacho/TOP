@@ -910,7 +910,26 @@ rm(out.sqid)
 
 
 
+# espk nhe1 ---------------------------------------------------------------
+summ$NleH1<-"Not found assemblies (ABRICATE)"
+summ$NleH2<-"Not found asemblies (ABRICATE)"
 
+if(length(grep("nleH1", summ$Abricate_vfdb))>0) summ$NleH1[grep("nleH1", summ$Abricate_vfdb)]<-"Detected assemblies (ABRICATE)"
+if(length(grep("nleH2", summ$Abricate_vfdb))>0) summ$NleH1[grep("nleH2", summ$Abricate_vfdb)]<-"Detected assemblies (ABRICATE)"
+
+nleh<-which(is.na(summ[,c("EcoPipeAssemblies:Serotype")]))
+summ$espK_Abricate<-"Not found assemblies"
+if(length(grep("espK", summ$Abricate_vfdb))>0) summ$espK[grep("espK", summ$Abricate_vfdb)]<-"Detected assemblies"
+
+
+
+summ$espK<-paste("ABRICATE espK:", summ$espK_Abricate, ";espK1:",summ$espK1, "; espK2:", summ$espK2,sep = )
+if(length(nleh)>0){
+  summ$NleH1[nleh]<-NA
+  summ$NleH2[nleh]<-NA
+  summ$espK[nleh]<-NA
+  summ$espK_Abricate[nleh]<-NA
+}
 
 # STXcolumns --------------------------------------------------------------
 
@@ -977,6 +996,8 @@ for (i in 1:nrow(summ)) {
 if(length(which(is.na(summ$Stx2) & !is.na(summ$Stx1)))>0) summ$Stx2[which(is.na(summ$Stx2) & !is.na(summ$Stx1))]<-"Assemblies:Non Detected | Reads:Non Detected"
 if(length(which(is.na(summ$Stx1) & !is.na(summ$Stx2)))>0) summ$Stx1[which(is.na(summ$Stx1) & !is.na(summ$Stx2))]<-"Assemblies:Non Detected | Reads:Non Detected"
 
+colnames(summ)[which(colnames(sum)=="Stx1")]<-"Stx-1"
+colnames(summ)[which(colnames(sum)=="Stx2")]<-"Stx-2"
 # Last Stage --------------------------------------------------------------
 
 
