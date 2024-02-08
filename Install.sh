@@ -21,11 +21,16 @@ do
       kraken="$2"
       shift 2
       ;;
+    -p | --path )
+      binpath="$2"
+      shift 2
+      ;;
     -h | --help)
       echo "This is a TOP installation script"
       echo "use -c or --cores to set the number of cores"
       echo "use -t or --tbdb to set the path to the tb_database"
       echo "use -k or --kraken to set the path to the tb_database"
+      echo "use -p or --path to set the path to install the main script" 
       exit 2
       ;;
     --)
@@ -59,7 +64,7 @@ conda create -n top_nf -y
 source activate top_nf
 conda install -c bioconda nextflow
 cp TOP.nf ${CONDA_PREFIX}/bin/TOP.nf
-#cp TOP.sh ${CONDA_PREFIX}/bin/TOP
+
 cp nextflow.config ${CONDA_PREFIX}/bin/
 mkdir ${CONDA_PREFIX}/top_temp
 cp top_template.html ${CONDA_PREFIX}/top_template.html
@@ -79,11 +84,18 @@ fi
 echo "Using krakenDB located in "${kraken}
 echo ""
 
+
 source activate top_nf
 conda env config vars set KRAKENDB=${kraken}
 conda env config vars set TBDB=${tbdb}
 conda env config vars set TEMPDB=${CONDA_PREFIX}/top_temp
 conda env config vars set TOPCORES=${cores}
 conda env config vars set SPADESCORES=$((${cores}-2))
+if [ -z ${binpath+x} ]
+then
+cp TOP.sh ${CONDA_PREFIX}/bin/TOP.sh
+ln -ls ${CONDA_PREFIX}/bin/TOP.sh ${binpath}/TOP.sh
+conda env config vars set TOPSHPATH=${binpath}
+fi
 
 conda deactivate
