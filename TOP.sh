@@ -35,7 +35,6 @@ else
     if test -f "${1}/TOPresults/Summaries_"*".xlsx"
     then
         echo "Cleaning up..."
-        cp .nextflow.log ./
         nextflow log $(nextflow log | tail -1 | awk '{print $5}') -t ${CONDA_PREFIX}/top_template.html > TOP_PipelineSummary.html
         nextflow clean -f && rm -rf ${TEMPDB}/*
     fi
