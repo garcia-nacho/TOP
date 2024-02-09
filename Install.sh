@@ -66,7 +66,6 @@ conda install -c bioconda nextflow
 cp TOP.nf ${CONDA_PREFIX}/bin/TOP.nf
 
 cp nextflow.config ${CONDA_PREFIX}/bin/
-mkdir ${CONDA_PREFIX}/top_temp
 cp top_template.html ${CONDA_PREFIX}/top_template.html
 conda deactivate
 
@@ -94,8 +93,14 @@ conda env config vars set SPADESCORES=$((${cores}-2))
 if [ -z ${binpath+x} ]
 then
 cp TOP.sh ${CONDA_PREFIX}/bin/TOP.sh
-ln -ls ${CONDA_PREFIX}/bin/TOP.sh ${binpath}/TOP.sh
+ln -s ${CONDA_PREFIX}/bin/TOP.sh ${binpath}/TOP.sh
 conda env config vars set TOPSHPATH=${binpath}
+
+else
+mv TOP.sh ${CONDA_PREFIX}/bin/TOP.sh
+ln -s ${CONDA_PREFIX}/bin/TOP.sh $(pwd)/TOP.sh
+conda env config vars set TOPSHPATH=$(pwd)
+
 fi
 
 conda deactivate
