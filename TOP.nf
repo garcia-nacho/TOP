@@ -875,7 +875,7 @@ process JonEcoPipe {
     path(rawreads)
 
     output:
-    path("*_ecopipeline.csv"), emit: eco_results
+    path("*_ecopipeline*"), emit: eco_results
 
     script:
 
