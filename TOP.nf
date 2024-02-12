@@ -11,6 +11,7 @@ params.forceSp="none"
 params.krakenDB="/media/nacho/Data/kraken2_standard_20220926/"
 params.TBDB="/mnt/N/NGS/TB_pipeline/TB_pipeline_database/DB/"
 params.tempfolder="/media/nacho/Data/temp/toptest/tempdb/"
+params.devrun="No"
 
 params.reads=params.readsfolder+"/*/*_{R1,R2}*.fastq.gz"
 
