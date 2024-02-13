@@ -807,7 +807,7 @@ process TBpipelineP1{
       
       mkdir ${sample}_nonTB
       echo "dummy" > ${sample}_nonTB/${sample}_nonTB.txt 
-      echo "dummy" > dummy_tbp.tar.gz
+      echo "dummy" > ${sample}_dummy_tbp.tar.gz
 
     fi
 
