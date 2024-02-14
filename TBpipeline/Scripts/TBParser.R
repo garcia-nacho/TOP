@@ -69,6 +69,13 @@ singlesamp<-dist[which(dist$Sample==df.out$Sample),]
 df.out$TB_SimilarSequences_5_SNP<-length(which(as.numeric(singlesamp[1,])<=5))-1
 df.out$TB_SimilarSequences_12_SNP<-length(which(as.numeric(singlesamp[1,])<=12))-1
 
+col.files<-list.files(pattern = "collytype.txt", recursive = TRUE, full.names = TRUE)
+col.files<-col.files[1]
+coll<-read.csv(col.files, sep="\t")
+coll$Lineage<-paste("lineage", coll$Lineage,sep = "")
+df.out$TB_CollType_Lineage<-paste(coll$Lineage,collapse = "/")
+
+
 
 #QC
 

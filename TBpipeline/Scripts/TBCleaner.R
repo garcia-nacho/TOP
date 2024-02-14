@@ -2,7 +2,7 @@
 compressed<-list.files(pattern = ".tar.gz")
 
 if(length(grep("dummy_tbp", compressed))>0){
- files.remove(compressed[grep("dummy_tbp", compressed)])
+ file.remove(compressed[grep("dummy_tbp", compressed)])
  compressed<-list.files(pattern = ".tar.gz")
 }
 
