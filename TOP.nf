@@ -836,20 +836,17 @@ process TBpipelineP2{
     script:
 
     """
-    breakpoint
     Rscript /home/tbuser/Code/TBCleaner.R 
     mkdir topdummy_nonTB
     counttb=\$(ls -dl */ | wc -l)
     countnontb=\$(ls -dl *_nonTB/ | wc -l)
-    rm -rf topdummy_nonTB
-    countnontb=\$((\$countnontb-1))
-    
+
+    rm -rf *_nonTB 
+ 
+
     if [ \${counttb} -gt \${countnontb} ]
     then
-        if [ \${countnontb} -gt 0 ]
-        then
-            rm -rf *_nonTB 
-        fi
+
         #parsing
         mkdir COPY_TO_REPORTS
         mkdir COPY_TO_TB_PIPELINE_DATABASE
