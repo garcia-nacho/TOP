@@ -757,7 +757,7 @@ tbp.list<-list.files(pattern = "_tbp.csv")
 mash.list<-list.files(pattern = "mashmykrobe.csv")
 mashtb<-read.csv(mash.list,sep = "\t")
 
-
+if(length(tbp.list)>0){
 if(exists("out.tbp")) rm(out.tbp)
 for (i in 1:length(tbp.list)) {
   dummy<-read.csv(tbp.list[i], header = TRUE)
@@ -800,7 +800,7 @@ if(mashtb[1,1]!="NonTB_in_the_run"){
 
 summ<-merge(summ, out.tbp, by.x="Sample", by.y="samples", all.x=TRUE)
 rm(out.tbp)
-
+}
 
 
 # EcoliPipeline -----------------------------------------------------------
