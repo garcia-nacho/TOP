@@ -836,6 +836,7 @@ process TBpipelineP2{
     script:
 
     """
+    breakpoint
     Rscript /home/tbuser/Code/TBCleaner.R 
     mkdir topdummy_nonTB
     counttb=\$(ls -dl */ | wc -l)
