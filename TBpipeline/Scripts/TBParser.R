@@ -1,6 +1,7 @@
 #library(readxl)
-mykrobe.files<-list.files(pattern = "mykrobe_output.csv", recursive = TRUE, full.names = TRUE)[1]
+mykrobe.files<-list.files("COPY_TO_TB_PIPELINE_DATABASE", pattern = "mykrobe_output.csv", recursive = TRUE, full.names = TRUE)
 
+if(length(mykrobe.files)>0){
 for (i in 1:length(mykrobe.files)) {
   dummy.myk<-read.csv(mykrobe.files[i], stringsAsFactors = FALSE)
   colnames(dummy.myk)[4]<-"Mutations"
@@ -59,55 +60,89 @@ for (i in 1:length(mykrobe.files)) {
   }
 
 }
-
+}
 
   
 #Dist
 dist<-read.csv("TB_all_dists.csv")
 colnames(dist)[1]<-"Sample"
-singlesamp<-dist[which(dist$Sample==df.out$Sample),]
-df.out$TB_SimilarSequences_5_SNP<-length(which(as.numeric(singlesamp[1,])<=5))-1
-df.out$TB_SimilarSequences_12_SNP<-length(which(as.numeric(singlesamp[1,])<=12))-1
+df.out$TB_SimilarSequences_5_SNP<-NA
+df.out$TB_SimilarSequences_12_SNP<-NA
+for (i in 1:nrow(df.out)) {
+  singlesamp<-dist[which(dist$Sample == df.out$Sample[i]),]
+  df.out$TB_SimilarSequences_5_SNP[i]<-length(which(as.numeric(singlesamp[1,])<=5))-1
+  df.out$TB_SimilarSequences_12_SNP[i]<-length(which(as.numeric(singlesamp[1,])<=12))-1
+  
+}
 
-col.files<-list.files(pattern = "collytype.txt", recursive = TRUE, full.names = TRUE)
-col.files<-col.files[1]
-coll<-read.csv(col.files, sep="\t")
-coll$Lineage<-paste("lineage", coll$Lineage,sep = "")
-df.out$TB_CollType_Lineage<-paste(coll$Lineage,collapse = "/")
 
+col.files<-list.files("COPY_TO_TB_PIPELINE_DATABASE/",pattern = "colltype.txt", recursive = TRUE, full.names = TRUE)
+for (i in 1:length(col.files)) {
+  dummycoll<-read.csv(col.files[i], sep="\t")
+  dummycoll<-dummycoll[1,]
+  dummycoll$Lineage<-paste("lineage", dummycoll$Lineage,sep = "")
+  dummycoll$Sample<-gsub(".*/","",gsub("/colltype.txt","",col.files[i]))
+  if(!exists("collout")){
+    collout<-dummycoll
+  }else{
+    collout<-rbind(collout,dummycoll)
+  }
+}
+
+collout$Sample<-gsub("_.*","", collout$Sample)
+df.out$Sample<-gsub("_.*","",df.out$Sample)
+colnames(collout)[which(colnames(collout)=="Lineage")]<-"TB_CollType_Lineage"
+df.out<-merge(df.out, collout[,c("Sample","TB_CollType_Lineage")], by="Sample")
 
 
 #QC
 
-depth.files<-list.files(pattern = "averagedepth.txt", recursive = TRUE, full.names = TRUE)
-depth.files<-depth.files[1]
-depth<-read.csv(depth.files, header = FALSE)
-df.out$TB_AverageDepth<-depth[1,1]
+depth.files<-list.files("COPY_TO_TB_PIPELINE_DATABASE/",pattern = "averagedepth.txt", recursive = TRUE, full.names = TRUE)
+
+for (i in 1:length(depth.files)) {
+  depth<-read.csv(depth.files[i], header = FALSE)
+  colnames(depth)<-"TB_AverageDepth"
+  depth$Sample<-gsub(".*/","",gsub("/averagedepth.txt","",depth.files[i]))
+  if(!exists("depth.out")){
+    depth.out<-depth
+  }else{
+    depth.out<-rbind(depth.out, depth)
+  }
+}
+depth.out$Sample<-gsub("_.*","", depth.out$Sample)
+
+df.out<-merge(df.out, depth.out, by="Sample")
+
 df.out$TBDB_Size<-length(list.files("/mnt/global_collection/"))
 
 info.latex<-list.files(pattern = "info.tex", recursive = TRUE, full.names = TRUE)
-info<-read.csv(info.latex,sep = "&", header = FALSE)
-info.c1<-info[,c(1,2)]
-colnames(info.c1)<-c("Item","Value")
-info.c2<-info[,c(3,4)]
-colnames(info.c2)<-c("Item","Value")
-info<-rbind(info.c1, info.c2)
 
-df.out$TB_Variants<-as.numeric(gsub(" ","",info$Value[grep("Variants", info$Item)]))
-df.out$TB_QC<-gsub(" ","",info$Value[grep("Datakvalitet", info$Item)])
-df.out$TB_PerctAligned<-as.numeric(gsub("\\\\.*","",gsub(" ","",info$Value[grep("aligned", info$Item)])))
-df.out$TB_BasesLowCov<-as.numeric(gsub("\\\\.*","",gsub(" ","",info$Value[grep("low", info$Item)])))
+for (i in 1:length(info.latex)) {
+  info<-read.csv(info.latex[i],sep = "&", header = FALSE)  
+  info.c1<-info[,c(1,2)]
+  colnames(info.c1)<-c("Item","Value")
+  info.c2<-info[,c(3,4)]
+  colnames(info.c2)<-c("Item","Value")
+  info<-rbind(info.c1, info.c2)
+  dumm2<-as.data.frame(matrix(NA,ncol = 1, nrow = 1))
+  colnames(dumm2)<-"TB_Variants"
+  dumm2$TB_Variants<-as.numeric(gsub(" ","",info$Value[grep("Variants", info$Item)]))
+  dumm2$TB_QC<-gsub(" ","",info$Value[grep("Datakvalitet", info$Item)])
+  dumm2$TB_PerctAligned<-as.numeric(gsub("\\\\.*","",gsub(" ","",info$Value[grep("aligned", info$Item)])))
+  dumm2$TB_BasesLowCov<-as.numeric(gsub("\\\\.*","",gsub(" ","",info$Value[grep("low", info$Item)])))
+  dumm2$Sample<-gsub("/.*","",gsub("\\./","",info.latex[i]))
+  if(!exists("latx.out")){
+    latx.out<-dumm2
+  }else{
+    latx.out<-rbind(latx.out, dumm2)
+  }
+}
 
-#Snippy integration
+latx.out$Sample<-gsub("_.*","",latx.out$Sample)
+df.out<-merge(df.out, latx.out, by="Sample")
 
-# #Catalog integration
-# catalog<-read_xlsx("/media/nacho/Data/DockerImages/TOP/TBpipeline/WHO-TB_Catalog-2021.7-eng.xlsx", sheet = 2)
-# catalog<-read_xlsx("/media/tbuser/WHO-TB_Catalog-2021.7-eng.xlsx", sheet = 2)
-# catalog<-catalog[-1,]
-# vcf.list<-list.files(pattern = "snps.tab", recursive = TRUE, full.names = TRUE)
-# vcf<-read.csv(vcf.list[1],sep = "\t")
 
-write.csv(df.out, paste(df.out$Sample, "_tbp.csv", sep = ""), row.names = FALSE)
+write.csv(df.out, "summary_tbp.csv", row.names = FALSE)
 
 
 
