@@ -487,7 +487,7 @@ process STX {
     script:
 
     """
-    if test -f "Ecol.agent"; 
+    if [[ -f "Ecol.agent" ]] || [[ -f "Shige.agent" ]] ; 
     then
     r1=\$(ls ${sample}_R1*.fastq.gz)
     r2=\$(ls ${sample}_R2*.fastq.gz)
@@ -529,7 +529,7 @@ process STX_Contigs {
     script:
 
     """
-    if test -f "Ecol.agent"; 
+    if [[ -f "Ecol.agent" ]] || [[ -f "Shige.agent" ]] ; 
     then
     
     virulencefinder.py -i ${sample}_clean_contigs.fasta -o .

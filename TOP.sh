@@ -35,8 +35,12 @@ else
     if test -f "${1}/TOPresults/Summaries_"*".xlsx"
     then
         echo "Cleaning up..."
-        nextflow log $(nextflow log | tail -1 | awk '{print $5}') -t ${CONDA_PREFIX}/top_template.html > TOP_PipelineSummary.html
-        nextflow clean -f && rm -rf ${TEMPDB}/*
+        rm -rf work
+    fi
+
+    if test -f "${1}/TOPresults/TB_Pipeline/Non_MTBC_samples_in_the_run"
+    then
+        rm -rf ${1}/TOPresults/TB_Pipeline/
     fi
 
 fi

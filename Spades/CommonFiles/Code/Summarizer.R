@@ -912,7 +912,7 @@ rm(out.sqid)
 
 # espk nhe1 ---------------------------------------------------------------
 
-if(length(grep("Ecopipe", colnames(summ)))>0){
+if(length(grep("EcoPipe", colnames(summ)))>0){
 summ$NleH1<-"Not found assemblies (ABRICATE)"
 summ$NleH2<-"Not found asemblies (ABRICATE)"
 
@@ -922,7 +922,6 @@ if(length(grep("nleH2", summ$Abricate_vfdb))>0) summ$NleH1[grep("nleH2", summ$Ab
 nleh<-which(is.na(summ[,c("EcoPipeAssemblies:Serotype")]))
 summ$espK_Abricate<-"Not found assemblies"
 if(length(grep("espK", summ$Abricate_vfdb))>0) summ$espK[grep("espK", summ$Abricate_vfdb)]<-"Detected assemblies"
-summ$espK<-paste("ABRICATE espK:", summ$espK_Abricate, ";espK1:",summ$espK1, "; espK2:", summ$espK2,sep = )
 if(length(nleh)>0){
   summ$NleH1[nleh]<-NA
   summ$NleH2[nleh]<-NA
