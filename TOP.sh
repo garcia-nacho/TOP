@@ -1,8 +1,8 @@
 #!/bin/bash
 
 source activate top_nf
-SHORT=u:,r:,f:,h:,t:,c:,d
-LONG=update:,reads:,fastas:,help:,tbdb:,cores:,dev
+SHORT=u,r:,f:,h,t:,c:,d
+LONG=update,reads:,fastas:,help,tbdb:,cores:,dev
 OPTS=$(getopt --options $SHORT --longoptions $LONG -- "$@")
 
 READS=$(pwd)
@@ -34,6 +34,7 @@ do
       shift
       ;;
     -h | --help)
+      echo ""
       echo "This is TOP (The One Pipeline) "
       echo ""
       echo "use -r or --reads to run from a set of paired fastq files e.g. TOP.sh -f /path/to/fastq"
@@ -42,6 +43,7 @@ do
       echo "use -f or --fastas to run from a set of fastas e.g. TOP.sh -f /path/to/fastas"
       echo "use -d or --dev to run in development mode.(i.e all files are saved after a successful run)" 
       echo "use -h or --help to show this help" 
+      echo ""
       exit 2
       ;;
     --)
@@ -62,15 +64,15 @@ echo nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${
 echo ""
 nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} -resume -with-timeline -with-report
 
-if test -f "${1}/TOPresults/Summaries_"*".xlsx"
+if test -f "${READS}/TOPresults/Summaries_"*".xlsx"
 then
     echo "Cleaning up..."
     rm -rf work
 fi
 
-if test -f "${1}/TOPresults/TB_Pipeline/Non_MTBC_samples_in_the_run"
+if test -f "${READS}/TOPresults/TB_Pipeline/Non_MTBC_samples_in_the_run"
 then
-    rm -rf ${1}/TOPresults/TB_Pipeline/
+    rm -rf ${READS}/TOPresults/TB_Pipeline/
 fi
 
 conda deactivate
