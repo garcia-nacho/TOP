@@ -1,29 +1,43 @@
 # The One Pipeline   
-#### *One Pipeline to rule them all, One Pipeline to find them, One Pipeline to bring them all, and in the darkness bind them*   
-   
+#### *"One Pipeline to rule them all. One Pipeline to find them. One Pipeline to bring them all, and in the darkness bind them"*   
+
+<img src="dalletop.webp"
+      type="image/webp"
+       width="500" height="500" />   
+DallE representation of TOP
+      
+         
  [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://https://docker.com/) ![NF](https://badgen.net/badge/_/Nextflow/green?icon=terminal)   
 
 
 ## TOP v1.0
-The One Pipeline (aka TOP) is a *multi-agent-multi-analysis* NGS pipeline developed at the Norwegian Institute of Public Health to generates reports than can be used in epidemiological analysis.    
+The One Pipeline (aka TOP) is a *multi-agent-multi-analysis* NGS pipeline developed at the Norwegian Institute of Public Health to generate data and reports than can be used in epidemiological analysis.    
 TOP uses Illumina paired-reads from different bacterial species and generates a report that includes: 
 
--Species   
--MLST   
--AMR genes   
--Virulence factors   
--Specific analysis for *Escherichia coli / Shigella sp.* (Stx genes, Serotype, Specific virulence factors), *Streptococcus pyogenes* (EMM type), *Streptococcus pneumoniae* (Serotype), *Salmonella sp.* (Serotype, Tartrate fermentation), *Neisseria meningitidis* (meningotype), *Neisseria gonorrhoeae* (NGstar-type, NGmaster-type) and *Haemophilus influenze* (Serotype, AMR-related-alleles), *Mycobacterium tuberculosis* (Lineage, AMR)        
--A lot of quality parameters (N50, L50, Q30, depth, contaminants, etc)
+1. Species identification   
+2. MLST (From PUB-MLST) 
+3. AMR genes   
+4. Virulence factors   
+5. Specific analysis for 
+* *Escherichia coli / Shigella sp.*: Stx genes, serotypes and specific virulence factors
+* *Streptococcus pyogenes*: EMM types
+* *Streptococcus pneumoniae*: Serotypes
+* *Salmonella sp.*: Serotypes and tartrate fermentation hability
+* *Neisseria meningitidis*: Meningotypes
+* *Neisseria gonorrhoeae*: NGstar-types and NGmaster-types
+* *Haemophilus influenze*: Capsule-type and AMR-related-mutations
+* *Mycobacterium tuberculosis*: Lineage and AMR        
+6. Quality parameters (N50, L50, Q30, depth, contaminants, etc, Kraken2 reports, etc)
     
- TOP generates **fasta** files containing the assembled genomes and bam files containing the reads aligned against these genomes. It also saves all the information regarding the tools included in the pipeline.
+TOP generates **fasta** files containing the assembled genomes and bam files containing the reads aligned against these genomes. It also saves all the information regarding the tools included in the pipeline.
 
- TOP is a tool under continuous development. All stable versions are stored as releases in GitHub. We encourage you to use the stable releases since they have been extensiverly tested and the results have been validated.   
+TOP is a tool under continuous development. All stable versions are stored as releases in GitHub. We encourage you to use the stable releases since they have been extensiverly tested and the results have been validated.   
 
 ## Installing TOP   
 To install TOP you need a computer with docker and conda installed.   
 <code>git clone https://github.com/garcia-nacho/TOP --branch 1.0</code>   
 <code>cd TOP</code>   
-<code>./Install.sh -p /path/to/TOP</code>
+<code>./install.sh -p /path/to/TOP</code>
 
 This commands will install TOP in your system and a link to the pipeline will be created in the path defined in /path/to/TOP. Be sure that the path is in your PATH variable, otherwise you will have to call TOP manually (i.e./path/to/TOP/TOP.sh).   
 If no path is provided a link to the pipeline will be create in the TOP folder    
