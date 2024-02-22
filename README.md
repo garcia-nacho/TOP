@@ -4,37 +4,55 @@
  [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://https://docker.com/) ![NF](https://badgen.net/badge/_/Nextflow/green?icon=terminal)   
 
 
-The One Pipeline (aka TOP) uses Illumina paired-reads from many different bacterial species to generate a report with:
+## TOP v1.0
+The One Pipeline (aka TOP) is a *multi-agent-multi-analysis* NGS pipeline developed at the Norwegian Institute of Public Health to generates reports than can be used in epidemiological analysis.    
+TOP uses Illumina paired-reads from different bacterial species and generates a report that includes: 
 
 -Species   
 -MLST   
 -AMR genes   
 -Virulence factors   
--Specific analysis for *E. coli* (Stx genes), *S. pyogenes* (EMM type), *S. pneumonia* (Serotype) and *H. influenze* (Serotype, AMR-related-genes alleles)     
+-Specific analysis for *Escherichia coli / Shigella sp.* (Stx genes, Serotype, Specific virulence factors), *Streptococcus pyogenes* (EMM type), *Streptococcus pneumoniae* (Serotype), *Salmonella sp.* (Serotype, Tartrate fermentation), *Neisseria meningitidis* (meningotype), *Neisseria gonorrhoeae* (NGstar-type, NGmaster-type) and *Haemophilus influenze* (Serotype, AMR-related-alleles), *Mycobacterium tuberculosis* (Lineage, AMR)        
 -A lot of quality parameters (N50, L50, Q30, depth, contaminants, etc)
     
- It generates fasta files containing the genomes and bam files containing the reads aligned against these genomes. It saves all the information regarding the tools included in the pipeline.
+ TOP generates **fasta** files containing the assembled genomes and bam files containing the reads aligned against these genomes. It also saves all the information regarding the tools included in the pipeline.
+
+ TOP is a tool under continuous development. All stable versions are stored as releases in GitHub. We encourage you to use the stable releases since they have been extensiverly tested and the results have been validated.   
 
 ## Installing TOP   
 To install TOP you need a computer with docker and conda installed.   
-<code>git clone https://github.com/garcia-nacho/TOP</code>   
+<code>git clone https://github.com/garcia-nacho/TOP --branch 1.0</code>   
 <code>cd TOP</code>   
-<code>./Install.sh</code>   
-The <code>Install.sh</code> script will take care of the rest of dependencies. 
-You can now link the <code>TOP.sh</code> script to any folder on your path or run it from there.   
-   
-## Running TOP   
-The command <code>TOP.sh FolderWithFastq</code> will run the pipeline using the fastq files present in the *./FolderWithFastq* folder.   
-The pipeline is expecting a set of subfolders with two fastq files per folder. The fastq files must contain the strings R1/R2 to identify the FW and RV reads. 
+<code>./Install.sh -p /path/to/TOP</code>
 
-## Updating TOP main script   
-To update TOP script and docker images, run <code>TOP.sh --update</code>
+This commands will install TOP in your system and a link to the pipeline will be created in the path defined in /path/to/TOP. Be sure that the path is in your PATH variable, otherwise you will have to call TOP manually (i.e./path/to/TOP/TOP.sh).   
+If no path is provided a link to the pipeline will be create in the TOP folder    
+
+During the installation of the pipeline you can specify certain parameters:
       
-## Updating TOP databases and internal tools    
-TO BE DONE
+**Install.sh -c (or --cores)** will define the maximum number of cores available to TOP. If not provided TOP will use up to 10 cores.   
+**Install.sh -t (or --tbdb)** will define the location of the *Mycobacterium tuberculosis* database (MTDB).  If not provided, TOP will run without MTDB
+
+The installation script will take care of the rest of dependencies.    
    
+TOP have been thoroughly tested in Linux environments, but it should work out the box in MacOS and Windows containing WSL systems.
+     
+## Running TOP   
+To run TOP you just need to execute the TOP.sh command.
+
+TOP.sh can take several arguments:
+
+**TOP.sh -r** is used to define the path the the paired reads. If no path is provided, TOP will try to find paired reads in the current directory.   
+**TOP.sh -c** is used to define the number of cores used by the pipeline. It overrides the number of cores defined during the installation.    
+**TOP.sh -t** is used to will define the path to the *Mycobacterium tuberculosis* database. It overrides the MTDB defined during the installation.   
+
+The names of the paired reads must be in the following format: *Sample1_R1_001.fastq.gz / Sample1_R2_001.fastq.gz*   
+
+## Updating TOP   
+To update TOP (including the main script and all docker images), run <code>TOP.sh --update</code>
+      
 ## Uninstalling TOP
-Remove the TOP folder and run the following command <code>conda remove -n top_nf --all</code>
+To remove TOP you must run <code>TOP.sh --uninstall</code>
 
 ## Under the hood   
-Under development
+TOP is a Nextflow-based modular pipeline that used docker to isolate and run the different tools included in the analysis. The main TOP.sh is just a wrapper for the nextflow script (TOP.nf), with augmented functionalities such us update, and arguments passed to the nextflow script. The highly modular nature of TOP makes it easy to quickly add new analysis. You just need to add a process in the TOP.nf, include it in the workflow section of the TOP.nf and implement the parsing of the results into the output. The most straight forward to do it is by implementing it in the Summarizer.R script inside the Spades' docker image.     

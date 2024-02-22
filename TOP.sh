@@ -1,8 +1,8 @@
 #!/bin/bash
 
 source activate top_nf
-SHORT=u,r:,f:,h,t:,c:,d
-LONG=update,reads:,fastas:,help,tbdb:,cores:,dev
+SHORT=u,r:,f:,h,t:,c:,d,s:,u
+LONG=update,reads:,fastas:,help,tbdb:,cores:,dev,sp:,uninstall
 OPTS=$(getopt --options $SHORT --longoptions $LONG -- "$@")
 
 READS=$(pwd)
@@ -17,6 +17,10 @@ do
       SPADESCORES=$((${TOPCORES}-2))
       shift 2
       ;;
+    -s | --sp )
+      echo "Specie specific tools are not implemented yet"
+      exit 2
+      ;;
     -t | --tbdb )
       TBDB="$2"
       shift 2
@@ -24,6 +28,13 @@ do
     -r | --reads )
       READS="$2"
       shift 2
+      ;;
+    -u | --uninstall )
+      echo "Removing TOP"
+      rm ${TOPSHPATH}/TOP.sh
+      conda deactivate top_nf
+      conda remove -n top_nf --all
+      exit 2
       ;;
     -f | --fastas )
       echo "Running from fastas is not implemented yet"

@@ -886,27 +886,6 @@ rm(out.eco)
 
 
 
-# SequencerID -------------------------------------------------------------
-
-sqid.list<-list.files(pattern = "sequencerID.tsv")
-if(exists("out.sqid")) rm(out.sqid)
-for (i in 1:length(sqid.list)) {
-  dum<-read.csv(sqid.list[i], sep = "\t", header = FALSE)
-  
-  dum2<-as.data.frame(t(c(gsub(":.*","",dum[1,1]), gsub("_sequencerID.tsv","",sqid.list[i]))))
-  
-  colnames(dum2)<-c("Instrument", "Sample")
-  if(!exists("out.sqid")){
-    out.sqid<-dum2
-  }else{
-    out.sqid<-rbind(out.sqid,dum2)
-  }
-}
-out.sqid$Sample<-gsub("_.*","",out.sqid$Sample)
-out.sqid$Instrument<-gsub("@","",out.sqid$Instrument)
-summ<-merge(summ, out.sqid, by="Sample", all.x=TRUE)
-rm(out.sqid)
-
 
 
 
@@ -1000,6 +979,34 @@ if(length(which(is.na(summ$Stx1) & !is.na(summ$Stx2)))>0) summ$Stx1[which(is.na(
 
 colnames(summ)[which(colnames(summ)=="Stx1")]<-"Stx-1"
 colnames(summ)[which(colnames(summ)=="Stx2")]<-"Stx-2"
+
+
+# SequencerID -------------------------------------------------------------
+
+sqid.list<-list.files(pattern = "sequencerID.tsv")
+if(exists("out.sqid")) rm(out.sqid)
+for (i in 1:length(sqid.list)) {
+  dum<-read.csv(sqid.list[i], sep = "\t", header = FALSE)
+  
+  dum2<-as.data.frame(t(c(gsub(":.*","",dum[1,1]), gsub("_sequencerID.tsv","",sqid.list[i]))))
+  
+  colnames(dum2)<-c("Instrument", "Sample")
+  if(!exists("out.sqid")){
+    out.sqid<-dum2
+  }else{
+    out.sqid<-rbind(out.sqid,dum2)
+  }
+}
+out.sqid$Sample<-gsub("_.*","",out.sqid$Sample)
+out.sqid$Instrument<-gsub("@","",out.sqid$Instrument)
+summ<-merge(summ, out.sqid, by="Sample", all.x=TRUE)
+rm(out.sqid)
+
+# versions ------------------------------------------------------------
+versions<-read.csv("/home/docker/CommonFiles/Versions.csv", sep = ";", header = FALSE)
+
+summ$Software_versions<-paste(paste(versions$V1,versions$V2, sep = ":"), collapse = " | ")
+
 # Last Stage --------------------------------------------------------------
 
 

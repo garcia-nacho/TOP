@@ -702,70 +702,6 @@ process Tartrate {
 
 }
 
-process TBpipeline{
-    container 'ghcr.io/garcia-nacho/top_tbpipeline'
-    containerOptions '--volume '+params.TBDB+':/mnt/global_collection --volume ' +params.tempfolder+':/mnt/local_collection'
-    
-    cpus 2
-    maxForks = 2
-
-    publishDir "${params.tempfolder}", pattern: "localdb_*", mode: 'copy'
-
-    input:
-    val(sample)
-    path(agent)
-    path(rawreads)
-
-    output:
-    path("*tbp.csv"), emit: tbpipeline_results
-    path("*tbp_bulk.tar.gz"), emit: tbpipeline_bulk
-    path("localdb_*"), emit: tbpipeline_localdb
-
-    script:
-
-    """
-    if test -f "Myco.agent"; 
-    then
-      if test -d "/mnt/local_collection/localdb_dummy"; then rm -rf /mnt/local_collection/localdb_dummy; fi
-      mkdir ${sample}
-    
-      r1=\$(ls ${sample}_R1*.fastq.gz)
-      r2=\$(ls ${sample}_R2*.fastq.gz)
-       
-      mv \${r1} ${sample}
-      mv \${r2} ${sample}
-      rm ./*.fastq.gz
-
-      niph_tb_pipeline
-      Rscript /home/tbuser/Code/TBParser.R
-      mkdir localdb_${sample}
-      mkdir tb_bulk
-      mkdir tb_bulk/${sample}
-
-      rm ${sample}/*.fastq.gz
-      mv ${sample}/* tb_bulk/${sample}/
-      
-      cp -R COPY_TO_TB_PIPELINE_DATABASE/*/* localdb_${sample}  
-      mv COPY_TO_TB_PIPELINE_DATABASE/ tb_bulk
-      mv COPY_TO_REPORTS/ tb_bulk
-      mv *.log tb_bulk
-      mv *.nwk tb_bulk
-      mv TB* tb_bulk
-      tar -czvf ${sample}_tbp_bulk.tar.gz tb_bulk
-      rm -rf ${sample}
-
-    else
-      if test -d "/mnt/local_collection/localdb_dummy"; then rm -rf /mnt/local_collection/localdb_dummy; fi
-      echo "dummy" > ${sample}_dummy_tbp_bulk.tar.gz
-      echo "NoMyco" > ${sample}_tbp.csv
-      mkdir localdb_dummy
-      echo "dummy" > localdb_dummy/dummy.txt   
-
-    fi
-
-    """
-}
-
 process TBpipelineP1{
     container 'ghcr.io/garcia-nacho/top_tbpipeline'
     containerOptions '--volume '+params.TBDB+':/mnt/global_collection'
@@ -958,7 +894,6 @@ workflow {
    stxtypcontig=STX_Contigs(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    seqsero=Seqsero(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    tartrate=Tartrate(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
-   //tbpipe=TBpipeline(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    tbpipe1=TBpipelineP1(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    tbpipe2=TBpipelineP2(tbpipe1.tbpipeline_p1_results.collect())
    ecopipe=JonEcoPipe(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
