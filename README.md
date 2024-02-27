@@ -68,5 +68,16 @@ To update TOP (including the main script and all docker images), run <code>TOP.s
 ## Uninstalling TOP
 To remove TOP you must run <code>TOP.sh --uninstall</code>
 
+## Future improvements:   
+* Speed-up the STX process
+* Implement TB-WHOCatalog https://github.com/GTB-tbsequencing/mutation-catalogue-2023/tree/main/Final%20Result%20Files
+* Implement an offline version of PathogenWatch
+* cgMLST for *H. influenaze*
+* Implement TBTyper
+* Iclude fastas (instead of fastq) as entry point for the pipeline
+* Create a plot to visualize Kraken results
+* Dynamic allocation of resources
+* Running TB-pipeline from trimmed fastq
+   
 ## Under the hood   
 TOP is a Nextflow-based modular pipeline that used docker to isolate and run the different tools included in the analysis. The main TOP.sh is just a wrapper for the nextflow script (TOP.nf), with augmented functionalities such us update, and arguments passed to the nextflow script. The highly modular nature of TOP makes it easy to quickly add new analysis. You just need to add a process in the TOP.nf, include it in the workflow section of the TOP.nf and implement the parsing of the results into the output. The most straight forward to do it is by implementing it in the Summarizer.R script inside the Spades' docker image.     

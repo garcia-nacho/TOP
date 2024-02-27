@@ -60,6 +60,7 @@ for (i in 1:length(kraken.after)) {
   }
 }
 
+summ$GenomeSize<-paste(round(summ$Coverage/1000000,2),"Mbp",sep = "")
 
 #Fastqc parsing
 
@@ -979,6 +980,7 @@ if(length(which(is.na(summ$Stx1) & !is.na(summ$Stx2)))>0) summ$Stx1[which(is.na(
 
 colnames(summ)[which(colnames(summ)=="Stx1")]<-"Stx-1"
 colnames(summ)[which(colnames(summ)=="Stx2")]<-"Stx-2"
+
 
 
 # SequencerID -------------------------------------------------------------
