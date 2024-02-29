@@ -803,6 +803,7 @@ summ<-merge(summ, out.tbp, by.x="Sample", by.y="samples", all.x=TRUE)
 rm(out.tbp)
 }
 
+summ$TB_phylo_group<-NULL
 
 # EcoliPipeline -----------------------------------------------------------
 
@@ -897,15 +898,14 @@ summ$NleH1<-"Not found assemblies (ABRICATE)"
 summ$NleH2<-"Not found asemblies (ABRICATE)"
 
 if(length(grep("nleH1", summ$Abricate_vfdb))>0) summ$NleH1[grep("nleH1", summ$Abricate_vfdb)]<-"Detected assemblies (ABRICATE)"
-if(length(grep("nleH2", summ$Abricate_vfdb))>0) summ$NleH1[grep("nleH2", summ$Abricate_vfdb)]<-"Detected assemblies (ABRICATE)"
+if(length(grep("nleH2", summ$Abricate_vfdb))>0) summ$NleH2[grep("nleH2", summ$Abricate_vfdb)]<-"Detected assemblies (ABRICATE)"
 
 nleh<-which(is.na(summ[,c("EcoPipeAssemblies:Serotype")]))
 summ$espK_Abricate<-"Not found assemblies"
-if(length(grep("espK", summ$Abricate_vfdb))>0) summ$espK[grep("espK", summ$Abricate_vfdb)]<-"Detected assemblies"
+if(length(grep("espK", summ$Abricate_vfdb))>0) summ$espK_Abricate[grep("espK", summ$Abricate_vfdb)]<-"Detected assemblies"
 if(length(nleh)>0){
   summ$NleH1[nleh]<-NA
   summ$NleH2[nleh]<-NA
-  summ$espK[nleh]<-NA
   summ$espK_Abricate[nleh]<-NA
 }
 
