@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source activate top_nf
-SHORT=u,r:,f:,h,t:,c:,d,s:,u
+SHORT=u,r:,f:,h,t:,c:,d,s:,x
 LONG=update,reads:,fastas:,help,tbdb:,cores:,dev,sp:,uninstall
 OPTS=$(getopt --options $SHORT --longoptions $LONG -- "$@")
 
@@ -29,7 +29,7 @@ do
       READS="$2"
       shift 2
       ;;
-    -u | --uninstall )
+    -x | --uninstall )
       echo "Removing TOP"
       rm ${TOPSHPATH}/TOP.sh
       conda deactivate top_nf
@@ -38,6 +38,29 @@ do
       ;;
     -f | --fastas )
       echo "Running from fastas is not implemented yet"
+      exit 2
+      ;;
+    -u | --update )
+      echo "Updating The One Pipeline"
+      wget -O ${CONDA_PREFIX}/bin/TOP.nf https://github.com/garcia-nacho/TOP/raw/master/TOP.nf
+      wget -O ${CONDA_PREFIX}/bin/nextflow.config https://github.com/garcia-nacho/TOP/raw/master/nextflow.config
+      wget -O ${CONDA_PREFIX}/top_template.html https://github.com/garcia-nacho/TOP/raw/master/top_template.html
+      wget -O ${CONDA_PREFIX}/bin/TOP.sh https://github.com/garcia-nacho/TOP/raw/master/TOP.sh
+      
+      docker pull ghcr.io/garcia-nacho/top_spades
+      docker pull ghcr.io/garcia-nacho/top_abricate
+      docker pull ghcr.io/garcia-nacho/top_emmtyper
+      docker pull ghcr.io/garcia-nacho/top_hicap
+      docker pull ghcr.io/garcia-nacho/top_seroba
+      docker pull ghcr.io/garcia-nacho/top_virfinder
+      #docker pull ghcr.io/garcia-nacho/top_prokka
+      docker pull ghcr.io/garcia-nacho/top_ngstar
+      docker pull ghcr.io/garcia-nacho/top_tbpipeline
+      docker pull ghcr.io/garcia-nacho/top_seqsero
+      docker pull ghcr.io/garcia-nacho/top_ngmaster
+      docker pull ghcr.io/garcia-nacho/top_ecoli
+      docker pull ghcr.io/garcia-nacho/top_meningotype
+      docker pull ghcr.io/garcia-nacho/top_tartrate
       exit 2
       ;;
     -d | --dev )
@@ -54,6 +77,8 @@ do
       echo "use -f or --fastas to run from a set of fastas e.g. TOP.sh -f /path/to/fastas"
       echo "use -d or --dev to run in development mode.(i.e all files are saved after a successful run)" 
       echo "use -h or --help to show this help" 
+      echo "use -u or --update to update the pipeline"
+      echo "use -x or --uninstall to uninstall the pipeline" 
       echo ""
       exit 2
       ;;
@@ -63,6 +88,7 @@ do
       ;;
     *)
       echo "Unexpected option: $1"
+      exit 2
       ;;
   esac
 done

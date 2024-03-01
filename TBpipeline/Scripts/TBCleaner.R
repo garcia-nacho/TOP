@@ -51,8 +51,9 @@ mykrobe$sample<-gsub("_.*","", mykrobe$sample)
 
 samples<-merge(samples.df, mykrobe, by.x = "samples", by.y = "sample")
 samples$Excluded<-"YES"
-if(length(which(samples$mash=="MTBC"))>0){
-  samples$Excluded[which(samples$mash=="MTBC")]<-"NO"
+
+if(length(which(samples$phylo_group=="Mycobacterium_tuberculosis_complex"))>0){
+  samples$Excluded[which(samples$phylo_group=="Mycobacterium_tuberculosis_complex")]<-"NO"
 }
 
 to.remove<-samples$dirs[which(samples$Excluded=="YES")]
