@@ -61,7 +61,7 @@ do
       docker pull ghcr.io/garcia-nacho/top_ecoli
       docker pull ghcr.io/garcia-nacho/top_meningotype
       docker pull ghcr.io/garcia-nacho/top_tartrate
-      exit 2
+      exit 1
       ;;
     -d | --dev )
       devmode=1
