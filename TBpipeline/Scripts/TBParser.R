@@ -70,8 +70,8 @@ df.out$TB_SimilarSequences_5_SNP<-NA
 df.out$TB_SimilarSequences_12_SNP<-NA
 for (i in 1:nrow(df.out)) {
   singlesamp<-dist[which(dist$Sample == df.out$Sample[i]),]
-  df.out$TB_SimilarSequences_5_SNP[i]<-length(which(as.numeric(singlesamp[1,])<=5))-1
-  df.out$TB_SimilarSequences_12_SNP[i]<-length(which(as.numeric(singlesamp[1,])<=12))-1
+  df.out$TB_SimilarSequences_5_SNP[i]<-length(which(as.numeric(singlesamp[1,])<=5))
+  df.out$TB_SimilarSequences_12_SNP[i]<-length(which(as.numeric(singlesamp[1,])<=12))
   
 }
 
