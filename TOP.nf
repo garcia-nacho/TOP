@@ -40,7 +40,8 @@ process Trimming {
 
     """
 
-    trimmomatic PE -basein ${fq1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+    #trimmomatic PE -basein ${fq1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+    trimmomatic PE -basein ${fq1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/TruSeq3-PE-2.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
 
     """
 }
@@ -102,8 +103,14 @@ process Spades {
     mv contigs.fasta ${sample}_raw_contigs.fasta
     Rscript /home/docker/CommonFiles/Code/ContigCleaner.R
     mv clean_contigs.fasta ${sample}_clean_contigs.fasta
+    source activate coverm
+    coverm genome -1 ${trimmedR1} -2 ${trimmedR2} -r ${sample}_clean_contigs.fasta -t 1 --single-genome -m mean > read_coverage.tsv
+    conda deactivate
+    Rscript /home/docker/CommonFiles/Code/readcovadd.R
+
     mv clean_contigs.stats.csv ${sample}_contigs.stats.csv
     rm -rf ./corrected
+    rm read_coverage.tsv
     
     
     """
