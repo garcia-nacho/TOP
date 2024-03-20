@@ -894,23 +894,40 @@ rm(out.eco)
 # espk nhe1 ---------------------------------------------------------------
 
 if(length(grep("EcoPipe", colnames(summ)))>0){
-summ$NleH1<-"Not found assemblies (ABRICATE)"
-summ$NleH2<-"Not found asemblies (ABRICATE)"
+summ$Abricate_NleH1.1<-"Not detected"
+summ$Abrocate_NleH1.2<-"Not detected"
 
-if(length(grep("nleH1", summ$Abricate_vfdb))>0) summ$NleH1[grep("nleH1", summ$Abricate_vfdb)]<-"Detected assemblies (ABRICATE)"
-if(length(grep("nleH2", summ$Abricate_vfdb))>0) summ$NleH2[grep("nleH2", summ$Abricate_vfdb)]<-"Detected assemblies (ABRICATE)"
+if(length(grep("nleH1", summ$Abricate_vfdb))>0) summ$Abricate_NleH1.1[grep("nleH1", summ$Abricate_vfdb)]<-"Detected"
+if(length(grep("nleH2", summ$Abricate_vfdb))>0) summ$Abricate_NleH1.1[grep("nleH2", summ$Abricate_vfdb)]<-"Detected"
 
 nleh<-which(is.na(summ[,c("EcoPipeAssemblies:Serotype")]))
-summ$espK_Abricate<-"Not found assemblies"
-if(length(grep("espK", summ$Abricate_vfdb))>0) summ$espK_Abricate[grep("espK", summ$Abricate_vfdb)]<-"Detected assemblies"
+summ$Abricate_espK<-"Not found assemblies"
+if(length(grep("espK", summ$Abricate_vfdb))>0) summ$Abricate_espK[grep("espK", summ$Abricate_vfdb)]<-"Detected"
 if(length(nleh)>0){
-  summ$NleH1[nleh]<-NA
-  summ$NleH2[nleh]<-NA
-  summ$espK_Abricate[nleh]<-NA
+  summ$Abricate_NleH1.1[nleh]<-NA
+  summ$Abricate_NleH1.1[nleh]<-NA
+  summ$Abricate_espK[nleh]<-NA
 }
 
+summ$nleH1.1<-"Not Detected"
+summ$nleH1.2<-"Not Detected"
+#Code check
+nleh1index<- unique(c(which(summ$Abricate_NleH1.1=="Detected"), which(!is.na(EcoPipeFastq:nleH1.1)),
+                      hich(!is.na(EcoPipeAssemblies:nleH1.1)))) 
+nleh2index<- unique(c(which(summ$Abricate_NleH1.2=="Detected"), which(!is.na(EcoPipeFastq:nleH1.2)),
+                      hich(!is.na(EcoPipeAssemblies:nleH1.2)))) 
 
+if(length(nleh1index)>0)summ$nleH1.1[nleh1index] <-"Not Detected"
+if(length(nleh2index)>0)summ$nleH1.2[nleh2index] <-"Not Detected"
+
+colnames(summ)[which(colnames(summ)=="nleH1.1")] <- "NleH1-1"
+colnames(summ)[which(colnames(summ)=="nleH1.2")] <- "NleH1-2"
+colnames(summ)[which(colnames(summ)=="Abricate_NleH1.1")] <- "Abricate:nleH1-1"
+colnames(summ)[which(colnames(summ)=="Abricate_NleH1.2")] <- "Abricate:nleH1-2"
+colnames(summ)[which(colnames(summ)=="Abricate_espK")] <- "Abricate:espK"
+colnames(summ)<-gsub("nleH1\\.1", "nleH1-1", colnames(summ)  
 }
+
 
 
 # STXcolumns --------------------------------------------------------------
