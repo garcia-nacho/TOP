@@ -895,7 +895,7 @@ rm(out.eco)
 
 if(length(grep("EcoPipe", colnames(summ)))>0){
 summ$Abricate_NleH1.1<-"Not detected"
-summ$Abrocate_NleH1.2<-"Not detected"
+summ$Abricate_NleH1.2<-"Not detected"
 
 if(length(grep("nleH1", summ$Abricate_vfdb))>0) summ$Abricate_NleH1.1[grep("nleH1", summ$Abricate_vfdb)]<-"Detected"
 if(length(grep("nleH2", summ$Abricate_vfdb))>0) summ$Abricate_NleH1.1[grep("nleH2", summ$Abricate_vfdb)]<-"Detected"
@@ -919,6 +919,13 @@ nleh2index<- unique(c(which(summ$Abricate_NleH1.2=="Detected"), which(!is.na(sum
 
 if(length(nleh1index)>0)summ$nleH1.1[nleh1index] <-"Detected"
 if(length(nleh2index)>0)summ$nleH1.2[nleh2index] <-"Detected"
+
+non.eco<-which(is.na(summ$`EcoPipeFastq:nleH1.1`))
+
+if(length(non.eco)>0){
+  summ$nleH1.1[non.eco]<-NA
+  summ$nleH1.2[non.eco]<-NA
+} 
 
 colnames(summ)[which(colnames(summ)=="nleH1.1")] <- "NleH1-1"
 colnames(summ)[which(colnames(summ)=="nleH1.2")] <- "NleH1-2"
