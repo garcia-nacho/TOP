@@ -46,6 +46,7 @@ RUN wget https://github.com/DerrickWood/kraken2/archive/v${K2VER}.tar.gz && \
 RUN Rscript -e "install.packages(c('jsonlite', 'R.utils'))"
 
 COPY mlst.txt /home/docker/mlst.txt
+RUN conda create -n mlst --file /home/docker/mlst.txt 
 RUN conda create -n coverm
 
 RUN /bin/bash -c ". activate coverm && \
