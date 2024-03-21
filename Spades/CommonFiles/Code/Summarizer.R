@@ -912,20 +912,20 @@ if(length(nleh)>0){
 summ$nleH1.1<-"Not Detected"
 summ$nleH1.2<-"Not Detected"
 #Code check
-nleh1index<- unique(c(which(summ$Abricate_NleH1.1=="Detected"), which(!is.na(EcoPipeFastq:nleH1.1)),
-                      hich(!is.na(EcoPipeAssemblies:nleH1.1)))) 
-nleh2index<- unique(c(which(summ$Abricate_NleH1.2=="Detected"), which(!is.na(EcoPipeFastq:nleH1.2)),
-                      hich(!is.na(EcoPipeAssemblies:nleH1.2)))) 
+nleh1index<- unique(c(which(summ$Abricate_NleH1.1=="Detected"), which(!is.na(summ$`EcoPipeFastq:nleH1.1`)),
+                      which(!is.na(summ$`EcoPipeAssemblies:nleH1.1`)))) 
+nleh2index<- unique(c(which(summ$Abricate_NleH1.2=="Detected"), which(!is.na(summ$`EcoPipeFastq:nleH1.2`)),
+                      which(!is.na(summ$`EcoPipeAssemblies:nleH1.2`)))) 
 
-if(length(nleh1index)>0)summ$nleH1.1[nleh1index] <-"Not Detected"
-if(length(nleh2index)>0)summ$nleH1.2[nleh2index] <-"Not Detected"
+if(length(nleh1index)>0)summ$nleH1.1[nleh1index] <-"Detected"
+if(length(nleh2index)>0)summ$nleH1.2[nleh2index] <-"Detected"
 
 colnames(summ)[which(colnames(summ)=="nleH1.1")] <- "NleH1-1"
 colnames(summ)[which(colnames(summ)=="nleH1.2")] <- "NleH1-2"
 colnames(summ)[which(colnames(summ)=="Abricate_NleH1.1")] <- "Abricate:nleH1-1"
 colnames(summ)[which(colnames(summ)=="Abricate_NleH1.2")] <- "Abricate:nleH1-2"
 colnames(summ)[which(colnames(summ)=="Abricate_espK")] <- "Abricate:espK"
-colnames(summ)<-gsub("nleH1\\.1", "nleH1-1", colnames(summ)  
+colnames(summ)<-gsub("nleH1\\.1", "nleH1-1", colnames(summ))  
 }
 
 
