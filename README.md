@@ -10,7 +10,7 @@ DallE representation of TOP
  [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://https://docker.com/) ![NF](https://badgen.net/badge/_/Nextflow/green?icon=terminal)   
 
 
-## TOP v1.0
+## TOP v1.1
 The One Pipeline (aka TOP) is a *multi-agent-multi-analysis* NGS pipeline developed at the Norwegian Institute of Public Health to generate data and reports than can be used in epidemiological analysis.    
 TOP uses Illumina paired-reads from different bacterial species and generates a report that includes: 
 
