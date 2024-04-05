@@ -55,7 +55,7 @@ do
       docker pull ghcr.io/garcia-nacho/top_virfinder
       #docker pull ghcr.io/garcia-nacho/top_prokka
       docker pull ghcr.io/garcia-nacho/top_ngstar
-      docker pull ghcr.io/garcia-nacho/top_tbpipeline
+      docker pull ghcr.io/garcia-nacho/top_tbpipeline:v1.1
       docker pull ghcr.io/garcia-nacho/top_seqsero
       docker pull ghcr.io/garcia-nacho/top_ngmaster
       docker pull ghcr.io/garcia-nacho/top_ecoli

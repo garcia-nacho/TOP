@@ -15,6 +15,15 @@ USER root
 RUN apt-get update && apt-get install -y procps && rm -rf /var/lib/apt/lists/*
 RUN rm /opt/niph_tb_pipeline/niph_tb_pipeline/niph_tb_pipeline.py
 RUN rm /opt/niph_tb_pipeline/setup.py
+RUN conda config --add channels defaults && \
+	conda config --add channels bioconda && \
+	conda config --add channels conda-forge
+
+#RUN conda install -c conda-forge mamba
+#RUN mamba create -n tb-profiler tb-profiler
+
+#RUN /bin/bash -c ". activate tbprofiler && tb-profiler update_tbdb --branch who"  
+#RUN Rscript -e "install.packages('jsonlite',repos = 'http://cran.us.r-project.org')"
 COPY Tomnt/Reference /mnt/Reference
 COPY Tomnt/Latex_template /mnt/Latex_template
 COPY Tomnt/FigTree_v1.4.3 /mnt/FigTree_v1.4.3

@@ -40,8 +40,8 @@ process Trimming {
 
     """
 
-    #trimmomatic PE -basein ${fq1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
-    trimmomatic PE -basein ${fq1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/TruSeq3-PE-2.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+    trimmomatic PE -basein ${fq1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+    #trimmomatic PE -basein ${fq1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/TruSeq3-PE-2.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
 
     """
 }
@@ -283,10 +283,12 @@ process Integration {
     path(seqsero_tar_gz)
     path(tartrate_res)
     path(tbres)
+    path(tbprofiler)
     path(ecopipelinefiles)
     path(ecopipelinefilesfasta)
     path(sequencerid)
     path(localmlist)
+    
   
     output:
     path ("*")
@@ -295,7 +297,7 @@ process Integration {
 
     """
     multiqc ./
-    
+    breakpoint
     Rscript /home/docker/CommonFiles/Code/Summarizer.R
     mkdir bam
     mv *.bam ./bam
@@ -731,10 +733,12 @@ process TBpipelineP1{
     then
       if test -d "/mnt/local_collection/localdb_dummy"; then rm -rf /mnt/local_collection/localdb_dummy; fi
       mkdir ${sample}
-    
       r1=\$(ls ${sample}_R1*.fastq.gz)
       r2=\$(ls ${sample}_R2*.fastq.gz)
-       
+      #trimmomatic PE -basein \${r1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+
+      tb-profiler profile -1 \${r1} -2 \${r2} -p ${sample} --csv
+
       mv \${r1} ${sample}
       mv \${r2} ${sample}
       rm ./*.fastq.gz
@@ -743,6 +747,11 @@ process TBpipelineP1{
       rm -rf COPY_TO_REPORTS
       rm -rf COPY_TO_TB_PIPELINE_DATABASE
       rm -rf ${sample}/*.fastq.gz
+      mv results/${sample}.results.csv ${sample}/${sample}.tb_profiler.csv
+      mv results/${sample}.results.json ${sample}/${sample}.tb_profiler.json
+      rm -rf bam
+      rm -rf vcf
+      rm -rf results  
       tar -zcvf ${sample}.tar.gz ${sample}
       rm -rf ${sample}
 
@@ -751,6 +760,46 @@ process TBpipelineP1{
       mkdir ${sample}_nonTB
       echo "dummy" > ${sample}_nonTB/${sample}_nonTB.txt 
       echo "dummy" > ${sample}_dummy_tbp.tar.gz
+
+    fi
+
+    """
+}
+
+process TBprofiler{
+    container 'ghcr.io/garcia-nacho/top_tbpiprofiler'
+    
+    cpus 2
+    maxForks = 2
+
+    input:
+    val(sample)
+    path(agent)
+    path(rawreads)
+
+    output:
+    path("*tb_profiler.tsv"), emit: tbprofiler_results
+
+    script:
+
+    """
+    if test -f "Myco.agent"; 
+    then
+      r1=\$(ls ${sample}_R1*.fastq.gz)
+      r2=\$(ls ${sample}_R2*.fastq.gz)
+   
+      tb-profiler profile -1 \${r1} -2 \${r2} -p ${sample} --csv
+      mv results/${sample}.results.csv ${sample}.tb_profiler.csv
+      mv results/${sample}.results.json ${sample}.tb_profiler.json
+      rm -rf bam
+      rm -rf vcf
+      rm -rf results  
+      Rscript /home/docker/Code/TBprofilerparser.R
+
+    else
+      
+      mkdir ${sample}_nonTB
+      echo "dummy" > ${sample}_tb_profiler.tsv
 
     fi
 
@@ -902,6 +951,7 @@ workflow {
    seqsero=Seqsero(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    tartrate=Tartrate(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    tbpipe1=TBpipelineP1(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+   tbprof=TBprofiler(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    tbpipe2=TBpipelineP2(tbpipe1.tbpipeline_p1_results.collect())
    ecopipe=JonEcoPipe(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    ecopipefasta=JonEcoPipeFasta(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
@@ -930,6 +980,7 @@ workflow {
                      seqsero.seqsero_gzip.collect(),  
                      tartrate.tartrate_results.collect(), 
                      tbpipe2.tbpipeline_p2_results.collect(),
+                     tbprof.tbprofiler_results.collect(),
                      ecopipe.eco_results.collect(),
                      outputspades.sqID.collect(),
                      ecopipefasta.eco_results_fasta.collect(),
