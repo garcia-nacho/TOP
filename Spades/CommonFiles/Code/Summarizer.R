@@ -805,6 +805,64 @@ rm(out.tbp)
 
 summ$TB_phylo_group<-NULL
 
+
+# TBProfiler --------------------------------------------------------------
+
+drugs<-toupper(c("Rifampicin",
+"Isoniazid",
+"Ethambutol",
+"Pyrazinamide",
+"Moxifloxacin",
+"Levofloxacin",
+"Bedaquiline",
+"Delamanid",
+"Pretomanid",
+"Linezolid",
+"Streptomycin",
+"Amikacin",
+"Kanamycin",
+"Capreomycin",
+"Clofazimine",
+"Ethionamide",
+"Para-aminosalicylic_acid",
+"Cycloserine"))
+
+
+
+tbp.list<-list.files(pattern = "_tb_profiler.tsv")
+if(exists("out.tbp")) rm(out.tbp)
+
+for (i in 1:length(tbp.list)) {
+  dummy<-read.csv(tbp.list[i], sep = "\t")
+  if(colnames(dummy)[1]!="dummy"){
+
+    dummy$Sample<-gsub("_.*","",dummy$Sample)
+    if(!exists("out.tbp")){
+      out.tbp<-dummy
+    }else{
+      missing.dummy<- colnames(out.tbp)[-which(colnames(out.tbp) %in% colnames(dummy) )]
+      if(length(missing.dummy)>0){
+        padd<-as.data.frame(matrix(NA, nrow = nrow(dummy), ncol = length(missing.dummy)))
+        colnames(padd)<-missing.dummy
+        dummy<-cbind(dummy, padd)
+      }
+      
+      missing.tbp<- colnames(dummy)[-which(colnames(dummy) %in% colnames(out.tbp) )]
+      if(length(missing.tbp)>0){
+        padd<-as.data.frame(matrix(NA, nrow = nrow(out.tbp), ncol = length(missing.tbp)))
+        colnames(padd)<-missing.tbp
+        out.tbp<-cbind(out.tbp, padd)
+      }
+      out.tbp<-rbind(out.tbp, dummy)
+    }
+  }
+}
+
+if(exists("out.tbp")){
+  summ<-merge(summ, out.tbp, by="Sample", all.x=TRUE)
+}
+
+
 # EcoliPipeline -----------------------------------------------------------
 
 #Raw 
@@ -1027,6 +1085,11 @@ out.sqid$Sample<-gsub("_.*","",out.sqid$Sample)
 out.sqid$Instrument<-gsub("@","",out.sqid$Instrument)
 summ<-merge(summ, out.sqid, by="Sample", all.x=TRUE)
 rm(out.sqid)
+
+
+
+
+
 
 # versions ------------------------------------------------------------
 versions<-read.csv("/home/docker/CommonFiles/Versions.csv", sep = ";", header = FALSE)

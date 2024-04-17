@@ -17,7 +17,7 @@ params.reads=params.readsfolder+"/*/*_{R1,R2}*.fastq.gz"
 
 process Trimming {
  
-    container 'ghcr.io/garcia-nacho/top_spades'
+    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
     errorStrategy 'ignore'
     maxForks = params.threads - 1
@@ -47,7 +47,7 @@ process Trimming {
 }
 
 process KrakenRaw {
-    container 'ghcr.io/garcia-nacho/top_spades'
+    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
     containerOptions '--volume '+params.krakenDB+':/Kraken2DB'
     maxForks = 1
     
@@ -75,7 +75,7 @@ process KrakenRaw {
 
 process Spades {
 
-    container 'ghcr.io/garcia-nacho/top_spades'
+    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
 
     maxForks = params.spadescores
@@ -117,7 +117,7 @@ process Spades {
 }
 
 process Rmlst {
-    container 'ghcr.io/garcia-nacho/top_spades'
+    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
     errorStrategy 'retry'
     maxRetries 10
@@ -172,7 +172,7 @@ process Prokka {
 }
 
 process KrakenClean {
-    container 'ghcr.io/garcia-nacho/top_spades'
+    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
     containerOptions '--volume '+params.krakenDB+':/Kraken2DB'
     maxForks = 2
     
@@ -192,7 +192,7 @@ process KrakenClean {
 }
 
 process KrakenTrimmed {
-    container 'garcianacho/top:spades'
+    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
     containerOptions '--volume '+params.krakenDB+':/Kraken2DB'
     maxForks = 1
     
@@ -218,7 +218,7 @@ process KrakenTrimmed {
 }
 
 process Mapping {
-    container 'ghcr.io/garcia-nacho/top_spades'
+    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
 
     maxForks = 2
@@ -248,7 +248,7 @@ process Mapping {
 }
 
 process Integration {
-    container 'ghcr.io/garcia-nacho/top_spades'
+    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
     cpus 1
     maxForks = 1
 
@@ -297,7 +297,6 @@ process Integration {
 
     """
     multiqc ./
-    breakpoint
     Rscript /home/docker/CommonFiles/Code/Summarizer.R
     mkdir bam
     mv *.bam ./bam
@@ -737,8 +736,6 @@ process TBpipelineP1{
       r2=\$(ls ${sample}_R2*.fastq.gz)
       #trimmomatic PE -basein \${r1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
 
-      tb-profiler profile -1 \${r1} -2 \${r2} -p ${sample} --csv
-
       mv \${r1} ${sample}
       mv \${r2} ${sample}
       rm ./*.fastq.gz
@@ -747,11 +744,6 @@ process TBpipelineP1{
       rm -rf COPY_TO_REPORTS
       rm -rf COPY_TO_TB_PIPELINE_DATABASE
       rm -rf ${sample}/*.fastq.gz
-      mv results/${sample}.results.csv ${sample}/${sample}.tb_profiler.csv
-      mv results/${sample}.results.json ${sample}/${sample}.tb_profiler.json
-      rm -rf bam
-      rm -rf vcf
-      rm -rf results  
       tar -zcvf ${sample}.tar.gz ${sample}
       rm -rf ${sample}
 
@@ -767,7 +759,7 @@ process TBpipelineP1{
 }
 
 process TBprofiler{
-    container 'ghcr.io/garcia-nacho/top_tbpiprofiler'
+    container 'ghcr.io/garcia-nacho/top_tbprofiler'
     
     cpus 2
     maxForks = 2
@@ -778,7 +770,7 @@ process TBprofiler{
     path(rawreads)
 
     output:
-    path("*tb_profiler.tsv"), emit: tbprofiler_results
+    path("*tb_profiler.*"), emit: tbprofiler_results
 
     script:
 
@@ -787,18 +779,18 @@ process TBprofiler{
     then
       r1=\$(ls ${sample}_R1*.fastq.gz)
       r2=\$(ls ${sample}_R2*.fastq.gz)
-   
+      source activate tb-profiler
       tb-profiler profile -1 \${r1} -2 \${r2} -p ${sample} --csv
       mv results/${sample}.results.csv ${sample}.tb_profiler.csv
       mv results/${sample}.results.json ${sample}.tb_profiler.json
       rm -rf bam
       rm -rf vcf
       rm -rf results  
+      conda deactivate
       Rscript /home/docker/Code/TBprofilerparser.R
 
     else
-      
-      mkdir ${sample}_nonTB
+ 
       echo "dummy" > ${sample}_tb_profiler.tsv
 
     fi

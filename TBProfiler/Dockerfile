@@ -16,6 +16,7 @@ RUN conda install -c conda-forge mamba
 RUN mamba create -y -n tb-profiler tb-profiler
 USER root
 RUN Rscript -e "install.packages(c('readxl','writexl','jsonlite'))"
+RUN /bin/bash -c ". activate tb-profiler && tb-profiler update_tbdb --branch tbdb"
 COPY Code/ /home/docker/Code/
 USER docker
 WORKDIR /Data
