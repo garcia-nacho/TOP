@@ -69,18 +69,21 @@ colnames(dist)[1]<-"Sample"
 df.out$TB_SimilarSequences_5_SNP<-NA
 df.out$TB_SimilarSequences_12_SNP<-NA
 for (i in 1:nrow(df.out)) {
-  singlesamp<-dist[which(dist$Sample == df.out$Sample[i]),]
+  singlesamp<-dist[which(gsub("_merged","",dist$Sample) == df.out$Sample[i]),]
   df.out$TB_SimilarSequences_5_SNP[i]<-length(which(as.numeric(singlesamp[1,])<=5))
   df.out$TB_SimilarSequences_12_SNP[i]<-length(which(as.numeric(singlesamp[1,])<=12))
   
 }
 
+df.out$TB_SimilarSequences_5_SNP<-df.out$TB_SimilarSequences_5_SNP-1
+df.out$TB_SimilarSequences_12_SNP<-df.out$TB_SimilarSequences_12_SNP-1
+
 
 col.files<-list.files("COPY_TO_TB_PIPELINE_DATABASE/",pattern = "colltype.txt", recursive = TRUE, full.names = TRUE)
 for (i in 1:length(col.files)) {
   dummycoll<-read.csv(col.files[i], sep="\t")
+  dummycoll$Lineage<-paste("lineage ", paste(dummycoll$Lineage, collapse = "/"),sep = "")
   dummycoll<-dummycoll[1,]
-  dummycoll$Lineage<-paste("lineage", dummycoll$Lineage,sep = "")
   dummycoll$Sample<-gsub(".*/","",gsub("/colltype.txt","",col.files[i]))
   if(!exists("collout")){
     collout<-dummycoll
