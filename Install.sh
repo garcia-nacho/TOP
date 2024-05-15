@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SHORT=k:,t:,c:,h:,p
-LONG=kraken:,tbdb:,cores:,help:,path
+SHORT=k:,t:,c:,h:,p:
+LONG=kraken:,tbdb:,cores:,help:,path:
 OPTS=$(getopt --options $SHORT --longoptions $LONG -- "$@")
 
 eval set -- "$OPTS"
