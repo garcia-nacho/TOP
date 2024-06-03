@@ -898,24 +898,29 @@ summ$Abricate_NleH1.1<-"Not detected"
 summ$Abricate_NleH1.2<-"Not detected"
 
 if(length(grep("nleH1", summ$Abricate_vfdb))>0) summ$Abricate_NleH1.1[grep("nleH1", summ$Abricate_vfdb)]<-"Detected"
-if(length(grep("nleH2", summ$Abricate_vfdb))>0) summ$Abricate_NleH1.1[grep("nleH2", summ$Abricate_vfdb)]<-"Detected"
+if(length(grep("nleH2", summ$Abricate_vfdb))>0) summ$Abricate_NleH1.2[grep("nleH2", summ$Abricate_vfdb)]<-"Detected"
 
 nleh<-which(is.na(summ[,c("EcoPipeAssemblies:Serotype")]))
 summ$Abricate_espK<-"Not found assemblies"
 if(length(grep("espK", summ$Abricate_vfdb))>0) summ$Abricate_espK[grep("espK", summ$Abricate_vfdb)]<-"Detected"
 if(length(nleh)>0){
   summ$Abricate_NleH1.1[nleh]<-NA
-  summ$Abricate_NleH1.1[nleh]<-NA
+  summ$Abricate_NleH1.2[nleh]<-NA
   summ$Abricate_espK[nleh]<-NA
 }
 
 summ$nleH1.1<-"Not Detected"
 summ$nleH1.2<-"Not Detected"
 #Code check
-nleh1index<- unique(c(which(summ$Abricate_NleH1.1=="Detected"), which(!is.na(summ$`EcoPipeFastq:nleH1.1`)),
-                      which(!is.na(summ$`EcoPipeAssemblies:nleH1.1`)))) 
-nleh2index<- unique(c(which(summ$Abricate_NleH1.2=="Detected"), which(!is.na(summ$`EcoPipeFastq:nleH1.2`)),
-                      which(!is.na(summ$`EcoPipeAssemblies:nleH1.2`)))) 
+# nleh1index<- unique(c(which(summ$Abricate_NleH1.1=="Detected"), which(!is.na(summ$`EcoPipeFastq:nleH1.1`)),
+#                       which(!is.na(summ$`EcoPipeAssemblies:nleH1.1`)))) 
+# 
+# nleh2index<- unique(c(which(summ$Abricate_NleH1.2=="Detected"), which(!is.na(summ$`EcoPipeFastq:nleH1.2`)),
+#                       which(!is.na(summ$`EcoPipeAssemblies:nleH1.2`)))) 
+
+
+nleh1index<- unique(c(which(summ$Abricate_NleH1.1=="Detected"), grep("^Detected", summ$EcoPipeAssemblies:nleH1.1), grep("^Detected", summ$EcoPipeFastq:nleH1.1)))
+nleh2index<- unique(c(which(summ$Abricate_NleH1.2=="Detected"), grep("^Detected", summ$EcoPipeAssemblies:nleH1.2), grep("^Detected", summ$EcoPipeFastq:nleH1.2)))
 
 if(length(nleh1index)>0)summ$nleH1.1[nleh1index] <-"Detected"
 if(length(nleh2index)>0)summ$nleH1.2[nleh2index] <-"Detected"
@@ -1055,7 +1060,7 @@ to.separate<-apply(summ, 2, function(x)length(grep(",",x)))
 to.separate<-which(to.separate>0)
 if(length(to.separate)>0){
   for (col.to.sep in to.separate) {
-    summ[,col.to.sep]<-paste("| ",gsub(","," |",summ[,col.to.sep])," |",sep = "")
+    summ[,col.to.sep]<-gsub(","," |",summ[,col.to.sep])
   }
 }
 

@@ -174,7 +174,7 @@ process Prokka {
 process KrakenClean {
     container 'ghcr.io/garcia-nacho/top_spades'
     containerOptions '--volume '+params.krakenDB+':/Kraken2DB'
-    maxForks = 2
+    maxForks = 1
     
     input:
     tuple val(sample), path(raw), path(clean) , path(trimmedR1), path(trimmedR2)
@@ -221,7 +221,7 @@ process Mapping {
     container 'ghcr.io/garcia-nacho/top_spades'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
 
-    maxForks = 2
+    maxForks = 1
     
     input:
     tuple val(sample), path(raw),  path(clean), path(trimmedR1), path(trimmedR2) 
