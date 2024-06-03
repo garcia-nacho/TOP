@@ -752,6 +752,9 @@ out.tart$ID<-NULL
 summ<-merge(summ, out.tart, by="Sample", all.x=TRUE)
 rm(out.tart)
 
+summ$Tartratre_STM3356_Codon<-gsub("^functional", "Non functional", summ$Tartratre_STM3356_Codon)
+summ$Tartratre_STM3356_Codon<-gsub("^ Intact", "Intact", summ$Tartratre_STM3356_Codon)
+summ$Tartratre_STM3356_Codon<-gsub(" $", "", summ$Tartratre_STM3356_Codon)
 
 # TB_Pipeline -------------------------------------------------------------
 tbp.list<-list.files(pattern = "_tbp.csv")
