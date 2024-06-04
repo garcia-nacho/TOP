@@ -922,8 +922,8 @@ summ$nleH1.2<-"Not Detected"
 #                       which(!is.na(summ$`EcoPipeAssemblies:nleH1.2`)))) 
 
 
-nleh1index<- unique(c(which(summ$Abricate_NleH1.1=="Detected"), grep("^Detected", summ$EcoPipeAssemblies:nleH1.1), grep("^Detected", summ$EcoPipeFastq:nleH1.1)))
-nleh2index<- unique(c(which(summ$Abricate_NleH1.2=="Detected"), grep("^Detected", summ$EcoPipeAssemblies:nleH1.2), grep("^Detected", summ$EcoPipeFastq:nleH1.2)))
+nleh1index<- unique(c(which(summ$Abricate_NleH1.1=="Detected"), grep("^Detected", summ$`EcoPipeAssemblies:nleH1.1`), grep("^Detected", summ$`EcoPipeFastq:nleH1.1`)))
+nleh2index<- unique(c(which(summ$Abricate_NleH1.2=="Detected"), grep("^Detected", summ$`EcoPipeAssemblies:nleH1.2`), grep("^Detected", summ$`EcoPipeFastq:nleH1.2`)))
 
 if(length(nleh1index)>0)summ$nleH1.1[nleh1index] <-"Detected"
 if(length(nleh2index)>0)summ$nleH1.2[nleh2index] <-"Detected"
