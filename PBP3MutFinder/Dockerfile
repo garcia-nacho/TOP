@@ -13,5 +13,6 @@ RUN cd /home/docker \
     && conda config --add channels conda-forge 
 
 RUN conda install -c bioconda blast
+RUN Rscript -e "install.packages(c('seqinr','writexl'))"
 RUN mkdir /home/docker/pbp3
 COPY pbp3 /home/docker/pbp3
