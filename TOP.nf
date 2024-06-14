@@ -174,7 +174,7 @@ process Prokka {
 process KrakenClean {
     container 'ghcr.io/garcia-nacho/top_spades:v1.1'
     containerOptions '--volume '+params.krakenDB+':/Kraken2DB'
-    maxForks = 2
+    maxForks = 1
     
     input:
     tuple val(sample), path(raw), path(clean) , path(trimmedR1), path(trimmedR2)
@@ -221,7 +221,7 @@ process Mapping {
     container 'ghcr.io/garcia-nacho/top_spades:v1.1'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
 
-    maxForks = 2
+    maxForks = 1
     
     input:
     tuple val(sample), path(raw),  path(clean), path(trimmedR1), path(trimmedR2) 
@@ -249,8 +249,8 @@ process Mapping {
 
 process Integration {
     container 'ghcr.io/garcia-nacho/top_spades:v1.1'
-    cpus 1
-    maxForks = 1
+    //cpus 1
+    //maxForks = 1
 
     publishDir(
         path: "${params.publishDir}/",
@@ -336,8 +336,8 @@ process Integration {
 
 process Abricate { 
     container 'ghcr.io/garcia-nacho/top_abricate'
-    cpus 1
-    maxForks = 1
+    //cpus 1
+    //maxForks = 1
 
     input:
     path(fastaclean)

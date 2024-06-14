@@ -47,7 +47,7 @@ do
       wget -O ${CONDA_PREFIX}/top_template.html https://github.com/garcia-nacho/TOP/raw/master/top_template.html
       wget -O ${CONDA_PREFIX}/bin/TOP.sh https://github.com/garcia-nacho/TOP/raw/master/TOP.sh
       
-      docker pull ghcr.io/garcia-nacho/top_spades
+      docker pull ghcr.io/garcia-nacho/top_spades:v.1.1
       docker pull ghcr.io/garcia-nacho/top_abricate
       docker pull ghcr.io/garcia-nacho/top_emmtyper
       docker pull ghcr.io/garcia-nacho/top_hicap
