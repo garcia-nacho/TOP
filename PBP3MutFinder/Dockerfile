@@ -13,6 +13,10 @@ RUN cd /home/docker \
     && conda config --add channels conda-forge 
 
 RUN conda install -c bioconda blast
+USER root
 RUN Rscript -e "install.packages(c('seqinr','writexl'))"
+USER docker
 RUN mkdir /home/docker/pbp3
 COPY pbp3 /home/docker/pbp3
+WORKDIR /Data
+CMD ["sh", "-c", "Rscript /home/docker/pbp3/PBP_scanner.R"]
