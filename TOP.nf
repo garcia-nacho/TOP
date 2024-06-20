@@ -147,7 +147,7 @@ process Rmlst {
     Rscript /home/docker/CommonFiles/Code/seqmlst_parser.R
     #Missing genus 
     source activate mlst
-    mlst ${sample}_clean_contigs.fasta > ${sample}_localmlst.tsv
+    mlst --blastdb /home/docker/CommonFiles/blast/mlst.fa ${sample}_clean_contigs.fasta > ${sample}_localmlst.tsv
     conda deactivate
 
     """

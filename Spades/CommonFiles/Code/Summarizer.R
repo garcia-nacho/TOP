@@ -543,7 +543,7 @@ for (i in 1:length(meningo.list)) {
   }else{
     colnames(dummy)<-dummy[1,]
     dummy<-dummy[-1,]
-    dummy$PorA<-paste("P1.",gsub("\\|", "|P1.", dummy$PorA),sep="")
+    dummy$PorA<-paste("P1.", dummy$PorA,sep="")
   }
   if(!exists("out.meningotype")){
     out.meningotype<-dummy
