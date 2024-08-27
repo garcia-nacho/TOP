@@ -323,8 +323,8 @@ for (i in 1:length(emlist)) {
     out.emm<-rbind(out.emm,dummy)
   }
 }
-outemm$emmtype<-gsub("EMM", "",outemm$emmtype )
-outemm$emmlike<-gsub("EMM", "",outemm$emmlike )
+out.emm$emmtype<-gsub("EMM", "",out.emm$emmtype )
+out.emm$emmlike<-gsub("EMM", "",out.emm$emmlike )
 colnames(out.emm)<-c("Sample","Cluster.N","emm-type","emm-like","emm-cluster")
 
 out.emm$Sample<-gsub("_.*","",out.emm$Sample)
