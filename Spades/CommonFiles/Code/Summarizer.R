@@ -306,13 +306,13 @@ for (i in 1:length(emlist)) {
   dummy<-read.csv(emlist[i],sep = "\t",header = FALSE)
   if(dummy[1,1]=="NoSpy"){ 
     dummy<-as.data.frame(matrix(NA,nrow = 1, ncol = 5))
-    colnames(dummy)<-c("Sample","Cluster.N","emm-type","emm-like","emm-cluster")
+    colnames(dummy)<-c("Sample","Cluster.N","emmtype","emmlike","emmcluster")
     dummy$emm.warning<-NA
     dummy$Sample<-gsub("_.*","",emlist[i])
   }else{
   
   
-  colnames(dummy)<-c("Sample","Cluster.N","emm-type","emm-like","emm-cluster")
+  colnames(dummy)<-c("Sample","Cluster.N","emmtype","emmlike","emmcluster")
   dummy$emm.warning<-NA
   if(as.numeric(dummy$Cluster.N)>3) dummy$emm.warning<-"Possible Contamination"
 
@@ -323,6 +323,9 @@ for (i in 1:length(emlist)) {
     out.emm<-rbind(out.emm,dummy)
   }
 }
+outemm$emmtype<-gsub("EMM", "",outemm$emmtype )
+outemm$emmlike<-gsub("EMM", "",outemm$emmlike )
+colnames(out.emm)<-c("Sample","Cluster.N","emm-type","emm-like","emm-cluster")
 
 out.emm$Sample<-gsub("_.*","",out.emm$Sample)
 summ<-merge(summ, out.emm, by="Sample", all.x=TRUE)
