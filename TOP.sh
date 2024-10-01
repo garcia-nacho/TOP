@@ -5,6 +5,23 @@ SHORT=u,r:,f:,h,t:,c:,d,s:,x
 LONG=update,reads:,fastas:,help,tbdb:,cores:,dev,sp:,uninstall
 OPTS=$(getopt --options $SHORT --longoptions $LONG -- "$@")
 
+if [ $? != 0 ]; then
+    echo ""
+    echo "Error with the option/s provided" >&2
+    echo "use -r or --reads to run from a set of paired fastq files e.g. TOP.sh -f /path/to/fastq"
+    echo "use -c or --cores to set the number of cores"
+    echo "use -t or --tbdb to set the path to the mtb database"
+    echo "use -f or --fastas to run from a set of fastas e.g. TOP.sh -f /path/to/fastas"
+    echo "use -d or --dev to run in development mode.(i.e all files are saved after a successful run)" 
+    echo "use -h or --help to show this help" 
+    echo "use -u or --update to update the pipeline"
+    echo "use -x or --uninstall to uninstall the pipeline" 
+    echo ""
+    conda deactivate top_nf
+    exit 1
+fi
+
+
 READS=$(pwd)
 devmode=0
 eval set -- "$OPTS"
@@ -34,11 +51,12 @@ do
       rm ${TOPSHPATH}/TOP.sh
       conda deactivate top_nf
       conda remove -n top_nf --all
-      exit 2
+      echo "Note that you will have to delete the docker containers manually"
+      exit 0
       ;;
     -f | --fastas )
       echo "Running from fastas is not implemented yet"
-      exit 2
+      exit 0
       ;;
     -u | --update )
       echo "Updating The One Pipeline"
@@ -61,7 +79,7 @@ do
       docker pull ghcr.io/garcia-nacho/top_ecoli
       docker pull ghcr.io/garcia-nacho/top_meningotype
       docker pull ghcr.io/garcia-nacho/top_tartrate
-      exit 1
+      exit 0
       ;;
     -d | --dev )
       devmode=1
@@ -80,7 +98,7 @@ do
       echo "use -u or --update to update the pipeline"
       echo "use -x or --uninstall to uninstall the pipeline" 
       echo ""
-      exit 2
+      exit 0
       ;;
     --)
       shift;
@@ -103,8 +121,11 @@ nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKE
 
 if test -f "${READS}/TOPresults/Summaries_"*".xlsx"
 then
+    if devmode == 0
+    then
     echo "Cleaning up..."
     rm -rf work
+    fi
 fi
 
 if test -f "${READS}/TOPresults/TB_Pipeline/Non_MTBC_samples_in_the_run"

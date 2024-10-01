@@ -37,7 +37,7 @@ TOP is a tool under continuous development. All stable versions are stored as re
 To install TOP you need a computer with docker and conda installed.   
 <code>git clone https://github.com/garcia-nacho/TOP --branch 1.0</code>   
 <code>cd TOP</code>   
-<code>./install.sh -p /path/to/TOP</code>
+<code>./Install.sh -p /path/to/TOP</code>
 
 This commands will install TOP in your system and a link to the pipeline will be created in the path defined in /path/to/TOP. Be sure that the path is in your PATH variable, otherwise you will have to call TOP manually (i.e./path/to/TOP/TOP.sh).   
 If no path is provided a link to the pipeline will be create in the TOP folder    

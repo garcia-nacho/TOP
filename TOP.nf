@@ -569,6 +569,7 @@ process EMMtyper {
     if test -f "Spyo.agent"; 
     then
       emmtyper ${sample}_clean_contigs.fasta > ${sample}_emmtyper.tsv  
+      Rscript /home/docker/EMM_Extraction.R
 
     else
       echo "NoSpy" > ${sample}_emmtyper.tsv

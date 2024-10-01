@@ -30,8 +30,11 @@ COPY emmdb.nhr /emmdb07022024/emmdb.tfa.nhr
 COPY emmdb.nin /emmdb07022024/emmdb.tfa.nin
 COPY emmdb.nsq /emmdb07022024/emmdb.tfa.nsq
 COPY alltrimmed.fa /emmdb07022024/emmdb.tfa
+COPY EMM_Extraction.R /home/docker/EMM_Extraction.R
 RUN chmod -R +rx /emmdb07022024/*
 
 RUN chmod 777 /Data 
+RUN chmod +x /home/docker/EMM_Extraction.R
+
 USER docker
 WORKDIR /Data

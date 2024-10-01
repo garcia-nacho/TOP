@@ -1,8 +1,19 @@
 #!/bin/bash
 
-SHORT=k:,t:,c:,h:,p:
-LONG=kraken:,tbdb:,cores:,help:,path:
-OPTS=$(getopt --options $SHORT --longoptions $LONG -- "$@")
+SHORT=k:,t:,c:,h,p:
+LONG=kraken:,tbdb:,cores:,help,path:
+OPTS=$(getopt --options $SHORT --longoptions $LONG --name "$0" -- "$@")
+
+if [ $? != 0 ]; then
+    echo ""
+    echo "Error with the option/s provided" >&2
+    echo "use -c or --cores to set the number of cores" >&2
+    echo "use -t or --tbdb to set the path to the tb_database" >&2
+    echo "use -k or --kraken to set the path to the tb_database" >&2
+    echo "use -p or --path to set the path to install the main script" >&2
+    exit 1
+fi
+
 
 eval set -- "$OPTS"
 
@@ -31,7 +42,7 @@ do
       echo "use -t or --tbdb to set the path to the tb_database"
       echo "use -k or --kraken to set the path to the tb_database"
       echo "use -p or --path to set the path to install the main script" 
-      exit 2
+      exit 0
       ;;
     --)
       shift;
@@ -39,8 +50,10 @@ do
       ;;
     *)
       echo "Unexpected option: $1"
+      exit 1
       ;;
   esac
+  
 done
 
 #Cores
