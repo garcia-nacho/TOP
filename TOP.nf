@@ -39,9 +39,14 @@ process Trimming {
     def (fq1, fq2) = reads
 
     """
+    ln -s *R1* ${sample}_R1_001.fastq.gz
+    ln -s *R2* ${sample}_R2_001.fastq.gz
 
-    trimmomatic PE -basein ${fq1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
-    #trimmomatic PE -basein ${fq1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/TruSeq3-PE-2.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+    #trimmomatic PE -basein ${sample}_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+    trimmomatic PE -phred33 -basein ${sample}_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/TruSeq3-PE-2.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+
+    rm ${sample}_R1_001.fastq.gz
+    rm ${sample}_R2_001.fastq.gz
 
     """
 }
@@ -270,6 +275,7 @@ process Integration {
     path(fastaraw)
     path(mlst_in)
     path(abri)
+    path(amrfinderplus_in)
     path(hicap)
     path(seroba)
     path(depth)
@@ -287,6 +293,9 @@ process Integration {
     path(ecopipelinefiles)
     path(ecopipelinefilesfasta)
     path(sequencerid)
+    path(bpeprofres)
+    path(bpeprofjson)
+    path(diphtores)
     path(localmlist)
     
   
@@ -296,6 +305,7 @@ process Integration {
     script:
 
     """
+    breakpoint
     multiqc ./
     Rscript /home/docker/CommonFiles/Code/Summarizer.R
     mkdir bam
@@ -315,6 +325,7 @@ process Integration {
     mv *depth.tsv ./QC
     mv *_seqmlst.csv ./QC
     mv *_rmlst.csv ./QC
+    mv *localmlst.tsv ./QC
     mv *_Virulencefactors.csv ./QC
     mv *_STXType.csv ./QC
     mv *_Abricate.csv ./QC
@@ -759,6 +770,71 @@ process TBpipelineP1{
     """
 }
 
+process BPEprofiler{
+    container 'ghcr.io/garcia-nacho/top_bpprofiler'
+    
+    cpus 1
+    maxForks = 1
+
+    input:
+    path(fastaclean)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*bpe_mlst.csv"), emit: bpeprofiler_results
+    path("*.json"), emit: bpeprofiler_json
+
+    script:
+
+    """
+    if test -f "Bper.agent"; 
+    then
+        /home/docker/code/bpe_mlst.sh
+        mv BPE_MLST.csv ${sample}_bpe_mlst.csv
+
+    else
+ 
+      echo "NoBper" > ${sample}_bpe_mlst.tsv
+      echo "NoBper" > ${sample}_dummy.json
+
+    fi
+
+    """
+}
+
+process Diphtoscan{
+    
+    container 'ghcr.io/garcia-nacho/top_diphtoscan'
+    
+    cpus 1
+    maxForks = 1
+
+    input:
+    path(fastaclean)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*diphtoscan.csv"), emit: diphto_res
+
+    script:
+
+    """
+    if test -f "Diphto.agent"; 
+    then
+        /home/docker/diphtoscan/Dipthorunner.sh
+
+        mv diphtoscan_results.csv ${sample}_diphtoscan.csv
+
+    else
+        echo "NoDiphto" > ${sample}_diphtoscan.csv
+ 
+    fi
+
+    """
+}
+
 process TBprofiler{
     container 'ghcr.io/garcia-nacho/top_tbprofiler'
     
@@ -921,6 +997,111 @@ process JonEcoPipeFasta {
     """
 }
 
+process AmrFinderPlus{
+    container 'ghcr.io/garcia-nacho/top_amrfinderplus'
+    //cpus 1
+    //maxForks = 1
+
+    input:
+    path(fastaclean)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*_amrfinderplus.tsv"), emit: amrfinder_results
+
+    script:
+
+    """
+    if test -f "Ecol.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Escherichia -o ${sample}_amrfinderplus.tsv
+    
+    elif test -f "Ngon.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Neisseria_gonorrhoeae -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Salmo.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Salmonella -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Spyo.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Streptococcus_pyogenes -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Spne.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Streptococcus_pneumoniae -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Vcol.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Vibrio_cholerae -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Abau.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Acinetobacter_baumannii -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Bcep.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Burkholderia_cepacia -o ${sample}_amrfinderplus.tsv
+    
+    elif test -f "Bmal.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Burkholderia_mallei -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Bpse.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Burkholderia_pseudomallei -o ${sample}_amrfinderplus.tsv
+    
+    elif test -f "Cfre.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Citrobacter_freundii -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Cdif.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Clostridioides_difficile -o ${sample}_amrfinderplus.tsv
+    
+    elif test -f "Cdip.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Corynebacterium_diphtheriae -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Kpne.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Klebsiella_pneumoniae -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Paur.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Pseudomonas_aeruginosa -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Smar.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Serratia_marcescens -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Saur.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Staphylococcus_aureus -o ${sample}_amrfinderplus.tsv
+    
+    elif test -f "Saga.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Streptococcus_agalactiae -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Vpar.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Vibrio_parahaemolyticus -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Vvul.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Vibrio_vulnificus -o ${sample}_amrfinderplus.tsv
+
+    else
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus -o ${sample}_amrfinderplus.tsv
+    fi
+
+
+    """
+
+}
+
 workflow {
    sample_reads = Channel.fromFilePairs( params.reads )
    all_raw_reads = Channel.fromPath(params.reads)
@@ -948,6 +1129,9 @@ workflow {
    tbpipe2=TBpipelineP2(tbpipe1.tbpipeline_p1_results.collect())
    ecopipe=JonEcoPipe(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    ecopipefasta=JonEcoPipeFasta(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+   amrfindplus=AmrFinderPlus(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+   bpe=BPEprofiler(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+   diphto=Diphtoscan(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
 
    integ=Integration(kkraw.collect(),
                      kkcon.collect(),
@@ -960,6 +1144,7 @@ workflow {
                      outputspades.fastasraw.collect(),
                      mlst.mlstresults.collect(),
                      abri.abricate_results.collect(),
+                     amrfindplus.amrfinder_results.collect(),
                      hicap.hicap_results.collect(),
                      seroba.seroba_results.collect(),
                      mapped.bt2depth.collect(),
@@ -977,5 +1162,8 @@ workflow {
                      ecopipe.eco_results.collect(),
                      outputspades.sqID.collect(),
                      ecopipefasta.eco_results_fasta.collect(),
+                     bpe.bpeprofiler_results.collec(),
+                     bpe.bpeprofiler_json.collect(),
+                     diphto.diphto_res.collect(),
                      mlst.localmlst.collect() )
 }

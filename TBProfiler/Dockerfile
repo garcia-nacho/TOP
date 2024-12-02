@@ -18,5 +18,8 @@ USER root
 RUN Rscript -e "install.packages(c('readxl','writexl','jsonlite'))"
 RUN /bin/bash -c ". activate tb-profiler && tb-profiler update_tbdb --branch tbdb"
 COPY Code/ /home/docker/Code/
+RUN chmod -R +rx /home/docker/Code/*
 USER docker
 WORKDIR /Data
+ENV samplename="test"
+CMD ["bash", "-c", "/home/docker/Code/tbprofilerrunner.sh"]

@@ -334,79 +334,82 @@ lab<-c("Mapping", "Contigs")
 
 for (hl in 1:length(patterns)) {
   
-if(exists("stx.table.out")) rm(stx.table.out)
-if(exists("stx.out.final"))rm(stx.out.final)
-stxlist<-list.files(pattern = patterns[hl])
-for (i in 1:length(stxlist)) {
-  if(exists("dum.json")) rm(dum.json)
-  try(dum.json<-fromJSON(stxlist[i]),silent = TRUE)
-  if(!exists("dum.json")) dum.json<-vector()
   if(exists("stx.table.out")) rm(stx.table.out)
-  if(exists("output.stx"))rm(output.stx)
-  if(length(dum.json)>0){
-    output.stx<-dum.json$virulencefinder$results$`Escherichia coli`$stx  
-  }else{
-    output.stx<-vector()
-  }
-  
-  if(length(output.stx)>0){
-    for (j in 1:length(output.stx)) {
-      stx.table<-as.data.frame(t(unlist(output.stx[[j]])))
-      if(!exists("stx.table.out")){
-        stx.table.out<-stx.table
-      }else{
-        
-        if(length(setdiff(colnames(stx.table.out), colnames(stx.table) ))>0 | 
-           length(setdiff(colnames(stx.table), colnames(stx.table.out) ))>0){
-          stx.table[setdiff(names(stx.table.out), names(stx.table))] <- NA
-          stx.table.out[setdiff(names(stx.table), names(stx.table.out))] <- NA
-        }
-        
-        
-        stx.table.out<-rbind(stx.table.out,stx.table)
-      }
+  if(exists("stx.out.final"))rm(stx.out.final)
+  stxlist<-list.files(pattern = patterns[hl])
+  for (i in 1:length(stxlist)) {
+    if(exists("dum.json")) rm(dum.json)
+    try(dum.json<-fromJSON(stxlist[i]),silent = TRUE)
+    if(!exists("dum.json")) dum.json<-vector()
+    if(exists("stx.table.out")) rm(stx.table.out)
+    if(exists("output.stx"))rm(output.stx)
+    if(length(dum.json)>0){
+      output.stx<-dum.json$virulencefinder$results$`Escherichia coli`$stx  
+    }else{
+      output.stx<-vector()
     }
-   stx.table.out$Sample<-gsub("_.*","",stxlist[i])
-   
-   if(stx.table.out[1,1]=="No hit found"){
-     colnames(stx.table.out)[1]<-"StxType"
-     stx.table.out$StxIdentity<-NA
-     stx.table.out$StxInfo<-NA
-     stx.table.out$StxVariant<-NA
-   }else{
-     stx.table.out<-stx.table.out[c(1,2,10,13)]
-     colnames(stx.table.out)<-c("StxType","StxIdentity","StxInfo","Sample")
-     stx.table.out$StxVariant<-paste(stx.table.out$StxType, gsub(".*, ","",stx.table.out$StxInfo ),sep = ":")
-     stx.table.out$StxInfo<-gsub(", .*","",stx.table.out$StxInfo )
-   }
-     
-
-   if(nrow(stx.table.out)>1){
-     stx.table.out$StxType[1]<-paste(stx.table.out$StxType, collapse =" | " )
-     stx.table.out$StxIdentity[1]<-paste(stx.table.out$StxIdentity, collapse =" | " )
-     stx.table.out$StxInfo[1]<-paste(stx.table.out$StxInfo, collapse =" | " )
-     stx.table.out$StxVariant[1]<-paste(stx.table.out$StxVariant, collapse =" | " )
-     
-     stx.table.out<-stx.table.out[1,,drop=FALSE]
-   }
-  }else{
-    stx.table.out<-as.data.frame(matrix(NA, ncol =4, nrow = 1 ))
-    colnames(stx.table.out)<-c("StxType","StxIdentity","StxInfo","Sample")
-    stx.table.out$Sample<-gsub("_.*","",stxlist[i])
+    
+    if(length(output.stx)>0){
+      for (j in 1:length(output.stx)) {
+        stx.table<-as.data.frame(t(unlist(output.stx[[j]])))
+        if(!exists("stx.table.out")){
+          stx.table.out<-stx.table
+        }else{
+          
+          if(length(setdiff(colnames(stx.table.out), colnames(stx.table) ))>0 | 
+             length(setdiff(colnames(stx.table), colnames(stx.table.out) ))>0){
+            stx.table[setdiff(names(stx.table.out), names(stx.table))] <- NA
+            stx.table.out[setdiff(names(stx.table), names(stx.table.out))] <- NA
+          }
+          
+          
+          stx.table.out<-rbind(stx.table.out,stx.table)
+        }
+      }
+      stx.table.out$Sample<-gsub("_.*","",stxlist[i])
+      
+      if(stx.table.out[1,1]=="No hit found"){
+        colnames(stx.table.out)[1]<-"StxType"
+        stx.table.out$StxIdentity<-NA
+        stx.table.out$StxInfo<-NA
+        stx.table.out$StxVariant<-NA
+        stx.table.out$StxCoverage<-NA
+      }else{
+        stx.table.out<-stx.table.out[c(1,2,10,11,13)]
+        colnames(stx.table.out)<-c("StxType","StxIdentity","StxInfo", "StxCoverage", "Sample")
+        stx.table.out$StxVariant<-paste(stx.table.out$StxType, gsub(".*, ","",stx.table.out$StxInfo ),sep = ":")
+        stx.table.out$StxInfo<-gsub(", .*","",stx.table.out$StxInfo )
+      }
+      
+      
+      if(nrow(stx.table.out)>1){
+        stx.table.out$StxType[1]<-paste(stx.table.out$StxType, collapse =" | " )
+        stx.table.out$StxIdentity[1]<-paste(stx.table.out$StxIdentity, collapse =" | " )
+        stx.table.out$StxInfo[1]<-paste(stx.table.out$StxInfo, collapse =" | " )
+        stx.table.out$StxVariant[1]<-paste(stx.table.out$StxVariant, collapse =" | " )
+        stx.table.out$StxCoverage[1]<-paste(stx.table.out$StxCoverage, collapse =" | " )
+        stx.table.out<-stx.table.out[1,,drop=FALSE]
+      }
+    }else{
+      stx.table.out<-as.data.frame(matrix(NA, ncol =4, nrow = 1 ))
+      colnames(stx.table.out)<-c("StxType","StxIdentity","StxInfo", "StxCoverage", "Sample")
+      stx.table.out$Sample<-gsub("_.*","",stxlist[i])
+    }
+    write.csv(stx.table.out, paste(gsub("_.*","",stxlist[i]),"_STXType.csv",sep = ""),row.names = FALSE)
+    
+    if(!exists("stx.out.final")){
+      stx.out.final<-stx.table.out
+    }else{
+      if(length(setdiff(colnames(stx.table.out), colnames(stx.out.final) ))>0 | 
+         length(setdiff(colnames(stx.out.final), colnames(stx.table.out) ))>0){
+        stx.out.final[setdiff(names(stx.table.out), names(stx.out.final))] <- NA
+        stx.table.out[setdiff(names(stx.out.final), names(stx.table.out))] <- NA
+      }
+      
+      stx.out.final<-rbind(stx.out.final, stx.table.out)
+    }
   }
-  write.csv(stx.table.out, paste(gsub("_.*","",stxlist[i]),"_STXType.csv",sep = ""),row.names = FALSE)
   
- if(!exists("stx.out.final")){
-   stx.out.final<-stx.table.out
- }else{
-   if(length(setdiff(colnames(stx.table.out), colnames(stx.out.final) ))>0 | 
-      length(setdiff(colnames(stx.out.final), colnames(stx.table.out) ))>0){
-     stx.out.final[setdiff(names(stx.table.out), names(stx.out.final))] <- NA
-     stx.table.out[setdiff(names(stx.out.final), names(stx.table.out))] <- NA
-   }
-   
-   stx.out.final<-rbind(stx.out.final, stx.table.out)
- }
 }
 
 #stx.out.final<-stx.out.final[,c(1,5,2,3,4)]

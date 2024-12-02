@@ -23,7 +23,8 @@ RUN conda create -n emmtip
 RUN /bin/bash -c ". activate emmtip && \
     pip install git+https://github.com/admiralenola/emm_typing"
 
-USER root  
+USER root 
+RUN Rscript -e "install.packages(c( 'seqinr'),repos = 'http://cran.us.r-project.org')" 
 RUN mkdir -p /Data 
 RUN mkdir -p /emmdb07022024 
 COPY emmdb.nhr /emmdb07022024/emmdb.tfa.nhr
@@ -38,3 +39,4 @@ RUN chmod +x /home/docker/EMM_Extraction.R
 
 USER docker
 WORKDIR /Data
+CMD ["bash", "-c", "Rscript /home/docker/EMM_Extraction.R"]

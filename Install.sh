@@ -75,7 +75,7 @@ echo ""
 
 conda create -n top_nf -y
 source activate top_nf
-conda install -c bioconda nextflow
+conda install -c bioconda nextflow==23.10.1
 cp TOP.nf ${CONDA_PREFIX}/bin/TOP.nf
 
 cp nextflow.config ${CONDA_PREFIX}/bin/
@@ -115,5 +115,10 @@ ln -s ${CONDA_PREFIX}/bin/TOP.sh $(pwd)/TOP.sh
 conda env config vars set TOPSHPATH=$(pwd)
 
 fi
+
+wget -O ${CONDA_PREFIX}/bin/TOP.nf https://github.com/garcia-nacho/TOP/raw/master/TOP.nf
+wget -O ${CONDA_PREFIX}/bin/nextflow.config https://github.com/garcia-nacho/TOP/raw/master/nextflow.config
+wget -O ${CONDA_PREFIX}/top_template.html https://github.com/garcia-nacho/TOP/raw/master/top_template.html
+wget -O ${CONDA_PREFIX}/bin/TOP.sh https://github.com/garcia-nacho/TOP/raw/master/TOP.sh
 
 conda deactivate
