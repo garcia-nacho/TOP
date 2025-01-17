@@ -41,7 +41,7 @@ process Trimming {
     """
 
     #trimmomatic PE -basein ${fq1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
-    trimmomatic PE -basein ${fq1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/TruSeq3-PE-2.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+    trimmomatic PE -phred33 -basein ${fq1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/TruSeq3-PE-2.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
 
     """
 }
@@ -295,7 +295,6 @@ process Integration {
 
     """
     multiqc ./
-    
     Rscript /home/docker/CommonFiles/Code/Summarizer.R
     mkdir bam
     mv *.bam ./bam
@@ -314,6 +313,7 @@ process Integration {
     mv *depth.tsv ./QC
     mv *_seqmlst.csv ./QC
     mv *_rmlst.csv ./QC
+    mv *localmlst.tsv ./QC
     mv *_Virulencefactors.csv ./QC
     mv *_STXType.csv ./QC
     mv *_Abricate.csv ./QC
