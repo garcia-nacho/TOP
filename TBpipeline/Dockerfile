@@ -1,29 +1,8 @@
-FROM admiralenola/niph_tb_pipeline
+FROM ghcr.io/garcia-nacho/top_tbpipeline
 LABEL maintainer="Nacho Garcia <iggl@fhi.no>"
 
 USER root
-RUN echo "deb http://archive.debian.org/debian stretch main contrib non-free" > /etc/apt/sources.list
 
-RUN apt-get update \
-        && apt-get install -y --no-install-recommends \
-		r-base \
-	&& rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
-	&& rm -rf /var/lib/apt/lists/*
-
-RUN Rscript -e "install.packages(c( 'seqinr','ggplot2',  'reshape2',  'readxl','writexl',  'data.table'),repos = 'http://cran.us.r-project.org')"
-USER root
-RUN apt-get update && apt-get install -y procps && rm -rf /var/lib/apt/lists/*
-RUN rm /opt/niph_tb_pipeline/niph_tb_pipeline/niph_tb_pipeline.py
-RUN rm /opt/niph_tb_pipeline/setup.py
-RUN conda config --add channels defaults && \
-	conda config --add channels bioconda && \
-	conda config --add channels conda-forge
-
-#RUN conda install -c conda-forge mamba
-#RUN mamba create -n tb-profiler tb-profiler
-
-#RUN /bin/bash -c ". activate tbprofiler && tb-profiler update_tbdb --branch who"  
-#RUN Rscript -e "install.packages('jsonlite',repos = 'http://cran.us.r-project.org')"
 COPY Tomnt/Reference /mnt/Reference
 COPY Tomnt/Latex_template /mnt/Latex_template
 COPY Tomnt/FigTree_v1.4.3 /mnt/FigTree_v1.4.3
@@ -47,4 +26,3 @@ RUN cd /opt/niph_tb_pipeline && pip install --upgrade .
 
 USER tbuser
 WORKDIR /data
-CMD ["bash", "-c", "niph_tb_pipeline"]

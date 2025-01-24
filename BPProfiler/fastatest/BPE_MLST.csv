@@ -1,4 +1,0 @@
-"Sample","MLST.Type","ClonalComplex","MLST.Scheme","cgMLST","Score","AllelesFound","cgMLSTDate"
-"4492_BORP_NIPH_001","2","ST-2 complex","adk:1 | fumC:1 | glyA:1 | icd:1 | pepA:1 | pgm:1 | tyrB:3","cgST990",0.998508946322068,"2038  of  2038","20241127_PASTEUR.FR"
-"4493_BORP_NIPH_002","2","ST-2 complex","adk:1 | fumC:1 | glyA:1 | icd:1 | pepA:1 | pgm:1 | tyrB:3","cgST990",0.999501743896363,"2033  of  2038","20241127_PASTEUR.FR"
-"4494_BORP_NIPH_003","2","ST-2 complex","adk:1 | fumC:1 | glyA:1 | icd:1 | pepA:1 | pgm:1 | tyrB:3","cgST1790",0.998475609756098,"2030  of  2038","20241127_PASTEUR.FR"

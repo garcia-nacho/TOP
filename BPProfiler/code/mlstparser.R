@@ -14,6 +14,7 @@ inputs<-list.files(pattern = "_mlst.json")
 for (f in 1:length(inputs)) {
   df<-fromJSON(inputs[f])
   
+
   if(!is.null(df$fields$ST)){
     output<-as.data.frame(df$fields$ST )
     colnames(output)<-"MLST.Type"
@@ -43,10 +44,17 @@ for (f in 1:length(inputs)) {
     }
   }  
   
+  if( is.null(df$status) ){
+    output$Warning<-NA
+  }else{
+    output$Warning<- paste(unlist(df), collapse = ". ")
+  }
+  
   output$MLST.Scheme<-paste(sch[order(sch)],collapse = " | ")
   if(is.na(sch[1])) output$MLST.Scheme<-NA
   
   output$Sample<-gsub("_mlst.json","",inputs[f])
+  if(length(which(colnames(output)=="ClonalComplex"))==0) output$ClonalComplex<-NA
   if(!exists("mlst_out")){
     mlst_out<-output
   }else{
@@ -59,13 +67,19 @@ inputs<-list.files(pattern = "_cgmlst.json")
 for (f in 1:length(inputs)) {
   df<-fromJSON(inputs[f])
   
-  cgdf<-as.data.frame(names(df$exact_matches))
-  colnames(cgdf)<-"Allele"
-  cgdf$ID<-NA
-  for (i in 1:nrow(cgdf)) {
-    cgdf$ID[i]<-df$exact_matches[[i]]$allele_id
+  if(is.null(df$exact_matches)){
+    cgdf<-as.data.frame(NA)
+  }else{
+    cgdf<-as.data.frame(names(df$exact_matches))
   }
   
+  colnames(cgdf)<-"Allele"
+  cgdf$ID<-NA
+  if(!is.null(df$exact_matches)){
+    for (i in 1:nrow(cgdf)) {
+      cgdf$ID[i]<-df$exact_matches[[i]]$allele_id
+    }
+  }
   all.count<-ncol(cg_profile)-1
   cg_profile.temp<-cg_profile[,which(colnames(cg_profile) %in% cgdf$Allele)]
   

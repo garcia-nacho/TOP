@@ -224,9 +224,10 @@ if(length(which(is.na(summ$MLST.Scheme)))>0 ) summ$MLST.Scheme[which(is.na(summ$
 abrilist<-list.files(pattern = "_Abricate.csv")
 for (i in 1:length(abrilist)) {
   dummy<-read.csv(abrilist[i])
-  
+  if(length(grep("^VF_",colnames(dummy)))>0) dummy<-dummy[,-grep("^VF_",colnames(dummy))]
   if(!exists("out.abri")){
     out.abri<-dummy
+    
   }else{
     if(length(setdiff(colnames(out.abri), colnames(dummy) ))>0 |
        length(setdiff(colnames(dummy), colnames(out.abri) ))>0){
@@ -391,7 +392,7 @@ for (hl in 1:length(patterns)) {
         stx.table.out<-stx.table.out[1,,drop=FALSE]
       }
     }else{
-      stx.table.out<-as.data.frame(matrix(NA, ncol =4, nrow = 1 ))
+      stx.table.out<-as.data.frame(matrix(NA, ncol =5, nrow = 1 ))
       colnames(stx.table.out)<-c("StxType","StxIdentity","StxInfo", "StxCoverage", "Sample")
       stx.table.out$Sample<-gsub("_.*","",stxlist[i])
     }
@@ -410,7 +411,7 @@ for (hl in 1:length(patterns)) {
     }
   }
   
-}
+
 
 #stx.out.final<-stx.out.final[,c(1,5,2,3,4)]
 
@@ -952,11 +953,6 @@ colnames(out.eco)[-which(colnames(out.eco)=="Sample")]<-paste("EcoPipeAssemblies
 summ<-merge(summ, out.eco, by="Sample", all.x=TRUE)
 rm(out.eco)
 
-
-
-
-
-
 # espk nhe1 ---------------------------------------------------------------
 
 if(length(grep("EcoPipe", colnames(summ)))>0){
@@ -985,8 +981,8 @@ summ$nleH1.2<-"Not Detected"
 #                       which(!is.na(summ$`EcoPipeAssemblies:nleH1.2`)))) 
 
 
-nleh1index<- unique(c(which(summ$Abricate_NleH1.1=="Detected"), grep("^Detected", summ$EcoPipeAssemblies:nleH1.1), grep("^Detected", summ$EcoPipeFastq:nleH1.1)))
-nleh2index<- unique(c(which(summ$Abricate_NleH1.2=="Detected"), grep("^Detected", summ$EcoPipeAssemblies:nleH1.2), grep("^Detected", summ$EcoPipeFastq:nleH1.2)))
+nleh1index<- unique(c(which(summ$Abricate_NleH1.1=="Detected"), grep("^Detected", summ$`EcoPipeAssemblies:nleH1.1`), grep("^Detected", summ$`EcoPipeFastq:nleH1.1`)))
+nleh2index<- unique(c(which(summ$Abricate_NleH1.2=="Detected"), grep("^Detected", summ$`EcoPipeAssemblies:nleH1.2`), grep("^Detected", summ$`EcoPipeFastq:nleH1.2`)))
 
 if(length(nleh1index)>0)summ$nleH1.1[nleh1index] <-"Detected"
 if(length(nleh2index)>0)summ$nleH1.2[nleh2index] <-"Detected"
@@ -1101,10 +1097,182 @@ rm(out.sqid)
 
 
 
+# AMRFInderPlus -----------------------------------------------------------
+
+amfplus<-list.files(pattern = "_amrfinderplus.tsv")
+if(exists("outamr")) rm(outamr)
+
+for (i in 1:length(amfplus)) {
+  dummy<-read.csv(amfplus[i],sep = "\t")
+  
+  if(length(which(dummy$Element.type=="AMR"))>0){
+  
+  dummyamr<-dummy[which(dummy$Element.type=="AMR"),]
+  if(nrow(dummyamr)>0){
+    amrclasses<-unique(dummyamr$Class)
+    amrpad<-as.data.frame(matrix(NA,nrow = 1, ncol = length(amrclasses)))
+    colnames(amrpad)<-amrclasses
+    for ( c in 1:ncol(amrpad)) {
+      amrpad[,c]<-paste(dummyamr$Gene.symbol[which(dummyamr$Class==colnames(amrpad)[c])],collapse = " | ")
+    }
+    
+  }
+  amrpad$Sample<-unique(gsub("_.*","",dummy$Contig.id))
+  
+  if(!exists("outamr")){
+    outamr<-amrpad
+  }else{
+    missing.out<-colnames(amrpad)[-which(colnames(amrpad) %in% colnames(outamr))]
+    missing.dumm<-colnames(outamr)[-which(colnames(outamr) %in% colnames(amrpad))]
+    
+    if(length(missing.out)>0){
+      padding<-as.data.frame(matrix(NA, nrow = nrow(outamr), ncol = length(missing.out)))
+      colnames(padding)<-missing.out
+      outamr<-cbind(outamr,padding)
+    }
+  
+    if(length(missing.dumm)>0){
+      padding<-as.data.frame(matrix(NA, nrow = nrow(amrpad), ncol = length(missing.dumm)))
+      colnames(padding)<-missing.dumm
+      amrpad<-cbind(amrpad,padding)
+    }
+    
+    
+    outamr<-rbind(outamr,amrpad)
+  }
+  }
+}
+
+if(exists("outamr")){
+  colnames(outamr)[-which(colnames(outamr)=="Sample")]<-paste("AMRFinder_",colnames(outamr)[-which(colnames(outamr)=="Sample")],sep = "")
+  summ<-merge(summ, outamr,by="Sample", all.x = TRUE)  
+}
+
+
+
+# BPEprofiler -------------------------------------------------------------
+bpe<-list.files(pattern = "bpe_mlst.csv")
+if(exists("outbpe")) rm(outbpe)
+
+for (i in 1:length(bpe)) {
+  dummy<-read.csv(bpe[i])
+  if(colnames(dummy)[1]!="NoBper"){
+    if(!exists("outbpe")){
+      outbpe<-dummy
+    }else{
+      outbpe<-rbind(outbpe,dummy)
+    }  
+  }
+}
+
+if(exists("outbpe")){
+outbpe$Sample<-gsub("_.*","",outbpe$Sample)
+colnames(outbpe)[6]<-"cgMLST_Score"
+colnames(outbpe)[7]<-"cgMLST_AlellesFound"
+colnames(outbpe)[-1]<-paste("BPE_",colnames(outbpe)[-1],sep = "")
+
+summ<-merge(summ, outbpe, by="Sample",all.x = TRUE, all.y = FALSE)
+
+summ$MLST.Type[which(summ$Sample %in% outbpe$Sample)]<-
+  summ$BPE_MLST.Type[which(summ$Sample %in% outbpe$Sample)]
+
+
+summ$MLST.Scheme[which(summ$Sample %in% outbpe$Sample)]<-
+  summ$BPE_MLST.Scheme[which(summ$Sample %in% outbpe$Sample)]
+
+
+summ$MLST_Date[which(summ$Sample %in% outbpe$Sample)]<-
+  summ$BPE_cgMLSTDate[which(summ$Sample %in% outbpe$Sample)]
+
+if(length(which(colnames(summ)=="ClonalComplex"))>0){
+  summ$ClonalComplex<-NA
+}
+summ$ClonalComplex[which(summ$Sample %in% outbpe$Sample)]<-
+  summ$BPE_ClonalComplex[which(summ$Sample %in% outbpe$Sample)]
+
+summ$BPE_ClonalComplex<-NULL
+summ$BPE_MLST.Scheme<-NULL
+summ$BPE_MLST.Type<-NULL
+
+}
+
+# Diphtoscan --------------------------------------------------------------
+
+cds.files<-list.files(pattern = "diphtoscan.csv")
+if(exists("outcds")) rm(outcds)
+
+for (i in 1:length(cds.files)) {
+  dummy<-read.csv(cds.files[i])
+  if(colnames(dummy)[1]!="NoDiphto"){
+    if(!exists("outcds")){
+      outcds<-dummy
+    }else{
+      outcds<-rbind(outcds,dummy)
+    }  
+  }
+}
+
+if(exists("outcds")){
+
+outcds$MLST.Scheme<-paste("atpA:", outcds$atpA, "|dnaE:", outcds$dnaE,"|dnaK:",outcds$dnaK, 
+                                 "|fusA:", outcds$fusA,  "|leuA:",outcds$leuA ,  "|odhA:",outcds$odhA ,"|rpoB:", outcds$rpoB, sep = "")
+
+colnames(outcds)[-which(colnames(outcds)=="Sample")]<-paste("DiphtoScan_",colnames(outcds)[-which(colnames(outcds)=="Sample")], sep = "")
+
+summ<-merge(summ, outcds, by="Sample",all.x = TRUE, all.y = FALSE)
+
+summ$MLST.Scheme[which(summ$Sample %in% outcds$Sample)]<-
+  summ$DiphtoScan_MLST.Scheme[which(summ$Sample %in% outcds$Sample)]
+
+summ$DiphtoScan_MLST.Scheme<-NULL
+
+summ$MLST.Type[which(summ$Sample %in% outcds$Sample)]<-
+  summ$DiphtoScan_ST[which(summ$Sample %in% outcds$Sample)]
+
+summ$DiphtoScan_ST<-NULL
+
+summ$MLST_Date[which(summ$Sample %in% outcds$Sample)]<-"DiphtoScan.11.11.2024"
+
+summ$DiphtoScan_dnaK<-NULL
+summ$DiphtoScan_atpA<-NULL
+summ$DiphtoScan_dnaE<-NULL
+summ$DiphtoScan_odhA<-NULL
+summ$DiphtoScan_rpoB<-NULL
+summ$DiphtoScan_leuA<-NULL
+summ$DiphtoScan_fusA<-NULL
+
+}
+
+
+
+# TBProfiler --------------------------------------------------------------
+tbp.files<-list.files(pattern = "tb_profiler.tsv")
+
+if(exists("outtbpro")) rm(outtbpro)
+
+for (i in 1:length(tbp.files)) {
+
+  dummy<-read.csv(tbp.files[i],sep = "\t")
+  if(colnames(dummy)[1]!="dummy"){
+    if(!exists("outtbpro")){
+      outtbpro<-dummy
+    }else{
+      outtbpro<-rbind(outtbpro,dummy)
+    }
+  }
+  
+}
+
+if(exists("outtbpro")){
+  outtbpro<-as.data.frame(apply(outtbpro,2,function(x) gsub("^DRUG_RESISTANCE / ", "", x)))
+  summ<-merge(summ, outtbpro, by="Sample",all.x = TRUE, all.y = FALSE)
+}
+
 
 
 # versions ------------------------------------------------------------
 versions<-read.csv("/home/docker/CommonFiles/Versions.csv", sep = ";", header = FALSE)
+#versions<-read.csv("/media/nacho/Data/DockerImages/TOP_dev/Spades/CommonFiles/Versions.csv", sep = ";", header = FALSE)
 
 summ$Software_versions<-paste(paste(versions$V1,versions$V2, sep = ":"), collapse = " | ")
 

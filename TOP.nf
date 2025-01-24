@@ -39,11 +39,11 @@ process Trimming {
     def (fq1, fq2) = reads
 
     """
-    ln -s *R1* ${sample}_R1_001.fastq.gz
-    ln -s *R2* ${sample}_R2_001.fastq.gz
+    ln -s *_R1_* ${sample}_ln_R1_001.fastq.gz
+    ln -s *_R2_* ${sample}_ln_R2_001.fastq.gz
 
-    #trimmomatic PE -basein ${sample}_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
-    trimmomatic PE -phred33 -basein ${sample}_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/TruSeq3-PE-2.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+    #trimmomatic PE -basein ${sample}_ln_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+    trimmomatic PE -phred33 -basein ${sample}_ln_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/TruSeq3-PE-2.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
 
     rm ${sample}_R1_001.fastq.gz
     rm ${sample}_R2_001.fastq.gz
@@ -146,7 +146,7 @@ process Rmlst {
     shell:
     """
     (echo -n '{"base64":true,"details":true,"sequence": "'; base64 ${input}; echo '"}') | \
-    curl -s -H "Content-Type: application/json" -X POST "http://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1/sequence" -d @- > \
+    curl -s -H "Content-Type: application/json" -X POST "https://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1/sequence" -d @- > \
     ${sample}_rmlst.json
     Rscript /home/docker/CommonFiles/Code/rmlst_parser.R
     Rscript /home/docker/CommonFiles/Code/seqmlst_parser.R
@@ -155,23 +155,6 @@ process Rmlst {
     mlst --blastdb /home/docker/CommonFiles/blast/mlst.fa ${sample}_clean_contigs.fasta > ${sample}_localmlst.tsv
     conda deactivate
 
-    """
-
-}
-
-process Prokka {
-    container = 'ghcr.io/garcia-nacho/top_prokka'
-
-    input:
-    path(input)
-    val(sample)
-
-    output:
-    path("*")
-
-    script:
-    """
-    prokka --outdir ${sample} --prefix ${sample} ${input} 
     """
 
 }
@@ -252,101 +235,8 @@ process Mapping {
 
 }
 
-process Integration {
-    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
-    //cpus 1
-    //maxForks = 1
-
-    publishDir(
-        path: "${params.publishDir}/",
-        mode: 'copy',
-        saveAs: { fn -> fn.substring(fn.lastIndexOf('/')+1) },
-    )
-
-    input:
-    path(kkraw)
-    path(kkclean)
-    path(kktri)
-    path(bam)
-    path(bai)
-    path(btsum)
-    path(spsum)
-    path(fastaclean)
-    path(fastaraw)
-    path(mlst_in)
-    path(abri)
-    path(amrfinderplus_in)
-    path(hicap)
-    path(seroba)
-    path(depth)
-    path(emmtyp)
-    path(meningotype)
-    path(ngmast)
-    path(ngstar)
-    path(stxtp)
-    path(stxtp_contig)
-    path(seqsero)
-    path(seqsero_tar_gz)
-    path(tartrate_res)
-    path(tbres)
-    path(tbprofiler)
-    path(ecopipelinefiles)
-    path(ecopipelinefilesfasta)
-    path(sequencerid)
-    path(bpeprofres)
-    path(bpeprofjson)
-    path(diphtores)
-    path(localmlist)
-    
-  
-    output:
-    path ("*")
-
-    script:
-
-    """
-    breakpoint
-    multiqc ./
-    Rscript /home/docker/CommonFiles/Code/Summarizer.R
-    mkdir bam
-    mv *.bam ./bam
-    mv *.bai ./bam
-    mkdir fasta
-    mv *_clean_contigs.fasta ./fasta
-    mkdir QC
-    mv *_raw_contigs.fasta ./QC
-    mv *kraken* ./QC
-    mv *contigs.stats.csv ./QC
-    mv *.txt ./QC
-    mv *.zip ./QC
-    mv *.json ./QC
-    mv *vfdb.tsv ./QC
-    mv *ncbi.tsv ./QC
-    mv *depth.tsv ./QC
-    mv *_seqmlst.csv ./QC
-    mv *_rmlst.csv ./QC
-    mv *localmlst.tsv ./QC
-    mv *_Virulencefactors.csv ./QC
-    mv *_STXType.csv ./QC
-    mv *_Abricate.csv ./QC
-
-    if test -f "*dummy_seqsero_tar.gz"; then rm *dummy_seqsero_tar.gz; fi
-    if test -f "*seqsero_tar.gz"; then mv seqsero_tar.gz ./QC; fi
-
-    if test -f "*.tsv"; then mv *.tsv ./QC; fi
-    if test -f "*.gbk"; then mv *.gbk ./QC; fi
-    if test -f "*.log"; then mv *.log ./QC; fi
-    if test -f "*.svg"; then mv *.svg ./QC; fi
-    if test -f "*.csv"; then mv *.csv ./QC; fi
-
-
-    #Rscript /home/docker/CommonFiles/Code/FileParserSummary.R
-    
-    """
-}
-
 process Abricate { 
-    container 'ghcr.io/garcia-nacho/top_abricate'
+    container 'ghcr.io/garcia-nacho/top_abricate:v1.1'
     //cpus 1
     //maxForks = 1
 
@@ -361,29 +251,9 @@ process Abricate {
     script:
 
     """
-    if test -f "Hinf.agent"; 
-    then
-        #abricate-get_db --db ncbi --force
-        #abricate-get_db --db vfdb --force
-        #abricate-get_db --db plasmidfinder --force
-        abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv 
-        abricate --db HinfFtsI --quiet *.fasta > ${sample}_HinfFtsI.tsv
-        abricate --db HinfGyrSubA --quiet *.fasta > ${sample}_HinfGyrSubA.tsv
-        abricate --db HinfTopoIVsubA --quiet *.fasta > ${sample}_HinfTopoIVSubA.tsv
-        abricate --db ncbi --quiet *.fasta > ${sample}_ncbi.tsv
-        abricate --db plasmidfinder --quiet *.fasta > ${sample}_plasmidfinder.tsv
-        #Integration Abricate
-    else
-        #abricate-get_db --db ncbi --force
-        #abricate-get_db --db vfdb --force
-        #abricate-get_db --db plasmidfinder --force
-        abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv
-        abricate --db ncbi --quiet *.fasta > ${sample}_ncbi.tsv
-        abricate --db plasmidfinder --quiet *.fasta > ${sample}_plasmidfinder.tsv
-        #Dummy file
-    fi
-
-    #Test if the files can be empty or they just dont exist
+    abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv
+    abricate --db ncbi --quiet *.fasta > ${sample}_ncbi.tsv
+    abricate --db plasmidfinder --quiet *.fasta > ${sample}_plasmidfinder.tsv
     
     Rscript /home/docker/Code/AbricateParser.R
     mv Abricate.csv ${sample}_Abricate.csv
@@ -393,7 +263,7 @@ process Abricate {
 }
 
 process NGstar { 
-    container 'ghcr.io/garcia-nacho/top_ngstar'
+    container 'ghcr.io/garcia-nacho/top_ngstar:v1.1'
     cpus 1
     maxForks = 1
 
@@ -424,7 +294,7 @@ process NGstar {
 }
 
 process Hicap { 
-    container 'ghcr.io/garcia-nacho/top_hicap'
+    container 'ghcr.io/garcia-nacho/top_hicap:v1.1'
     cpus 1
     maxForks = 1
 
@@ -454,7 +324,7 @@ process Hicap {
 }
 
 process Seroba { 
-    container 'ghcr.io/garcia-nacho/top_seroba'
+    container 'ghcr.io/garcia-nacho/top_seroba:v1.1'
     cpus 1
     maxForks = 1
 
@@ -486,7 +356,7 @@ process Seroba {
 }
 
 process STX { 
-    container 'ghcr.io/garcia-nacho/top_virfinder'
+    container 'ghcr.io/garcia-nacho/top_virfinder:v1.1'
     cpus 2
     maxForks = 1
     time '15m'
@@ -533,7 +403,7 @@ process STX {
 }
 
 process STX_Contigs { 
-    container 'ghcr.io/garcia-nacho/top_virfinder'
+    container 'ghcr.io/garcia-nacho/top_virfinder:v1.1'
     cpus 1
     maxForks = 1
 
@@ -562,7 +432,7 @@ process STX_Contigs {
 }
 
 process EMMtyper { 
-    container 'ghcr.io/garcia-nacho/top_emmtyper'
+    container 'ghcr.io/garcia-nacho/top_emmtyper:v1.1'
     cpus 1
     maxForks = 1
 
@@ -592,7 +462,7 @@ process EMMtyper {
 }
 
 process MeningoTyper { 
-    container 'ghcr.io/garcia-nacho/top_meningotype'
+    container 'ghcr.io/garcia-nacho/top_meningotype:v1.1'
     cpus 1
     maxForks = 1
 
@@ -621,7 +491,7 @@ process MeningoTyper {
 }
 
 process NGmaster { 
-    container 'ghcr.io/garcia-nacho/top_ngmaster'
+    container 'ghcr.io/garcia-nacho/top_ngmaster:v1.1'
     cpus 1
     maxForks = 1
 
@@ -650,7 +520,7 @@ process NGmaster {
 }
 
 process Seqsero { 
-    container 'ghcr.io/garcia-nacho/top_seqsero'
+    container 'ghcr.io/garcia-nacho/top_seqsero:v1.1'
     cpus 2
     maxForks = 1
 
@@ -694,7 +564,7 @@ process Seqsero {
 }
 
 process Tartrate { 
-    container 'ghcr.io/garcia-nacho/top_tartrate'
+    container 'ghcr.io/garcia-nacho/top_tartrate:v1.1'
     cpus 1
     maxForks = 1
 
@@ -723,7 +593,7 @@ process Tartrate {
 }
 
 process TBpipelineP1{
-    container 'ghcr.io/garcia-nacho/top_tbpipeline'
+    container 'ghcr.io/garcia-nacho/top_tbpipeline:v1.1'
     containerOptions '--volume '+params.TBDB+':/mnt/global_collection'
     
     cpus 2
@@ -795,7 +665,7 @@ process BPEprofiler{
 
     else
  
-      echo "NoBper" > ${sample}_bpe_mlst.tsv
+      echo "NoBper" > ${sample}_bpe_mlst.csv
       echo "NoBper" > ${sample}_dummy.json
 
     fi
@@ -821,7 +691,7 @@ process Diphtoscan{
     script:
 
     """
-    if test -f "Diphto.agent"; 
+    if test -f "Cory.agent"; 
     then
         /home/docker/diphtoscan/Dipthorunner.sh
 
@@ -876,7 +746,7 @@ process TBprofiler{
 }
 
 process TBpipelineP2{
-    container 'ghcr.io/garcia-nacho/top_tbpipeline'
+    container 'ghcr.io/garcia-nacho/top_tbpipeline:v1.1'
     containerOptions '--volume '+params.TBDB+':/mnt/global_collection'
     
     cpus 2
@@ -922,7 +792,7 @@ process TBpipelineP2{
 }
 
 process JonEcoPipe { 
-    container 'ghcr.io/garcia-nacho/top_ecoli'
+    container 'ghcr.io/garcia-nacho/top_ecoli:v1.1'
     cpus 2
     maxForks = 1
 
@@ -962,7 +832,7 @@ process JonEcoPipe {
 }
 
 process JonEcoPipeFasta { 
-    container 'ghcr.io/garcia-nacho/top_ecoli'
+    container 'ghcr.io/garcia-nacho/top_ecoli:v1.1'
     cpus 1
     maxForks = 1
 
@@ -1061,7 +931,7 @@ process AmrFinderPlus{
     then
         /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Clostridioides_difficile -o ${sample}_amrfinderplus.tsv
     
-    elif test -f "Cdip.agent"; 
+    elif test -f "Cory.agent"; 
     then
         /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Corynebacterium_diphtheriae -o ${sample}_amrfinderplus.tsv
 
@@ -1101,6 +971,105 @@ process AmrFinderPlus{
     """
 
 }
+
+process Integration {
+    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
+    //cpus 1
+    //maxForks = 1
+
+    publishDir(
+        path: "${params.publishDir}/",
+        mode: 'copy',
+        saveAs: { fn -> fn.substring(fn.lastIndexOf('/')+1) },
+    )
+
+    input:
+    path(kkraw)
+    path(kkclean)
+    path(kktri)
+    path(bam)
+    path(bai)
+    path(btsum)
+    path(spsum)
+    path(fastaclean)
+    path(fastaraw)
+    path(mlst_in)
+    path(abri)
+    path(amrfinderplus_in)
+    path(hicap)
+    path(seroba)
+    path(depth)
+    path(emmtyp)
+    path(meningotype)
+    path(ngmast)
+    path(ngstar)
+    path(stxtp)
+    path(stxtp_contig)
+    path(seqsero)
+    path(seqsero_tar_gz)
+    path(tartrate_res)
+    path(tbres)
+    path(tbprofiler)
+    path(ecopipelinefiles)
+    path(ecopipelinefilesfasta)
+    path(sequencerid)
+    path(bpeprofres)
+    path(bpeprofjson)
+    path(diphtores)
+    path(localmlist)
+    
+  
+    output:
+    path ("*")
+
+    script:
+
+    """
+    #breakpoint
+    multiqc ./
+    Rscript /home/docker/CommonFiles/Code/Summarizer.R
+    mkdir bam
+    mv *.bam ./bam
+    mv *.bai ./bam
+    mkdir fasta
+    mv *_clean_contigs.fasta ./fasta
+    mkdir QC
+    mv *_raw_contigs.fasta ./QC
+    mv *kraken* ./QC
+    mv *contigs.stats.csv ./QC
+    mv *.txt ./QC
+    mv *.zip ./QC
+    mv *.json ./QC
+    mv *vfdb.tsv ./QC
+    mv *ncbi.tsv ./QC
+    mv *depth.tsv ./QC
+    mv *_seqmlst.csv ./QC
+    mv *_rmlst.csv ./QC
+    mv *localmlst.tsv ./QC
+    mv *_Virulencefactors.csv ./QC
+    mv *_STXType.csv ./QC
+    mv *_amrfinderplus.tsv ./QC
+    mv *_Abricate.csv ./QC
+    mv *bpe_mlst.csv ./QC
+    mv *tb_profiler* ./QC
+    mv *diphtoscan.csv ./QC
+
+
+    if test -f "*dummy_seqsero_tar.gz"; then rm *dummy_seqsero_tar.gz; fi
+    if test -f "*seqsero_tar.gz"; then mv seqsero_tar.gz ./QC; fi
+
+    if test -f "*.tsv"; then mv *.tsv ./QC; fi
+    if test -f "*.gbk"; then mv *.gbk ./QC; fi
+    if test -f "*.log"; then mv *.log ./QC; fi
+    if test -f "*.svg"; then mv *.svg ./QC; fi
+    if test -f "*.csv"; then mv *.csv ./QC; fi
+
+
+    #Rscript /home/docker/CommonFiles/Code/FileParserSummary.R
+    
+    """
+}
+
 
 workflow {
    sample_reads = Channel.fromFilePairs( params.reads )
@@ -1162,7 +1131,7 @@ workflow {
                      ecopipe.eco_results.collect(),
                      outputspades.sqID.collect(),
                      ecopipefasta.eco_results_fasta.collect(),
-                     bpe.bpeprofiler_results.collec(),
+                     bpe.bpeprofiler_results.collect(),
                      bpe.bpeprofiler_json.collect(),
                      diphto.diphto_res.collect(),
                      mlst.localmlst.collect() )

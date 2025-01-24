@@ -15,7 +15,7 @@ colnames(results)<-c("Sample", "TB_profiler_Version", "TB_profiler_FractionReads
 if(length(df$dr_variants)>0){
   amr<-df$dr_variants
 for (i in 1:nrow(amr)) {
-  mutation<-paste(amr$gene_name[i],"_",amr$nucleotide_change[i], " Ratio:", amr$freq[i],sep = "")
+  mutation<-paste(amr$gene_name[i],"_",amr$nucleotide_change[i], " Ratio:",  round(as.numeric(amr$freq[i]),2),sep = "")
   amrdummy<-amr$drugs[[i]]
   
   amrdummy$confers<-paste(toupper(amrdummy$type), mutation, sep = " / ")

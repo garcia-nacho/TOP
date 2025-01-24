@@ -66,19 +66,25 @@ do
       wget -O ${CONDA_PREFIX}/bin/TOP.sh https://github.com/garcia-nacho/TOP/raw/master/TOP.sh
       
       docker pull ghcr.io/garcia-nacho/top_spades:v.1.1
-      docker pull ghcr.io/garcia-nacho/top_abricate
-      docker pull ghcr.io/garcia-nacho/top_emmtyper
-      docker pull ghcr.io/garcia-nacho/top_hicap
-      docker pull ghcr.io/garcia-nacho/top_seroba
-      docker pull ghcr.io/garcia-nacho/top_virfinder
+      docker pull ghcr.io/garcia-nacho/top_abricate:v1.1
+      docker pull ghcr.io/garcia-nacho/top_emmtyper:v1.1
+      docker pull ghcr.io/garcia-nacho/top_hicap:v1.1
+      docker pull ghcr.io/garcia-nacho/top_seroba:v1.1
+      docker pull ghcr.io/garcia-nacho/top_virfinder:v1.1
       #docker pull ghcr.io/garcia-nacho/top_prokka
-      docker pull ghcr.io/garcia-nacho/top_ngstar
+      docker pull ghcr.io/garcia-nacho/top_ngstar:v1.1
       docker pull ghcr.io/garcia-nacho/top_tbpipeline:v1.1
-      docker pull ghcr.io/garcia-nacho/top_seqsero
-      docker pull ghcr.io/garcia-nacho/top_ngmaster
-      docker pull ghcr.io/garcia-nacho/top_ecoli
-      docker pull ghcr.io/garcia-nacho/top_meningotype
-      docker pull ghcr.io/garcia-nacho/top_tartrate
+      docker pull ghcr.io/garcia-nacho/top_seqsero:v1.1
+      docker pull ghcr.io/garcia-nacho/top_ngmaster:v1.1
+      docker pull ghcr.io/garcia-nacho/top_ecoli:v1.1
+      docker pull ghcr.io/garcia-nacho/top_meningotype:v1.1
+      docker pull ghcr.io/garcia-nacho/top_tartrate:v1.1
+      docker pull ghcr.io/garcia-nacho/top_amrfinderplus
+      docker pull ghcr.io/garcia-nacho/top_tbprofiler
+      docker pull ghcr.io/garcia-nacho/top_diphtoscan
+      docker pull ghcr.io/garcia-nacho/top_bpprofiler
+
+
       exit 0
       ;;
     -d | --dev )
@@ -112,7 +118,7 @@ do
 done
 
 
-echo "Running The One Pipeline:"
+echo "Running The One Pipeline V1.1:"
 echo ""
 echo nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} -resume -with-timeline -with-report
 #Delete working directory if there is no error

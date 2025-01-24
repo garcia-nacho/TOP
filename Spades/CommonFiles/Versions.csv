@@ -8,7 +8,7 @@ Trimmomatic;0.39
 TrimmomaticAdapters;Kapa-PE.fa
 R;4.1.1
 Abricate;1.0.1
-AbricateDB;2023-Feb-23
+AbricateDB;2023-Nov-4
 NGStar;leosanbu/pyngSTar-2024-Jan-01
 NGStarDB;2024-Jan-02
 Hicap;1.0.3
@@ -24,3 +24,4 @@ tartrate;garcia-nacho/tartrate-2024-Jan-01
 tbpipeline;1.0
 JonsEcoliPipeline;1.0
 Nextflow;23.10.1
+Diphtoscan;garcia-nacho/DiphtoDocker

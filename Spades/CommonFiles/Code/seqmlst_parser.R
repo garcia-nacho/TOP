@@ -128,6 +128,8 @@ if(length(grep("Mycobact",results$rMLST_taxon))==1) shortname<-"Myco"
 if(length(grep("Campylobacter",results$rMLST_taxon))==1 & shortname != "Cjej")shortname<-"Campyl"
 if(length(grep("Shigella",results$rMLST_taxon))==1) shortname<-"Shige"
 if(length(grep("Yersinia",results$rMLST_taxon))==1) shortname<-"Yersi"
+if(length(grep("Corynebacterium",results$rMLST_taxon))==1) shortname<-"Cory"
+
 
 #colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))]<-paste(shortname, colnames(output)[-which(colnames(output) %in% c("Sample","MLST_Date"))],sep = "_")
 
