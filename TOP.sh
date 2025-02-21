@@ -102,6 +102,7 @@ do
       echo "use -d or --dev to run in development mode.(i.e all files are saved after a successful run)" 
       echo "use -h or --help to show this help" 
       echo "use -u or --update to update the pipeline"
+      echo "use -p or --private to prevent updating the database on test runs or private samples"
       echo "use -x or --uninstall to uninstall the pipeline" 
       echo ""
       exit 0

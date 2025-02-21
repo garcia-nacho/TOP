@@ -12,14 +12,51 @@ params.krakenDB="/media/nacho/Data/kraken2_standard_20220926/"
 params.TBDB="/mnt/N/NGS/TB_pipeline/TB_pipeline_database/DB/"
 params.tempfolder="/media/nacho/Data/temp/toptest/tempdb/"
 params.devrun="No"
+params.min_reads = 100000 
+params.adapters="TruSeq"
 
 params.reads=params.readsfolder+"/*/*_{R1,R2}*.fastq.gz"
+
+process PreFilter {
+
+    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
+    maxForks = params.threads - 1
+    errorStrategy 'ignore'
+    tag { sample }
+
+    input:
+    tuple val(sample), path(reads)
+
+    output:
+    tuple val(sample), path(reads)
+
+    script:
+    """
+    r1=\$(ls ${sample}_R1*.fastq.gz)
+    r2=\$(ls ${sample}_R2*.fastq.gz)
+
+    num_reads_r1=\$(zcat \$r1 | wc -l)
+    num_reads_r1=\$((num_reads_r1 / 4))
+
+    num_reads_r2=\$(zcat \$r2 | wc -l)
+    num_reads_r2=\$((num_reads_r2 / 4))
+
+    if [ \$num_reads_r1 -ge ${params.min_reads} ] && [ \$num_reads_r2 -ge ${params.min_reads} ]; then
+        echo "$sample passed filtering with \$num_reads_r1 and \$num_reads_r2 reads."
+        echo "$sample" > pass_filter.txt
+    else
+
+        echo "$sample failed filtering" >> failed_samples.log
+        exit 1
+
+    fi
+    """
+}
 
 process Trimming {
  
     container 'ghcr.io/garcia-nacho/top_spades:v1.1'
     //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
-    errorStrategy 'ignore'
     maxForks = params.threads - 1
     tag { sample }
 
@@ -39,14 +76,17 @@ process Trimming {
     def (fq1, fq2) = reads
 
     """
-    ln -s *_R1_* ${sample}_ln_R1_001.fastq.gz
-    ln -s *_R2_* ${sample}_ln_R2_001.fastq.gz
+    ln -s *_R1* ${sample}_ln_R1_001.fastq.gz
+    ln -s *_R2* ${sample}_ln_R2_001.fastq.gz
+    if [ params.adapters == "Kapa" ]
+    then
+        trimmomatic PE -phred33 -basein ${sample}_ln_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+    else
+        trimmomatic PE -phred33 -basein ${sample}_ln_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/TruSeq3-PE-2.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+    fi
 
-    #trimmomatic PE -basein ${sample}_ln_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
-    trimmomatic PE -phred33 -basein ${sample}_ln_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/TruSeq3-PE-2.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
-
-    rm ${sample}_R1_001.fastq.gz
-    rm ${sample}_R2_001.fastq.gz
+    rm ${sample}_ln_R1_001.fastq.gz
+    rm ${sample}_ln_R2_001.fastq.gz
 
     """
 }
@@ -78,6 +118,26 @@ process KrakenRaw {
 
 }
 
+
+process CPUcounter {
+
+    input:
+    tuple val(sample), path (trimmedR1), path(trimmedR2) 
+
+    output:
+    path ("cpus.txt"), emit: cpu_counts  
+
+    script: 
+    """
+    cpu_spades=\$(ps aux | grep '[s]pades.py' | wc -l)
+    cpu_trimmomatic=\$(ps aux | grep '[t]rimmomatic' | wc -l)
+    threads_spades=\$(ps -eo cmd | grep '[s]pades.py' | grep -Eo '(-t|--threads) [0-9]+' | awk '{sum += \$2} END {print sum}')
+
+    echo "\$cpu_spades \$cpu_trimmomatic" > cpus.txt 
+    """
+ 
+}
+
 process Spades {
 
     container 'ghcr.io/garcia-nacho/top_spades:v1.1'
@@ -87,6 +147,7 @@ process Spades {
 
     input:
     tuple val(sample), path (trimmedR1), path(trimmedR2) 
+    path (cpu_file)
 
     output:
     tuple val(sample), path ("*raw_contigs.fasta"),  path ("*clean_contigs.fasta"), path (trimmedR1), path(trimmedR2), emit: spadesraw 
@@ -102,14 +163,28 @@ process Spades {
     script:
 
     """
+    read cpu_spades cpu_trimmomatic < ${cpu_file}
+
+    total_used=\$(( cpu_spades  +  cpu_trimmomatic +1 )) 
+    
+
+    threadssp=\$(echo "${params.spadescores} / \$total_used" | bc)
+
+ 
+    if [ \$threadssp -lt 1 ]; then
+        threadssp=1
+    fi
+
+
+
     sqid=\$(gzip -cd ${trimmedR1} | head -n 1)   
     echo \${sqid}  > ${sample}_sequencerID.tsv
-    spades.py -o . --careful --cov-cutoff auto -t 1 -1 ${trimmedR1} -2 ${trimmedR2} 
+    spades.py -o . --careful --cov-cutoff auto -t \${threadssp} -1 ${trimmedR1} -2 ${trimmedR2} 
     mv contigs.fasta ${sample}_raw_contigs.fasta
     Rscript /home/docker/CommonFiles/Code/ContigCleaner.R
     mv clean_contigs.fasta ${sample}_clean_contigs.fasta
     source activate coverm
-    coverm genome -1 ${trimmedR1} -2 ${trimmedR2} -r ${sample}_clean_contigs.fasta -t 1 --single-genome -m mean > read_coverage.tsv
+    coverm genome -1 ${trimmedR1} -2 ${trimmedR2} -r ${sample}_clean_contigs.fasta -t \${threadssp} --single-genome -m mean > read_coverage.tsv
     conda deactivate
     Rscript /home/docker/CommonFiles/Code/readcovadd.R
 
@@ -151,9 +226,11 @@ process Rmlst {
     Rscript /home/docker/CommonFiles/Code/rmlst_parser.R
     Rscript /home/docker/CommonFiles/Code/seqmlst_parser.R
     #Missing genus 
+    #Produce error if nothing happened
     source activate mlst
     mlst --blastdb /home/docker/CommonFiles/blast/mlst.fa ${sample}_clean_contigs.fasta > ${sample}_localmlst.tsv
     conda deactivate
+    Rscript /home/docker/CommonFiles/Code/ErrorRaiserMLST.R
 
     """
 
@@ -323,6 +400,38 @@ process Hicap {
 
 }
 
+process HinfPBP3 { 
+    container 'ghcr.io/garcia-nacho/top_pbp3'
+    cpus 1
+    maxForks = 1
+
+    input:
+    path(fastaclean)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*PBP3Mutations.csv"), emit: hipbpresults
+
+    script:
+
+    """
+    if [[ -f "Hinf.agent" ]] || [[ -f "Hpar.agent" ]] ; 
+    then
+       Rscript /home/docker/pbp3/PBP_scanner.R
+       mv PBP3Mutations.csv ${sample}_PBP3Mutations.csv
+
+       
+    else
+        echo "NoHi" > ${sample}_PBP3Mutations.csv
+        #Dummy Hicap file
+
+    fi
+
+    """
+
+}
+
 process Seroba { 
     container 'ghcr.io/garcia-nacho/top_seroba:v1.1'
     cpus 1
@@ -378,9 +487,9 @@ process STX {
     """
     if [[ -f "Ecol.agent" ]] || [[ -f "Shige.agent" ]] ; 
     then
-    r1=\$(ls ${sample}_R1*.fastq.gz)
-    r2=\$(ls ${sample}_R2*.fastq.gz)
-    r1_count=\$(ls -1 ${sample}_R1*.fastq.gz | wc -l) 
+    r1=\$(ls ${sample}*1P.fastq.gz)
+    r2=\$(ls ${sample}*2P.fastq.gz)
+    r1_count=\$(ls -1 ${sample}1P.fastq.gz | wc -l) 
 
     if [ \${r1_count} == 1 ];
     then
@@ -442,15 +551,17 @@ process EMMtyper {
     path(agent)
 
     output:
-    path("*.tsv"), emit: emm_results
+    path("*{.tsv,EMM_Allele.fa}"), emit: emm_results
 
     script:
 
     """
     if test -f "Spyo.agent"; 
     then
+
       emmtyper ${sample}_clean_contigs.fasta > ${sample}_emmtyper.tsv  
       Rscript /home/docker/EMM_Extraction.R
+      mv EMM_seqs_extended.fa ${sample}_EMM_Allele.fa
 
     else
       echo "NoSpy" > ${sample}_emmtyper.tsv
@@ -528,6 +639,7 @@ process Seqsero {
     val(sample)
     path(agent)
     path(rawreads)
+    //tuple val(sampledummy), path (trimmedR1), path(trimmedR2) 
 
     output:
     path("*seqsero_results.tsv"), emit: seqsero_results
@@ -538,8 +650,8 @@ process Seqsero {
     """
     if test -f "Salmo.agent"; 
     then
-    R1=\$(ls ${sample}*R1*.fastq.gz)
-    R2=\$(ls ${sample}*R2*.fastq.gz)
+    R1=\$(ls ${sample}*1P.fastq.gz)
+    R2=\$(ls ${sample}*2P.fastq.gz)
       SeqSero2_package.py -p 2 -t 2 -n ${sample} -i \${R1} \${R2}
       mv \$(ls -d */) SeqSeroResults_allele
       mv SeqSeroResults_allele/SeqSero_result.tsv ./${sample}_seqsero_results.tsv
@@ -614,8 +726,8 @@ process TBpipelineP1{
     then
       if test -d "/mnt/local_collection/localdb_dummy"; then rm -rf /mnt/local_collection/localdb_dummy; fi
       mkdir ${sample}
-      r1=\$(ls ${sample}_R1*.fastq.gz)
-      r2=\$(ls ${sample}_R2*.fastq.gz)
+      r1=\$(ls ${sample}*1P.fastq.gz)
+      r2=\$(ls ${sample}*2P.fastq.gz)
       #trimmomatic PE -basein \${r1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
 
       mv \${r1} ${sample}
@@ -724,8 +836,8 @@ process TBprofiler{
     """
     if test -f "Myco.agent"; 
     then
-      r1=\$(ls ${sample}_R1*.fastq.gz)
-      r2=\$(ls ${sample}_R2*.fastq.gz)
+      r1=\$(ls ${sample}*1P.fastq.gz)
+      r2=\$(ls ${sample}*2P.fastq.gz)
       source activate tb-profiler
       tb-profiler profile -1 \${r1} -2 \${r2} -p ${sample} --csv
       mv results/${sample}.results.csv ${sample}.tb_profiler.csv
@@ -811,8 +923,8 @@ process JonEcoPipe {
     """
     if [[ -f "Ecol.agent" ]] || [[ -f "Shige.agent" ]] ; 
     then
-        r1=\$(ls ${sample}_R1*.fastq.gz)
-        r2=\$(ls ${sample}_R2*.fastq.gz)
+        r1=\$(ls ${sample}*1P.fastq.gz)
+        r2=\$(ls ${sample}*2P.fastq.gz)
         mkdir Fasta Forward Reverse
         mv \${r1} Forward
         mv \${r2} Reverse
@@ -1017,6 +1129,7 @@ process Integration {
     path(bpeprofjson)
     path(diphtores)
     path(localmlist)
+    path(pbpresults)
     
   
     output:
@@ -1033,6 +1146,13 @@ process Integration {
     mv *.bai ./bam
     mkdir fasta
     mv *_clean_contigs.fasta ./fasta
+
+    EMMS=\$(find . -maxdepth 1 -type f -name "EMM_Allele")
+    if [ -n \$EMMS ]; then    
+        mkdir EMM_Alleles
+        cp *EMM_Allele.fa EMM_Alleles
+    fi
+
     mkdir QC
     mv *_raw_contigs.fasta ./QC
     mv *kraken* ./QC
@@ -1070,14 +1190,16 @@ process Integration {
     """
 }
 
-
 workflow {
    sample_reads = Channel.fromFilePairs( params.reads )
    all_raw_reads = Channel.fromPath(params.reads)
-   trimmed=Trimming(sample_reads)
+   filtered_samples = PreFilter(sample_reads) 
+   trimmed=Trimming(filtered_samples)
    ktrim=KrakenTrimmed(trimmed)
-   kkraw=KrakenRaw(sample_reads)
-   outputspades=Spades(trimmed)
+   kkraw=KrakenRaw(filtered_samples)
+   statuscpu=CPUcounter(trimmed)
+
+   outputspades=Spades(trimmed, statuscpu.cpu_counts)
    kkcon=KrakenClean(outputspades.spadesraw)
    mapped=Mapping(outputspades.spadesraw)
    mlst=Rmlst(outputspades.fastasclean, outputspades.sample_name,outputspades.r1spades, outputspades.r2spades)
@@ -1088,19 +1210,32 @@ workflow {
    meningotype=MeningoTyper(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    ngmast=NGmaster(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent) 
    ngstar=NGstar(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent) 
-   //stxtyp=STX(mlst.r1mlst, mlst.r2mlst, mlst.sample_frommlst, mlst.agent, all_raw_reads)
-   stxtyp=STX(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+
+   //stxtyp=STX(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+   stxtyp=STX(mlst.sample_frommlst, mlst.agent, trimmed.map{ it.drop(1) }.flatten().collect())
    stxtypcontig=STX_Contigs(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
-   seqsero=Seqsero(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+   
+   //seqsero=Seqsero(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+   seqsero=Seqsero(mlst.sample_frommlst, mlst.agent, trimmed.map{ it.drop(1) }.flatten().collect())
+   
    tartrate=Tartrate(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
-   tbpipe1=TBpipelineP1(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
-   tbprof=TBprofiler(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+
+   //tbpipe1=TBpipelineP1(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+   tbpipe1=TBpipelineP1(mlst.sample_frommlst, mlst.agent, trimmed.map{ it.drop(1) }.flatten().collect())
+
+   //tbprof=TBprofiler(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+   tbprof=TBprofiler(mlst.sample_frommlst, mlst.agent, trimmed.map{ it.drop(1) }.flatten().collect())
    tbpipe2=TBpipelineP2(tbpipe1.tbpipeline_p1_results.collect())
-   ecopipe=JonEcoPipe(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+
+   //ecopipe=JonEcoPipe(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
+   ecopipe=JonEcoPipe(mlst.sample_frommlst, mlst.agent, trimmed.map{ it.drop(1) }.flatten().collect())
+
    ecopipefasta=JonEcoPipeFasta(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    amrfindplus=AmrFinderPlus(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    bpe=BPEprofiler(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    diphto=Diphtoscan(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+   pbp3hinf=HinfPBP3(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+   
 
    integ=Integration(kkraw.collect(),
                      kkcon.collect(),
@@ -1134,5 +1269,6 @@ workflow {
                      bpe.bpeprofiler_results.collect(),
                      bpe.bpeprofiler_json.collect(),
                      diphto.diphto_res.collect(),
-                     mlst.localmlst.collect() )
+                     mlst.localmlst.collect(),
+                     pbp3hinf.hipbpresults.collect())
 }

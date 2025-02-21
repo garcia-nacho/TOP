@@ -55,3 +55,4 @@ results<-do.call(rbind,reslist )
 colnames(results)<-c("Sample", "PBP3Mutations", "Class")
 
 writexl::write_xlsx(results, "PBP3Mutations.xlsx")
+write.csv(results, "PBP3Mutations.csv", row.names = FALSE)

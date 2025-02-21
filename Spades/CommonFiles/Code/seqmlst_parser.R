@@ -125,6 +125,7 @@ shortname<-paste(unlist(base::strsplit(gsub(" .*", "",shortname),""))[1] ,
 
 if(length(grep("Salmonella",results$rMLST_taxon))==1) shortname<-"Salmo"
 if(length(grep("Mycobact",results$rMLST_taxon))==1) shortname<-"Myco"
+if(length(grep("Mycobacteriaceae",results$rMLST_taxonomy))==1) shortname<-"Myco"
 if(length(grep("Campylobacter",results$rMLST_taxon))==1 & shortname != "Cjej")shortname<-"Campyl"
 if(length(grep("Shigella",results$rMLST_taxon))==1) shortname<-"Shige"
 if(length(grep("Yersinia",results$rMLST_taxon))==1) shortname<-"Yersi"

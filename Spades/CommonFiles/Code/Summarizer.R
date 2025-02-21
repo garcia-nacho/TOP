@@ -106,9 +106,9 @@ summ$RatioReadsTrimmed<-NA
 
 for (i in 1:length(samps)) {
   out.samp<-out[grep(paste(samps[i],"_",sep = ""),out$file ),]
-  summ$TotalReadCount[which(summ$Sample==samps[i])]<- unique(out.samp$TotalCount[grep("_R1_", out.samp$file)])
-  summ$RawQ30_R1[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_R1_", out.samp$file)])
-  summ$RawQ30_R2[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_R2_", out.samp$file)])
+  summ$TotalReadCount[which(summ$Sample==samps[i])]<- unique(out.samp$TotalCount[grep("_R1", out.samp$file)])
+  summ$RawQ30_R1[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_R1", out.samp$file)])
+  summ$RawQ30_R2[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_R2", out.samp$file)])
   
   summ$ReadCountAfterTrimming[which(summ$Sample==samps[i])]<- unique(out.samp$TotalCount[grep("_1P$", out.samp$file)])
   summ$TrimmedQ30_R1[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_1P$", out.samp$file)])
@@ -266,6 +266,29 @@ colnames(out.hicap)[which(colnames(out.hicap)=="predicted_serotype")]<-"HiCap_Pr
 
 summ<-merge(summ, out.hicap, by="Sample", all.x=TRUE)
 
+
+#Hinf PBP3
+
+hipbp3<-list.files(pattern = "PBP3Mutations.csv")
+
+for (i in 1:length(hipbp3)) {
+  dummy<-read.csv(hipbp3[i])
+
+  if(colnames(dummy)[1]!="NoHi"){ 
+    colnames(dummy)<-c("Sample", "HinfPBP3_Mutations", "HinfPBP3_Class")
+    if(is.na(dummy$HinfPBP3_Class[1])) dummy$HinfPBP3_Class[1]<-"None"
+  
+  if(!exists("out.hipbp3")){
+    out.hipbp3<-dummy
+  }else{
+    out.hipbp3<-rbind(out.hipbp3, dummy)
+  }
+  }
+}
+
+if(exists("out.hipbp3")) summ<-merge(summ, out.hipbp3, by="Sample", all.x=TRUE)
+
+
 #Seroba
 
 serolist<-list.files(pattern = "_seroba.tsv")
@@ -310,8 +333,12 @@ for (i in 1:length(emlist)) {
     colnames(dummy)<-c("Sample","Cluster.N","emm-type","emm-like","emm-cluster")
     dummy$emm.warning<-NA
     dummy$Sample<-gsub("_.*","",emlist[i])
+    #Delete fasta
+    try(file.remove(paste(dummy$Sample,"_EMM_Allele.fa",sep = "")))
+    
   }else{
   
+  #create folder and copy fasta file there
   
   colnames(dummy)<-c("Sample","Cluster.N","emm-type","emm-like","emm-cluster")
   dummy$emm.warning<-NA
@@ -1157,6 +1184,7 @@ if(exists("outbpe")) rm(outbpe)
 for (i in 1:length(bpe)) {
   dummy<-read.csv(bpe[i])
   if(colnames(dummy)[1]!="NoBper"){
+    if(length(which(colnames(dummy)=="ClonalComplex"))==0 ) dummy$ClonalComplex<-NA
     if(!exists("outbpe")){
       outbpe<-dummy
     }else{
