@@ -1,5 +1,5 @@
-local<-list.files(pattern = "localmlst.tsv")
-api<-list.files(pattern = "seqmlst.csv")
+local<-list.files(pattern = "localmlst.tsv")[1]
+api<-list.files(pattern = "seqmlst.csv")[1]
 
 local<-read.csv(local, sep = "\t", header = FALSE)
 api<-read.csv(api)

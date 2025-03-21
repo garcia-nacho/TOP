@@ -5,7 +5,22 @@ for (i in 1:length(files.to.take)) {
   
   if(nrow(dummy)>0){
     dummy$DATABASE<-gsub("_","",dummy$DATABASE)
-    output.temp<-as.data.frame(matrix(paste(dummy$GENE[order(dummy$GENE)],collapse = " | "), nrow = 1, ncol = 1))
+    
+    to.fix<-grep("~~~", dummy$PRODUCT)
+    if(length(to.fix)>0){
+      for (tf in 1:length(to.fix)) {
+         dumspt<-unlist(strsplit(dummy$PRODUCT[to.fix[tf]], "~~~") )
+         if(length(dumspt)==2){
+           dummy$ACCESSION[to.fix[tf]]<-dumspt[1]
+           dummy$PRODUCT[to.fix[tf]]<-dumspt[2]
+         }
+        
+      }
+    }
+    
+    
+    output.temp<-as.data.frame(matrix(paste(dummy$GENE[order(dummy$ACCESSION)],collapse = " | "), nrow = 1, ncol = 1))
+    
     colnames(output.temp)<-paste("Abricate_", unique(dummy$DATABASE),sep = "")
     output.temp$Sample<-gsub("_.*","", unique(dummy$X.FILE))
     
@@ -24,23 +39,25 @@ for (i in 1:length(files.to.take)) {
       }
     }
     
-    if(dummy$DATABASE[1]== "vfdb"){
+    if(dummy$DATABASE[1]== "vfdb2"){
+      output.temp$Abricate_vfdb2<-gsub("\\(","",gsub("\\)", "",paste(dummy$ACCESSION[order(dummy$ACCESSION)],collapse = " | ")))
+      output.temp$Abricate_vfdb2<-gsub("\\(","",gsub("\\)", "",output.temp$Abricate_vfdb2))
+      
+      
+
+      dummy$ACCESSION<-gsub("\\(","",gsub("\\)", "",dummy$ACCESSION))
       for (l in 1:nrow(dummy)) {
         factor<-paste("VF",gsub(" ","_",  gsub(" \\(.*","",gsub(".*- ","",gsub("\\] \\[.*","",dummy$PRODUCT[l])))),sep = "_")
         if(length(which(colnames(output.temp)==factor))==0){
-          output.temp$dummy<-dummy$GENE[l]
+          output.temp$dummy<-dummy$ACCESSION[l]
           colnames(output.temp)[which(colnames(output.temp)=="dummy")]<-factor
         }else{
           col.to.use<-which(colnames(output.temp)==factor)
-          output.temp[,col.to.use]<-gsub(","," |",paste(output.temp[,col.to.use],dummy$GENE[l],sep = ", "))
+          output.temp[,col.to.use]<-gsub(","," |",paste(output.temp[,col.to.use],dummy$ACCESSION[l],sep = ", "))
         }
       }
     }
     
-    if(dummy$DATABASE[1] %in% c("HinfGyrSubA","HinfTopoIVSubA", "HinfFtsI" )){
-      output.temp$dummy<-paste(dummy$RESISTANCE,collapse = " | ")
-      colnames(output.temp)[which(colnames(output.temp)=="dummy")]<-paste("Mutations_",dummy$DATABASE[1],sep = "")
-    }
     
     
     if(!exists("output")){

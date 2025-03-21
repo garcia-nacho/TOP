@@ -15,11 +15,12 @@ RUN cd /home/docker \
 
 RUN conda install -c bioconda mash
 RUN conda install -c bioconda blast
-RUN conda install -c bioconda ncbi-amrfinderplus
 RUN conda install --solver=classic conda-forge::conda-libmamba-solver conda-forge::libmamba conda-forge::libmambapy conda-forge::libarchive
 RUN conda install -c bioconda hmmer
 RUN conda install pandas
 RUN conda install biopython
+RUN conda update numpy
+RUN conda install -c bioconda ncbi-amrfinderplus
 
 USER root  
 

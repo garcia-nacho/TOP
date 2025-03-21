@@ -22,11 +22,16 @@ RUN mamba install -c conda-forge -c bioconda -c defaults abricate
 USER root
 RUN mkdir /Data
 RUN chmod 777 /Data 
+
 USER root
 #RUN abricate-get_db --db ncbi --force &&\
 #    abricate-get_db --db vfdb --force &&\
 #    abricate-get_db --db plasmidfinder --force
 COPY Code/ /home/docker/Code
 RUN chmod -R +rwx /home/docker/Code/*
-USER docker
+
+COPY vfdb/ /home/docker/miniconda3/db/vfdb2
+RUN chmod 777 /home/docker/miniconda3/db/vfdb2/sequences.gz
+RUN cd /home/docker/miniconda3/db/vfdb2/ && gzip -d sequences.gz
+RUN abricate --setupdb
 WORKDIR /Data

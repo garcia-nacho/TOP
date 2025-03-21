@@ -14,12 +14,14 @@ params.tempfolder="/media/nacho/Data/temp/toptest/tempdb/"
 params.devrun="No"
 params.min_reads = 100000 
 params.adapters="TruSeq"
+params.progress_dir = "/media/nacho/Data/temp/toptest/TOPv1.1test/test"
 
 params.reads=params.readsfolder+"/*/*_{R1,R2}*.fastq.gz"
 
 process PreFilter {
 
     container 'ghcr.io/garcia-nacho/top_spades:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     maxForks = params.threads - 1
     errorStrategy 'ignore'
     tag { sample }
@@ -40,13 +42,23 @@ process PreFilter {
 
     num_reads_r2=\$(zcat \$r2 | wc -l)
     num_reads_r2=\$((num_reads_r2 / 4))
-
+    echo $task.attempt > attemp.txt
     if [ \$num_reads_r1 -ge ${params.min_reads} ] && [ \$num_reads_r2 -ge ${params.min_reads} ]; then
         echo "$sample passed filtering with \$num_reads_r1 and \$num_reads_r2 reads."
         echo "$sample" > pass_filter.txt
+        
+
+        logstring="${sample},Prefilter,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.tsv
+
+        
     else
 
-        echo "$sample failed filtering" >> failed_samples.log
+
+        logstring="${sample},Prefilter,Failed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.tsv
         exit 1
 
     fi
@@ -56,7 +68,8 @@ process PreFilter {
 process Trimming {
  
     container 'ghcr.io/garcia-nacho/top_spades:v1.1'
-    //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
+    containerOptions '--volume '+params.progress_dir+':/logs'
+
     maxForks = params.threads - 1
     tag { sample }
 
@@ -88,12 +101,17 @@ process Trimming {
     rm ${sample}_ln_R1_001.fastq.gz
     rm ${sample}_ln_R2_001.fastq.gz
 
+    logstring="${sample},Trimming,Completed"
+    logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+    echo \${logstring} >> /logs/\${logkey}_logs.tsv
+
+
     """
 }
 
 process KrakenRaw {
     container 'ghcr.io/garcia-nacho/top_spades:v1.1'
-    containerOptions '--volume '+params.krakenDB+':/Kraken2DB'
+    containerOptions '--volume '+params.krakenDB+':/Kraken2DB --volume '+params.progress_dir+':/logs'
     maxForks = 1
     
     input:
@@ -109,11 +127,18 @@ process KrakenRaw {
     fastqc ${fq1}
     fastqc ${fq2}
 
-    /kraken2-2.1.2/kraken2 --use-names --report  ${sample}_R1_Raw_kraken_summaries.tsv --db /Kraken2DB/ ${fq1} > ${sample}_R1_Raw.kraken.tsv
+    # /kraken2-2.1.2/kraken2 --use-names --report  ${sample}_R1_Raw_kraken_summaries.tsv --db /Kraken2DB/ ${fq1} > ${sample}_R1_Raw.kraken.tsv
+    # Rscript /home/docker/CommonFiles/Code/KrakenParser.R
+
+    /kraken2-2.1.2/kraken2 --use-names --report  ${sample}_R2_Raw_kraken_summaries.tsv --db /Kraken2DB/ --paired ${fq1} ${fq2} > ${sample}_Raw.kraken.tsv
     Rscript /home/docker/CommonFiles/Code/KrakenParser.R
 
-    /kraken2-2.1.2/kraken2 --use-names --report  ${sample}_R2_Raw_kraken_summaries.tsv --db /Kraken2DB/ ${fq2} > ${sample}_R2_Raw.kraken.tsv
-    Rscript /home/docker/CommonFiles/Code/KrakenParser.R
+
+
+    logstring="${sample},KrakenRaw,Completed"
+    logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+    echo \${logstring} >> /logs/\${logkey}_logs.tsv
+
     """ 
 
 }
@@ -125,7 +150,7 @@ process CPUcounter {
     tuple val(sample), path (trimmedR1), path(trimmedR2) 
 
     output:
-    path ("cpus.txt"), emit: cpu_counts  
+    tuple val(sample), path (trimmedR1), path(trimmedR2), path ("cpus.txt"), emit: cpu_counts   
 
     script: 
     """
@@ -141,13 +166,12 @@ process CPUcounter {
 process Spades {
 
     container 'ghcr.io/garcia-nacho/top_spades:v1.1'
-    //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
+    containerOptions '--volume '+params.progress_dir+':/logs'
 
     maxForks = params.spadescores
 
     input:
-    tuple val(sample), path (trimmedR1), path(trimmedR2) 
-    path (cpu_file)
+    tuple val(sample), path (trimmedR1), path(trimmedR2), path(cpu_file) 
 
     output:
     tuple val(sample), path ("*raw_contigs.fasta"),  path ("*clean_contigs.fasta"), path (trimmedR1), path(trimmedR2), emit: spadesraw 
@@ -191,17 +215,25 @@ process Spades {
     mv clean_contigs.stats.csv ${sample}_contigs.stats.csv
     rm -rf ./corrected
     rm read_coverage.tsv
-    
+
+    logstring="${sample},Assembly,Completed"
+    logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+    echo \${logstring} >> /logs/\${logkey}_logs.tsv
+
     
     """
 }
 
 process Rmlst {
     container 'ghcr.io/garcia-nacho/top_spades:v1.1'
-    //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     errorStrategy 'retry'
+    //errorStrategy { task.attempt < 10 ? 'retry' : 'ignore' }
     maxRetries 10
+
+    
     maxForks = 1
+    
 
     input:
     path(input)
@@ -230,7 +262,17 @@ process Rmlst {
     source activate mlst
     mlst --blastdb /home/docker/CommonFiles/blast/mlst.fa ${sample}_clean_contigs.fasta > ${sample}_localmlst.tsv
     conda deactivate
+
+    
+    if [[ "$task.attempt" -lt 9 ]]; then
+
     Rscript /home/docker/CommonFiles/Code/ErrorRaiserMLST.R
+    
+    fi
+
+    logstring="${sample},MLST,Completed"
+    logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+    echo \${logstring} >> /logs/\${logkey}_logs.tsv
 
     """
 
@@ -238,7 +280,7 @@ process Rmlst {
 
 process KrakenClean {
     container 'ghcr.io/garcia-nacho/top_spades:v1.1'
-    containerOptions '--volume '+params.krakenDB+':/Kraken2DB'
+    containerOptions '--volume '+params.krakenDB+':/Kraken2DB --volume '+params.progress_dir+':/logs'
     maxForks = 1
     
     input:
@@ -252,6 +294,7 @@ process KrakenClean {
     """
     /kraken2-2.1.2/kraken2 --use-names --report  ${sample}_Contigs_kraken_summaries.tsv --db /Kraken2DB/ ${clean} > ${sample}_cleancontigs.kraken.tsv
     Rscript /home/docker/CommonFiles/Code/KrakenParser.R
+    echo "${sample},KrakenClean,Completed" >> /logs/run_logs.tsv
     """ 
 
 }
@@ -273,23 +316,41 @@ process KrakenTrimmed {
     """
     fastqc ${trimmedR1}
     fastqc ${trimmedR2}
-    /kraken2-2.1.2/kraken2 --use-names --report  ${sample}_R1_Trimmed_kraken_summaries.tsv --db /Kraken2DB/ ${trimmedR1}  > ${sample}_R1_Trimmed.kraken.tsv
-    Rscript /home/docker/CommonFiles/Code/KrakenParser.R
+    # /kraken2-2.1.2/kraken2 --use-names --report  ${sample}_R1_Trimmed_kraken_summaries.tsv --db /Kraken2DB/ ${trimmedR1}  > ${sample}_R1_Trimmed.kraken.tsv
+    # Rscript /home/docker/CommonFiles/Code/KrakenParser.R
 
-    /kraken2-2.1.2/kraken2 --use-names --report  ${sample}_R2_Trimmed_kraken_summaries.tsv --db /Kraken2DB/ ${trimmedR2}  > ${sample}_R2_Trimmed.kraken.tsv
+    /kraken2-2.1.2/kraken2 --use-names --report  ${sample}_R2_Trimmed_kraken_summaries.tsv --db /Kraken2DB/ --paired ${trimmedR1} ${trimmedR2}  > ${sample}_Trimmed.kraken.tsv
     Rscript /home/docker/CommonFiles/Code/KrakenParser.R
     """ 
 
 }
 
+process CPUcounterBT2 {
+
+    input:
+    tuple val(sample), path(raw),  path(clean), path(trimmedR1), path(trimmedR2) 
+
+    output:
+    tuple val(sample), path(raw),  path(clean), path(trimmedR1), path(trimmedR2) , path ("cpus_bt2.txt"), emit: cpu_bt2  
+
+    script: 
+    """
+    cpu_bt2=\$(ps aux | grep '[s]bowtie' | wc -l) 
+    cpu_spades=\$(ps aux | grep '[s]pades.py' | wc -l)
+    echo "\$cpu_bt2 \$cpu_bt2" > cpus_bt2.txt 
+    """
+ 
+}
+
 process Mapping {
     container 'ghcr.io/garcia-nacho/top_spades:v1.1'
-    //containerOptions '--volume /media/nacho/Data/kraken2_standard_20220926/:/Kraken2DB'
+    containerOptions '--volume '+params.progress_dir+':/logs'
 
     maxForks = 1
     
     input:
-    tuple val(sample), path(raw),  path(clean), path(trimmedR1), path(trimmedR2) 
+    tuple val(sample), path(raw),  path(clean), path(trimmedR1), path(trimmedR2),path (cpu_file2) 
+    
 
     output:
     path("*sorted.bam"), emit: bam
@@ -300,20 +361,39 @@ process Mapping {
     script:
 
     """
+    read cpu_bt2 cpu_spades < ${cpu_file2}
+
+    total_used=\$(( cpu_spades  +  cpu_bt2 +1 )) 
+
+    threadssp=1
+
+    if [ \$total_used -lt 3 ]; then
+        threadssp=${params.spadescores}
+    fi
+
+
+
     bowtie2-build ${clean} ${sample}_bt2
-    (bowtie2 -p 1 -x ${sample}_bt2 -1 ${trimmedR1} -2 ${trimmedR2} -S ${sample}.sam) 2> ${sample}_Bowtie2summary.txt
+    (bowtie2 -p \$threadssp -x ${sample}_bt2 -1 ${trimmedR1} -2 ${trimmedR2} -S ${sample}.sam) 2> ${sample}_Bowtie2summary.txt
     samtools view -b -o ${sample}.bam  ${sample}.sam
     samtools sort ${sample}.bam -o ${sample}.sorted.bam
     samtools index ${sample}.sorted.bam
     samtools depth -a ${sample}.sorted.bam > ${sample}_depth.tsv
     rm ${sample}.sam
     rm ${sample}.bam
+
+    logstring="${sample},Mapping,Completed"
+    logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+    echo \${logstring} >> /logs/\${logkey}_logs.tsv
+
+
     """ 
 
 }
 
 process Abricate { 
     container 'ghcr.io/garcia-nacho/top_abricate:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     //cpus 1
     //maxForks = 1
 
@@ -328,12 +408,16 @@ process Abricate {
     script:
 
     """
-    abricate --db vfdb --quiet *.fasta > ${sample}_vfdb.tsv
+    abricate --db vfdb2 --quiet *.fasta > ${sample}_vfdb.tsv
     abricate --db ncbi --quiet *.fasta > ${sample}_ncbi.tsv
     abricate --db plasmidfinder --quiet *.fasta > ${sample}_plasmidfinder.tsv
-    
     Rscript /home/docker/Code/AbricateParser.R
     mv Abricate.csv ${sample}_Abricate.csv
+
+    logstring="${sample},Abricate,Completed"
+    logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+    echo \${logstring} >> /logs/\${logkey}_logs.tsv
+
 
     """
 
@@ -341,6 +425,7 @@ process Abricate {
 
 process NGstar { 
     container 'ghcr.io/garcia-nacho/top_ngstar:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 1
     maxForks = 1
 
@@ -359,10 +444,20 @@ process NGstar {
     then
       cp -L ${sample}_clean_contigs.fasta ${sample}_clean_contigs_nolink.fasta
       cat ${sample}_clean_contigs_nolink.fasta | tr 'a-z' 'A-Z' > ${sample}_clean_contigs_nocap.fasta
-      python3 /home/docker/pyngSTar/pyngSTar.py -f -i ${sample}_clean_contigs_nocap.fasta -p /home/docker/pyngSTar/pyngSTarDB_02012024/ -o ${sample}_ngstar_results.tsv 
+      #python3 /home/docker/pyngSTar/pyngSTar.py -f -i ${sample}_clean_contigs_nocap.fasta -p /home/docker/pyngSTar/pyngSTarDB_02012024/ -o ${sample}_ngstar_results.tsv
+      python3 /home/docker/pyngSTar/pyngSTar.py -f -i ${sample}_clean_contigs_nocap.fasta -p /home/docker/pyngSTar/pyngSTarDB_03032025/ -o ${sample}_ngstar_results.tsv  
+      
+
+        logstring="${sample},NGStar,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.tsv
       
     else
       echo "NoNgon" > ${sample}_ngstar_results.tsv
+
+      logstring="${sample},NGStar,Skipped"
+      logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+      echo \${logstring} >> /logs/\${logkey}_logs.tsv
 
     fi
 
@@ -372,6 +467,7 @@ process NGstar {
 
 process Hicap { 
     container 'ghcr.io/garcia-nacho/top_hicap:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 1
     maxForks = 1
 
@@ -390,9 +486,16 @@ process Hicap {
     then
         /home/docker/Code/hicapwrapper.sh
 
+        logstring="${sample},Hicap,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.tsv
+
     else
         echo "NoHi" > ${sample}_HiCap.tsv
-        #Dummy Hicap file
+
+        logstring="${sample},Hicap,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.tsv
 
     fi
 
@@ -402,6 +505,7 @@ process Hicap {
 
 process HinfPBP3 { 
     container 'ghcr.io/garcia-nacho/top_pbp3'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 1
     maxForks = 1
 
@@ -416,15 +520,23 @@ process HinfPBP3 {
     script:
 
     """
-    if [[ -f "Hinf.agent" ]] || [[ -f "Hpar.agent" ]] ; 
+    if test -f "Hinf.agent"; 
     then
        Rscript /home/docker/pbp3/PBP_scanner.R
        mv PBP3Mutations.csv ${sample}_PBP3Mutations.csv
 
+
+        logstring="${sample},HinfPBP3,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.tsv
+
        
     else
         echo "NoHi" > ${sample}_PBP3Mutations.csv
-        #Dummy Hicap file
+
+        logstring="${sample},HinfPBP3,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.tsv
 
     fi
 
@@ -434,6 +546,7 @@ process HinfPBP3 {
 
 process Seroba { 
     container 'ghcr.io/garcia-nacho/top_seroba:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 1
     maxForks = 1
 
@@ -457,8 +570,16 @@ process Seroba {
         rm -rf dummy
         conda deactivate
 
+        logstring="${sample},Seroba,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.tsv
+
     else
         echo "NoSpne" > ${sample}_seroba.tsv
+
+        logstring="${sample},Seroba,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.tsv
     fi
 
     """
@@ -466,6 +587,7 @@ process Seroba {
 
 process STX { 
     container 'ghcr.io/garcia-nacho/top_virfinder:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 2
     maxForks = 1
     time '15m'
@@ -489,7 +611,7 @@ process STX {
     then
     r1=\$(ls ${sample}*1P.fastq.gz)
     r2=\$(ls ${sample}*2P.fastq.gz)
-    r1_count=\$(ls -1 ${sample}1P.fastq.gz | wc -l) 
+    r1_count=\$(ls -1 ${sample}*1P.fastq.gz | wc -l) 
 
     if [ \${r1_count} == 1 ];
     then
@@ -497,15 +619,25 @@ process STX {
     virulencefinder.py -i \${r1} \${r2} -o .
 
     mv data.json ${sample}_fastq_virfinder.json
+    echo "${sample},STX_Fastq,Completed" >> /logs/run_logs.tsv
 
     else
     
     error "Invalid Sample Name: ${sample}"
 
+
+    logstring="${sample},STX_Fastq,Failed"
+    logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+    echo \${logstring} >> /logs/\${logkey}_logs.tsv
+
     fi
 
     else
         echo "NoEcol" > ${sample}_fastq_virfinder.json
+
+        logstring="${sample},STX_Fastq,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.tsv
     fi
 
     """
@@ -513,6 +645,7 @@ process STX {
 
 process STX_Contigs { 
     container 'ghcr.io/garcia-nacho/top_virfinder:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 1
     maxForks = 1
 
@@ -533,8 +666,17 @@ process STX_Contigs {
     virulencefinder.py -i ${sample}_clean_contigs.fasta -o .
     mv data.json ${sample}_contigs_virfinder.json
 
+
+    logstring="${sample},STX_Contigs,Completed"
+    logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+    echo \${logstring} >> /logs/\${logkey}_logs.tsv
+
     else
         echo "NoEcol" > ${sample}_contigs_virfinder.json
+
+        logstring="${sample},STX_Contigs,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.tsv
     fi
 
     """
@@ -542,6 +684,7 @@ process STX_Contigs {
 
 process EMMtyper { 
     container 'ghcr.io/garcia-nacho/top_emmtyper:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 1
     maxForks = 1
 
@@ -559,12 +702,21 @@ process EMMtyper {
     if test -f "Spyo.agent"; 
     then
 
-      emmtyper ${sample}_clean_contigs.fasta > ${sample}_emmtyper.tsv  
+      emmtyper --blast_db /emmdb27022025/emmdb.tfa ${sample}_clean_contigs.fasta > ${sample}_emmtyper.tsv  
       Rscript /home/docker/EMM_Extraction.R
       mv EMM_seqs_extended.fa ${sample}_EMM_Allele.fa
 
+
+        logstring="${sample},EMMTypper,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
+
     else
       echo "NoSpy" > ${sample}_emmtyper.tsv
+
+        logstring="${sample},EMMTypper,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
 
     fi
 
@@ -574,6 +726,8 @@ process EMMtyper {
 
 process MeningoTyper { 
     container 'ghcr.io/garcia-nacho/top_meningotype:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
+
     cpus 1
     maxForks = 1
 
@@ -592,8 +746,17 @@ process MeningoTyper {
     then
       meningotype --all ${sample}_clean_contigs.fasta >> ${sample}_meningotype.txt
 
+        logstring="${sample},MeningoTyper,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
+
+
     else
       echo "NoNmen" > ${sample}_meningotype.txt
+
+        logstring="${sample},MeningoTyper,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
 
     fi
 
@@ -603,6 +766,7 @@ process MeningoTyper {
 
 process NGmaster { 
     container 'ghcr.io/garcia-nacho/top_ngmaster:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 1
     maxForks = 1
 
@@ -621,8 +785,17 @@ process NGmaster {
     then
       ngmaster ${sample}_clean_contigs.fasta >> ${sample}_ngmast_results.txt
 
+
+        logstring="${sample},NGmaster,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
+
     else
       echo "NoNgon" > ${sample}_ngmast_results.txt
+
+        logstring="${sample},NGmaster,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
 
     fi
 
@@ -632,6 +805,7 @@ process NGmaster {
 
 process Seqsero { 
     container 'ghcr.io/garcia-nacho/top_seqsero:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 2
     maxForks = 1
 
@@ -663,12 +837,21 @@ process Seqsero {
       mv SeqSeroResults_kmer/SeqSero_result.tsv ./${sample}_kmer_seqsero_results.tsv
       tar -zcvf ${sample}_kmer_seqsero.tar.gz SeqSeroResults_kmer
       rm -rf SeqSeroResults_kmer
+   
+
+        logstring="${sample},Seqsero,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
       
     else
       echo "NoSalmo" > ${sample}_seqsero_results.tsv
       echo "NoSalmo" > ${sample}_dummy_seqsero.tar.gz
       echo "NoSalmo" > ${sample}_dummy_kmer_seqsero.tar.gz
       echo "NoSalmo" > ${sample}_kmer_seqsero_results.tsv
+
+        logstring="${sample},Seqsero,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
     fi
 
     """
@@ -677,6 +860,7 @@ process Seqsero {
 
 process Tartrate { 
     container 'ghcr.io/garcia-nacho/top_tartrate:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 1
     maxForks = 1
 
@@ -695,8 +879,17 @@ process Tartrate {
     then
       tartrate ${sample}_clean_contigs.fasta > ${sample}_tartrate.txt  
 
+
+        logstring="${sample},Tartrate,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
+
     else
       echo "NoSalmo" > ${sample}_tartrate.txt 
+
+        logstring="${sample},Tartrate,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
 
     fi
 
@@ -706,7 +899,7 @@ process Tartrate {
 
 process TBpipelineP1{
     container 'ghcr.io/garcia-nacho/top_tbpipeline:v1.1'
-    containerOptions '--volume '+params.TBDB+':/mnt/global_collection'
+    containerOptions '--volume '+params.TBDB+':/mnt/global_collection --volume '+params.progress_dir+':/logs'
     
     cpus 2
     maxForks = 2
@@ -730,8 +923,8 @@ process TBpipelineP1{
       r2=\$(ls ${sample}*2P.fastq.gz)
       #trimmomatic PE -basein \${r1} -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
 
-      mv \${r1} ${sample}
-      mv \${r2} ${sample}
+      mv \${r1} ${sample}/${sample}_R1.fastq.gz
+      mv \${r2} ${sample}/${sample}_R2.fastq.gz
       rm ./*.fastq.gz
 
       niph_tb_pipeline1
@@ -741,11 +934,19 @@ process TBpipelineP1{
       tar -zcvf ${sample}.tar.gz ${sample}
       rm -rf ${sample}
 
+        logstring="${sample},Tartrate,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
+
     else
       
       mkdir ${sample}_nonTB
       echo "dummy" > ${sample}_nonTB/${sample}_nonTB.txt 
       echo "dummy" > ${sample}_dummy_tbp.tar.gz
+
+        logstring="${sample},TBPipeline,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
 
     fi
 
@@ -754,7 +955,7 @@ process TBpipelineP1{
 
 process BPEprofiler{
     container 'ghcr.io/garcia-nacho/top_bpprofiler'
-    
+    containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 1
     maxForks = 1
 
@@ -775,10 +976,19 @@ process BPEprofiler{
         /home/docker/code/bpe_mlst.sh
         mv BPE_MLST.csv ${sample}_bpe_mlst.csv
 
+        logstring="${sample},BPEprofiler,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
+
     else
  
       echo "NoBper" > ${sample}_bpe_mlst.csv
       echo "NoBper" > ${sample}_dummy.json
+
+
+        logstring="${sample},BPEprofiler,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
 
     fi
 
@@ -788,6 +998,7 @@ process BPEprofiler{
 process Diphtoscan{
     
     container 'ghcr.io/garcia-nacho/top_diphtoscan'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     
     cpus 1
     maxForks = 1
@@ -805,12 +1016,21 @@ process Diphtoscan{
     """
     if test -f "Cory.agent"; 
     then
-        /home/docker/diphtoscan/Dipthorunner.sh
 
-        mv diphtoscan_results.csv ${sample}_diphtoscan.csv
+        /home/docker/diphtoscan/Diphtorunner.sh
+
+        mv diphtoresults/diphtoscan_results.csv ${sample}_diphtoscan.csv
+
+        logstring="${sample},Diphtoscan,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
 
     else
         echo "NoDiphto" > ${sample}_diphtoscan.csv
+
+        logstring="${sample},Diphtoscan,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
  
     fi
 
@@ -819,6 +1039,7 @@ process Diphtoscan{
 
 process TBprofiler{
     container 'ghcr.io/garcia-nacho/top_tbprofiler'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     
     cpus 2
     maxForks = 2
@@ -848,9 +1069,18 @@ process TBprofiler{
       conda deactivate
       Rscript /home/docker/Code/TBprofilerparser.R
 
+        logstring="${sample},"TBProfiler",Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
+
     else
  
       echo "dummy" > ${sample}_tb_profiler.tsv
+
+        logstring="${sample},TBProfiler,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
+
 
     fi
 
@@ -905,6 +1135,7 @@ process TBpipelineP2{
 
 process JonEcoPipe { 
     container 'ghcr.io/garcia-nacho/top_ecoli:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 2
     maxForks = 1
 
@@ -935,9 +1166,17 @@ process JonEcoPipe {
         mv ecopipeline.csv ${sample}_raw_ecopipeline.csv
         mv EcoliPipelineReceiptFile* ${sample}_ecopipeline_ReceiptFileRaw.txt
 
+        logstring="${sample},BohlinsECPipeline,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
+
     else
         echo "NoEcol" > ${sample}_raw_ecopipeline.csv
         echo "NoEcol" > ${sample}_ecopipeline_ReceiptFileRaw.txt
+
+        logstring="${sample},BohlinsECPipeline,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
     fi
 
     """
@@ -945,6 +1184,7 @@ process JonEcoPipe {
 
 process JonEcoPipeFasta { 
     container 'ghcr.io/garcia-nacho/top_ecoli:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 1
     maxForks = 1
 
@@ -971,9 +1211,17 @@ process JonEcoPipeFasta {
         mv ecopipeline.csv ${sample}_fasta_ecopipeline.csv
         mv EcoliPipelineReceiptFile* ${sample}_ecopipeline_ReceiptFileFasta.txt
 
+        logstring="${sample},BohlinsECPipelineContigs,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
+
     else
         echo "NoEcol" > ${sample}_fasta_ecopipeline.csv
         echo "NoEcol" > ${sample}_ecopipeline_ReceiptFileFasta.txt
+
+        logstring="${sample},BohlinsECPipelineContigs,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.ts
     fi
 
     """
@@ -981,6 +1229,8 @@ process JonEcoPipeFasta {
 
 process AmrFinderPlus{
     container 'ghcr.io/garcia-nacho/top_amrfinderplus'
+    containerOptions '--volume '+params.progress_dir+':/logs'
+
     //cpus 1
     //maxForks = 1
 
@@ -1002,6 +1252,10 @@ process AmrFinderPlus{
     elif test -f "Ngon.agent"; 
     then
         /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Neisseria_gonorrhoeae -o ${sample}_amrfinderplus.tsv
+
+    elif test -f "Nmen.agent"; 
+    then
+        /home/docker/amrfinder/amrfinder -n *.fasta --plus --organism Neisseria_meningitidis -o ${sample}_amrfinderplus.tsv
 
     elif test -f "Salmo.agent"; 
     then
@@ -1078,6 +1332,9 @@ process AmrFinderPlus{
     else
         /home/docker/amrfinder/amrfinder -n *.fasta --plus -o ${sample}_amrfinderplus.tsv
     fi
+        logstring="${sample},AMRFinderPlus,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.tsv
 
 
     """
@@ -1086,8 +1343,8 @@ process AmrFinderPlus{
 
 process Integration {
     container 'ghcr.io/garcia-nacho/top_spades:v1.1'
-    //cpus 1
-    //maxForks = 1
+    containerOptions '--volume '+params.progress_dir+':/logs'
+
 
     publishDir(
         path: "${params.publishDir}/",
@@ -1141,14 +1398,16 @@ process Integration {
     #breakpoint
     multiqc ./
     Rscript /home/docker/CommonFiles/Code/Summarizer.R
+    cat Status.tsv >> /logs/run_logs.tsv 
+    rm Status.tsv
     mkdir bam
     mv *.bam ./bam
     mv *.bai ./bam
     mkdir fasta
     mv *_clean_contigs.fasta ./fasta
 
-    EMMS=\$(find . -maxdepth 1 -type f -name "EMM_Allele")
-    if [ -n \$EMMS ]; then    
+    EMMS=\$(find -iname "*EMM_Allele.fa")
+    if [ "\${EMMS}"  !=  ""  ]; then    
         mkdir EMM_Alleles
         cp *EMM_Allele.fa EMM_Alleles
     fi
@@ -1198,10 +1457,10 @@ workflow {
    ktrim=KrakenTrimmed(trimmed)
    kkraw=KrakenRaw(filtered_samples)
    statuscpu=CPUcounter(trimmed)
-
-   outputspades=Spades(trimmed, statuscpu.cpu_counts)
+   outputspades=Spades(statuscpu.cpu_counts)
    kkcon=KrakenClean(outputspades.spadesraw)
-   mapped=Mapping(outputspades.spadesraw)
+   statuscpu2=CPUcounterBT2(outputspades.spadesraw)
+   mapped=Mapping(statuscpu2.cpu_bt2)
    mlst=Rmlst(outputspades.fastasclean, outputspades.sample_name,outputspades.r1spades, outputspades.r2spades)
    abri=Abricate(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    hicap=Hicap(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
@@ -1210,26 +1469,19 @@ workflow {
    meningotype=MeningoTyper(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    ngmast=NGmaster(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent) 
    ngstar=NGstar(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent) 
-
    //stxtyp=STX(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    stxtyp=STX(mlst.sample_frommlst, mlst.agent, trimmed.map{ it.drop(1) }.flatten().collect())
    stxtypcontig=STX_Contigs(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
-   
    //seqsero=Seqsero(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    seqsero=Seqsero(mlst.sample_frommlst, mlst.agent, trimmed.map{ it.drop(1) }.flatten().collect())
-   
    tartrate=Tartrate(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
-
    //tbpipe1=TBpipelineP1(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    tbpipe1=TBpipelineP1(mlst.sample_frommlst, mlst.agent, trimmed.map{ it.drop(1) }.flatten().collect())
-
    //tbprof=TBprofiler(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    tbprof=TBprofiler(mlst.sample_frommlst, mlst.agent, trimmed.map{ it.drop(1) }.flatten().collect())
    tbpipe2=TBpipelineP2(tbpipe1.tbpipeline_p1_results.collect())
-
    //ecopipe=JonEcoPipe(mlst.sample_frommlst, mlst.agent, all_raw_reads.collect())
    ecopipe=JonEcoPipe(mlst.sample_frommlst, mlst.agent, trimmed.map{ it.drop(1) }.flatten().collect())
-
    ecopipefasta=JonEcoPipeFasta(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    amrfindplus=AmrFinderPlus(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    bpe=BPEprofiler(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)

@@ -58,6 +58,11 @@ if(exists("dumm.db")){
   if(file.exists("schemes.json")){
     schemes <- fromJSON(txt="schemes.json")
     sequrl<- schemes$schemes$scheme[which(schemes$schemes$description=="MLST")]
+    
+    # if(length(grep("Campylobacter",results$rMLST_taxon))==1){
+    #   sequrl<- schemes$schemes$scheme[grep(gsub(".* ","",results$rMLST_taxon),  schemes$schemes$description)]
+    # }
+    
     if(length(grep("Escherichia",results$rMLST_taxon))==1) sequrl<- schemes$schemes$scheme[which(schemes$schemes$description=="MLST (Achtman)")]
     
     system("rm schemes.json")
@@ -111,7 +116,12 @@ output$MLST.Scheme<-paste(sch[order(sch)],collapse = " | ")
 if(is.na(sch)) output$MLST.Scheme<-NA
 
 }else{
-  output<-as.data.frame(NA)  
+  if(date=="20221213"){
+    output<-as.data.frame(NA)
+  }else{
+    output<-as.data.frame("ND")
+  }
+    
   colnames(output)<-"MLST.Type"
 }
 

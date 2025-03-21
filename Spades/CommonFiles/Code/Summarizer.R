@@ -105,12 +105,13 @@ summ$RatioReadsTrimmed<-NA
 
 
 for (i in 1:length(samps)) {
-  out.samp<-out[grep(paste(samps[i],"_",sep = ""),out$file ),]
+  out.samp<-out[grep(paste("^", samps[i],"_",sep = ""),out$file ),]
   summ$TotalReadCount[which(summ$Sample==samps[i])]<- unique(out.samp$TotalCount[grep("_R1", out.samp$file)])
   summ$RawQ30_R1[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_R1", out.samp$file)])
   summ$RawQ30_R2[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_R2", out.samp$file)])
   
   summ$ReadCountAfterTrimming[which(summ$Sample==samps[i])]<- unique(out.samp$TotalCount[grep("_1P$", out.samp$file)])
+  if(length(unique(out.samp$Q30[grep("_1P$", out.samp$file)]))>1) break
   summ$TrimmedQ30_R1[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_1P$", out.samp$file)])
   summ$TrimmedQ30_R2[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_2P$", out.samp$file)])
   
@@ -210,6 +211,8 @@ out.localmlst$Sample<-gsub("_.*","",out.localmlst$Sample)
 summ<-merge(summ, out.localmlst, by="Sample", all.x=TRUE)
 
 to.replace<-which(is.na(summ$MLST.Type))
+to.replace<-unique(c(to.replace, which(summ$MLST.Type=="Non Detected"), which(summ$MLST.Type=="ND")))
+
 summ$MLST.Type[to.replace]<- summ$LocalMLST[to.replace]
 summ$MLST.Scheme[to.replace]<- summ$LocalScheme[to.replace]
 summ$MLST_Date[to.replace]<-"MLST_Database20240116"
@@ -219,12 +222,16 @@ summ$LocalScheme<-NULL
 if(length(which(is.na(summ$MLST.Type)))>0 ) summ$MLST.Type[which(is.na(summ$MLST.Type))]<-"Non Detected"
 if(length(which(is.na(summ$MLST.Scheme)))>0 ) summ$MLST.Scheme[which(is.na(summ$MLST.Scheme))]<-"Non Detected"
 
+if(length(which(summ$MLST.Type =="ND" )) >0 ) summ$MLST.Type[which(summ$MLST.Type =="ND" )]<-"Non Detected"
+if(length(which(summ$MLST.Scheme =="ND" )) >0 ) summ$MLST.Type[which(summ$MLST.Scheme =="ND" )]<-"Non Detected"
+
 
 #Abricate
+if(exists("out.abri"))rm(out.abri)
 abrilist<-list.files(pattern = "_Abricate.csv")
 for (i in 1:length(abrilist)) {
   dummy<-read.csv(abrilist[i])
-  if(length(grep("^VF_",colnames(dummy)))>0) dummy<-dummy[,-grep("^VF_",colnames(dummy))]
+  #if(length(grep("^VF_",colnames(dummy)))>0) dummy<-dummy[,-grep("^VF_",colnames(dummy))]
   if(!exists("out.abri")){
     out.abri<-dummy
     
@@ -235,8 +242,15 @@ for (i in 1:length(abrilist)) {
       out.abri[setdiff(names(dummy), names(out.abri))] <- NA  
     }
     out.abri<-rbind(out.abri, dummy)
+    
   }
 }
+try(out.abri$Abricate_vfdb<-NULL)
+colnames(out.abri)[which(colnames(out.abri) == "Abricate_vfdb2" )]<- "Abricate_vfdb"
+colnames(out.abri)<-gsub("BETA\\.LACTAM", "BETA-LACTAM", colnames(out.abri))
+out.abri$Abricate_vfdb<-sub("^(\\|\\s*)+", "", out.abri$Abricate_vfdb)
+
+
 summ<-merge(summ, out.abri, by="Sample", all.x=TRUE)
 
 #HiCap
@@ -334,7 +348,7 @@ for (i in 1:length(emlist)) {
     dummy$emm.warning<-NA
     dummy$Sample<-gsub("_.*","",emlist[i])
     #Delete fasta
-    try(file.remove(paste(dummy$Sample,"_EMM_Allele.fa",sep = "")))
+    #try(file.remove(paste(dummy$Sample,"_EMM_Allele.fa",sep = "")))
     
   }else{
   
@@ -351,6 +365,12 @@ for (i in 1:length(emlist)) {
     out.emm<-rbind(out.emm,dummy)
   }
 }
+
+
+colnames(out.emm)<-c("Sample","Cluster.N","emm-type","emm-like","emm-cluster","emm-warning")
+
+out.emm$`emm-type`<-gsub("EMM", "",out.emm$`emm-type` )
+out.emm$`emm-like`<-gsub("EMM", "",out.emm$`emm-like` )
 
 out.emm$Sample<-gsub("_.*","",out.emm$Sample)
 summ<-merge(summ, out.emm, by="Sample", all.x=TRUE)
@@ -523,6 +543,123 @@ colnames(stx.out.final)[-which(colnames(stx.out.final)=="Sample")]<-
 
 summ<-merge(summ, stx.out.final, by="Sample", all.x=TRUE)
 }
+
+
+#Correction of duplicated stx contigs
+
+indexna<-which(is.na(summ$StxVariant_Contigs))
+if(is.null(summ$StxVariant_Contigs) ) indexna<-c(1:nrow(summ))
+
+if(length(indexna) < nrow(summ)){
+
+typecontigs<-strsplit(summ$StxVariant_Contigs," \\| ")
+
+
+to.correct<-unlist(lapply(typecontigs, function(x)length(which(duplicated(x)))))
+to.correct<-which(to.correct>0)
+
+
+if(length(to.correct)>0){
+  for (i in 1:length(to.correct)) {
+    dum_variant <- unlist( strsplit(summ$StxVariant_Contigs[to.correct[i]], " \\| ") )
+    dum_info <- unlist( strsplit(summ$StxInfo_Contigs[to.correct[i]], " \\| ") )
+    dum_type <-unlist( strsplit(summ$StxType_Contigs[to.correct[i]], " \\| ") )
+    dum_identity<-as.numeric(unlist( strsplit(summ$StxIdentity_Contigs[to.correct[i]], " \\| ") ))
+    dum_coverage<-as.numeric(unlist( strsplit(summ$StxCoverage_Contigs[to.correct[i]], " \\| ") ))
+    dum_mean<-dum_identity+dum_coverage
+    
+    #dups<-dum_variant[which(duplicated(dum_variant))]
+    
+    to.keep<-vector()
+    
+    dups<-unique(dum_variant)
+    for (j in 1:length(dups)) {
+      dup.index<-which(dum_variant==dups[j])
+      #to.del<- c(to.del, dup.index[which(dum_mean[dup.index]==min(dum_mean[dup.index]))][1])
+      to.keep<-c(to.keep, dup.index[which(dum_mean[dup.index]==max(dum_mean[dup.index]))][1])
+    }
+    
+    #dum_variant <- dum_variant[-to.del]
+    #dum_info <- dum_info[-to.del] 
+    #dum_type <- dum_type[-to.del]
+    #dum_identity<-dum_identity[-to.del]
+    #dum_coverage<-dum_coverage[-to.del]
+  
+    
+    dum_variant <- dum_variant[to.keep]
+    dum_info <- dum_info[to.keep] 
+    dum_type <- dum_type[to.keep]
+    dum_identity<-dum_identity[to.keep]
+    dum_coverage<-dum_coverage[to.keep]
+    
+    summ$StxVariant_Contigs[to.correct[i]]<-paste(dum_variant, collapse = " | ")
+    summ$StxInfo_Contigs[to.correct[i]]<-paste(dum_info, collapse = " | ")
+    summ$StxType_Contigs[to.correct[i]]<-paste(unique(dum_type), collapse = " | ")
+    summ$StxIdentity_Contigs[to.correct[i]]<-paste(dum_identity, collapse = " | ")
+    summ$StxCoverage_Contigs[to.correct[i]]<-paste(dum_coverage, collapse = " | ")
+    
+  }
+}
+
+
+}
+
+
+#Correction of duplicated stx mapping
+
+indexna<-which(is.na(summ$StxVariant_Mapping))
+if(is.null(summ$StxVariant_Mapping) ) indexna<-c(1:nrow(summ))
+
+
+if(length(indexna) < nrow(summ)){
+
+typecontigs<-strsplit(summ$StxVariant_Mapping," \\| ")
+to.correct<-unlist(lapply(typecontigs, function(x)length(which(duplicated(x)))))
+to.correct<-which(to.correct>0)
+if(length(to.correct)>0){
+  for (i in 1:length(to.correct)) {
+    dum_variant <- unlist( strsplit(summ$StxVariant_Mapping[to.correct[i]], " \\| ") )
+    dum_info <- unlist( strsplit(summ$StxInfo_Mapping[to.correct[i]], " \\| ") )
+    dum_type <-unlist( strsplit(summ$StxType_Mapping[to.correct[i]], " \\| ") )
+    dum_identity<-as.numeric(unlist( strsplit(summ$StxIdentity_Mapping[to.correct[i]], " \\| ") ))
+    dum_coverage<-as.numeric(unlist( strsplit(summ$StxCoverage_Mapping[to.correct[i]], " \\| ") ))
+    dum_mean<-dum_identity+dum_coverage
+    
+    #dups<-dum_variant[which(duplicated(dum_variant))]
+    to.keep<-vector()
+    
+    dups<-unique(dum_variant)
+    for (j in 1:length(dups)) {
+      dup.index<-which(dum_variant==dups[j])
+      #to.del<- c(to.del, dup.index[which(dum_mean[dup.index]==min(dum_mean[dup.index]))][1])
+      to.keep<-c(to.keep, dup.index[which(dum_mean[dup.index]==max(dum_mean[dup.index]))][1])
+    }
+    
+    #dum_variant <- dum_variant[-to.del]
+    #dum_info <- dum_info[-to.del] 
+    #dum_type <- dum_type[-to.del]
+    #dum_identity<-dum_identity[-to.del]
+    #dum_coverage<-dum_coverage[-to.del]
+    
+    
+    dum_variant <- dum_variant[to.keep]
+    dum_info <- dum_info[to.keep] 
+    dum_type <- dum_type[to.keep]
+    dum_identity<-dum_identity[to.keep]
+    dum_coverage<-dum_coverage[to.keep]
+    
+    summ$StxVariant_Mapping[to.correct[i]]<-paste(dum_variant, collapse = " | ")
+    summ$StxInfo_Mapping[to.correct[i]]<-paste(dum_info, collapse = " | ")
+    summ$StxType_Mapping[to.correct[i]]<-paste(unique(dum_type), collapse = " | ")
+    summ$StxIdentity_Mapping[to.correct[i]]<-paste(dum_identity, collapse = " | ")
+    summ$StxCoverage_Mapping[to.correct[i]]<-paste(dum_coverage, collapse = " | ")
+    
+  }
+}
+
+
+}
+
 
 #summary.txt in .fastq.gz. If Basic statistics = PASS -> OK else -> WARN
 sum.txts<-list.files(recursive = FALSE,pattern = "Bowtie2summary.txt")
@@ -1176,6 +1313,38 @@ if(exists("outamr")){
 }
 
 
+#AMR parsing
+drugs.to.test<-c("RIFAMYCIN", "TETRACYCLINE", "MACROLIDE")
+
+for (dg in 1:length(drugs.to.test)) {
+  amrpls.ind<- which(colnames(summ)==paste("AMRFinder_", drugs.to.test[dg], sep = ""))
+  sum.ind<- which(colnames(summ)==paste("AMR.", drugs.to.test[dg], sep = ""))
+  if(length(amrpls.ind)==1 & length(sum.ind)==1){
+    drg.to.replace<- intersect(which(is.na(summ[,amrpls.ind])), which(!is.na(summ[,sum.ind])))
+    if(length(drg.to.replace)>0){
+     summ[drg.to.replace, amrpls.ind] <- as.character(summ[drg.to.replace, sum.ind]) 
+    }
+  }  
+}
+
+#Drug to del
+abrdrg<- colnames(summ)[grep("AMR\\.", colnames(summ))]
+plusdrg<- colnames(summ)[grep("AMRFinder_", colnames(summ))]
+abrdrg_cl<-gsub("AMR\\.", "",abrdrg)
+plusdrg_cl<-gsub("AMRFinder_", "",plusdrg)
+to.add<-abrdrg_cl[-which(abrdrg_cl %in% plusdrg_cl)]
+
+if(length(which(colnames(summ)%in% paste("AMRFinder_",to.add, sep = "")))==0){
+  colnames(summ)[which(colnames(summ)%in% paste("AMR.",to.add, sep = ""))]<-gsub("AMR\\.","AMRFinder_",
+                                                                                 colnames(summ)[which(colnames(summ)%in% paste("AMR.",to.add, sep = ""))])  
+}
+
+cols.to.del<-grep("AMR\\.", colnames(summ))
+if(length(cols.to.del)>0) summ<-summ[,-cols.to.del]
+colnames(summ)<-gsub("^AMRFinder_", "AMR.", colnames(summ))
+
+
+
 
 # BPEprofiler -------------------------------------------------------------
 bpe<-list.files(pattern = "bpe_mlst.csv")
@@ -1185,6 +1354,7 @@ for (i in 1:length(bpe)) {
   dummy<-read.csv(bpe[i])
   if(colnames(dummy)[1]!="NoBper"){
     if(length(which(colnames(dummy)=="ClonalComplex"))==0 ) dummy$ClonalComplex<-NA
+
     if(!exists("outbpe")){
       outbpe<-dummy
     }else{
@@ -1224,6 +1394,23 @@ summ$BPE_MLST.Type<-NULL
 
 }
 
+bpe.index<-grep("Bordetella", summ$rMLST_taxon)
+
+if(length(bpe.index)>0){
+  vfbpe<-c("fim2", "fim3", "prn", "fhaB")
+  for (vf in 1:length(vfbpe)) {
+    summ$dummybpe<-NA
+    for (i in 1:length(bpe.index)) {
+        if(length(grep(vfbpe[vf], summ$Abricate_vfdb[bpe.index]))==1){
+          summ$dummybpe[bpe.index]<-"Detected"
+        }else{
+          summ$dummybpe[bpe.index]<-"Non Detected"
+        }
+    }
+    colnames(summ)[which(colnames(summ)=="dummybpe")]<-paste("Bpe_",vfbpe[vf],sep = "")
+  }
+}
+
 # Diphtoscan --------------------------------------------------------------
 
 cds.files<-list.files(pattern = "diphtoscan.csv")
@@ -1232,6 +1419,8 @@ if(exists("outcds")) rm(outcds)
 for (i in 1:length(cds.files)) {
   dummy<-read.csv(cds.files[i])
   if(colnames(dummy)[1]!="NoDiphto"){
+    dummy<-dummy[,which(colnames(dummy) %in% c( "Sample", "species", "species_match", "ST", "atpA", "dnaE", "dnaK", "fusA", "leuA",           
+                                                "odhA","rpoB","tox_allele","GENOMIC_CONTEXT","NoClass") )]
     if(!exists("outcds")){
       outcds<-dummy
     }else{
@@ -1239,6 +1428,9 @@ for (i in 1:length(cds.files)) {
     }  
   }
 }
+
+
+
 
 if(exists("outcds")){
 
@@ -1296,6 +1488,7 @@ if(exists("outtbpro")){
   summ<-merge(summ, outtbpro, by="Sample",all.x = TRUE, all.y = FALSE)
 }
 
+colnames(summ)<-gsub("\\.x$","", colnames(summ))
 
 
 # versions ------------------------------------------------------------
@@ -1318,6 +1511,10 @@ if(length(empty.col)>0) summ<-summ[,-empty.col]
 
 write_xlsx(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".xlsx",sep = ""))
 
+status<-as.data.frame(summ$Sample)
+status$V2<-"Integration"
+status$V3<-"Completed"
+write.table(status, "Status.tsv", quote = FALSE, row.names = FALSE, sep = ",", col.names = FALSE)
 
 
 #Implementation for LW

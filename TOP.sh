@@ -118,22 +118,22 @@ do
   esac
 done
 
-
+mkdir top_progress
 echo "Running The One Pipeline V1.1:"
 echo ""
 echo nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} -resume -with-timeline -with-report
 #Delete working directory if there is no error
 echo ""
-nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} -resume -with-timeline -with-report
+#nextflow run main.nf -with-dag TOP_flow.dot
+nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} --progress_dir $(pwd)/top_progress -resume -with-timeline -with-report
 
 if test -f "${READS}/TOPresults/Summaries_"*".xlsx"
 then
-    if devmode == 0
-    then
     echo "Cleaning up..."
     rm -rf work
-    fi
+    rm -rf top_progress
 fi
+
 
 if test -f "${READS}/TOPresults/TB_Pipeline/Non_MTBC_samples_in_the_run"
 then

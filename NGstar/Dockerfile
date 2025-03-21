@@ -19,7 +19,9 @@ RUN pip3 install pandas pyfaidx biopython pyahocorasick \
     && rm /home/docker/pyngSTar/pyngSTar_functions.py 
  
 COPY DB/ /home/docker/pyngSTar/pyngSTarDB_050923
-COPY 02012024/ /home/docker/pyngSTar/pyngSTarDB_02012024
+#COPY 02012024/ /home/docker/pyngSTar/pyngSTarDB_02012024
+COPY 03032025 /home/docker/pyngSTar/pyngSTarDB_03032025
+
 COPY Code/pyngSTar_functions.py /home/docker/pyngSTar/pyngSTar_functions.py
 COPY Code/ngstar.sh /home/docker/ngstar.sh
 
@@ -27,14 +29,18 @@ USER root
 RUN chmod -R +rwx /home/docker/pyngSTar/pyngSTarDB_050923/* \
     && chmod 777 /home/docker/pyngSTar/pyngSTarDB_050923
 
-RUN chmod -R +rwx /home/docker/pyngSTar/pyngSTarDB_02012024/* \
-    && chmod 777 /home/docker/pyngSTar/pyngSTarDB_02012024
+#RUN chmod -R +rwx /home/docker/pyngSTar/pyngSTarDB_02012024/* \
+#    && chmod 777 /home/docker/pyngSTar/pyngSTarDB_02012024
+
+RUN chmod -R +rwx /home/docker/pyngSTar/pyngSTarDB_03032025/* \
+    && chmod 777 /home/docker/pyngSTar/pyngSTarDB_03032025
 
 RUN chmod +x /home/docker/ngstar.sh \
     && ln /home/docker/ngstar.sh /usr/bin/ngstar.sh 
 
 USER docker
 RUN cd /home/docker/pyngSTar/ && python3 pyngSTar.py -p pyngSTarDB_050923 -u
-RUN cd /home/docker/pyngSTar/ && python3 pyngSTar.py -p pyngSTarDB_02012024 -u
+#RUN cd /home/docker/pyngSTar/ && python3 pyngSTar.py -p pyngSTarDB_02012024 -u
+RUN cd /home/docker/pyngSTar/ && python3 pyngSTar.py -p pyngSTarDB_03032025 -u
 
 CMD /usr/bin/ngstar.sh

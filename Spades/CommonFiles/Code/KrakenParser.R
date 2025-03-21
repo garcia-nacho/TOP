@@ -1,6 +1,6 @@
 library(data.table)
 file<-list.files(pattern = ".*kraken.tsv")
-df<-fread(file, sep = "\t")
+df<-fread(file, sep = "\t", header = FALSE)
 df<-as.data.frame(df)
 df<-aggregate(V2~V3, df, length)
 colnames(df)<-c("Specie","Count")

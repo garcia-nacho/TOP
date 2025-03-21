@@ -12,7 +12,7 @@ for (i in 1:length(fastas.list)) {
   system(paste("blastn -out ",
                gsub(".fasta", "_emm_results_blast.tsv",fastas.list[i]),
                " -outfmt '6 qseqid sseqid qstart qend sstart send slen qlen length mismatch evalue' -query ",
-               fastas.list[i] ," -db /emmdb07022024/emmdb.tfa",sep = ""))
+               fastas.list[i] ," -db /emmdb27022025/emmdb.tfa",sep = ""))
 }
 
 results<-list.files(pattern = "_emm_results_blast.tsv")

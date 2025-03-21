@@ -26,13 +26,13 @@ RUN /bin/bash -c ". activate emmtip && \
 USER root 
 RUN Rscript -e "install.packages(c( 'seqinr'),repos = 'http://cran.us.r-project.org')" 
 RUN mkdir -p /Data 
-RUN mkdir -p /emmdb07022024 
-COPY emmdb.nhr /emmdb07022024/emmdb.tfa.nhr
-COPY emmdb.nin /emmdb07022024/emmdb.tfa.nin
-COPY emmdb.nsq /emmdb07022024/emmdb.tfa.nsq
-COPY alltrimmed.fa /emmdb07022024/emmdb.tfa
+RUN mkdir -p /emmdb27022025 
+COPY emmdb.nhr /emmdb27022025/emmdb.tfa.nhr
+COPY emmdb.nin /emmdb27022025/emmdb.tfa.nin
+COPY emmdb.nsq /emmdb27022025/emmdb.tfa.nsq
+COPY alltrimmed.tfa /emmdb27022025/emmdb.tfa
 COPY EMM_Extraction.R /home/docker/EMM_Extraction.R
-RUN chmod -R +rx /emmdb07022024/*
+RUN chmod -R +rx /emmdb27022025/*
 
 RUN chmod 777 /Data 
 RUN chmod +x /home/docker/EMM_Extraction.R
