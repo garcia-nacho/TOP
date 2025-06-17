@@ -20,8 +20,10 @@ RUN conda install -c conda-forge -c bioconda -c defaults gubbins
 RUN conda install -c conda-forge -c r -c bioconda -c defaults snp-sites
 RUN conda install -c bioconda fasttree
 RUN conda create -n emmtip
-RUN /bin/bash -c ". activate emmtip && \
-    pip install git+https://github.com/admiralenola/emm_typing"
+#NEW method
+#RUN /bin/bash -c ". activate emmtip && \
+#    pip install git+https://github.com/admiralenola/emm_typing"
+RUN conda install -c conda-forge -c bioconda -c defaults emmtyper
 
 USER root 
 RUN Rscript -e "install.packages(c( 'seqinr'),repos = 'http://cran.us.r-project.org')" 

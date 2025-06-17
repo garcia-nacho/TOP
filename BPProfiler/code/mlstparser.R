@@ -117,7 +117,7 @@ for (f in 1:length(inputs)) {
       }
 
       sch<-vector()
-      if(length(length(df$exact_matches))>0){
+      if(length(df$exact_matches)>0){
       for (i in 1:length(df$exact_matches)) {
         sch<-c(sch,paste(names(df$exact_matches)[i],":",df$exact_matches[[i]]$allele_id,sep = ""))
         #output$dummy<-paste(df$exact_matches[[i]]$allele_id,collapse = "/")
@@ -126,7 +126,7 @@ for (f in 1:length(inputs)) {
       }else{
         sch<-NA
       }
-      sch<-paste(sch, collapse = " | ")
+      sch<-paste(sch[order(sch)], collapse = " | ")
       
       output<- as.data.frame(t(c(BPE23S, sch)))
       colnames(output)<-c("BPE_23S", "BPE_AMRscheme")
@@ -171,7 +171,7 @@ for (f in 1:length(inputs)) {
       }else{
         sch<-NA
       }
-      sch<-paste(sch, collapse = " | ")
+      sch<-paste(sch[order(sch)], collapse = " | ")
       
       output<- as.data.frame(c(sch))
       colnames(output)<-"BPE_PhaseScheme"
@@ -216,7 +216,7 @@ for (f in 1:length(inputs)) {
       }else{
         sch<-NA
       }
-      sch<-paste(sch, collapse = " | ")
+      sch<-paste(sch[order(sch)], collapse = " | ")
       
       output<- as.data.frame(c(sch))
       colnames(output)<-"BPE_ToxinScheme"
@@ -269,7 +269,7 @@ for (f in 1:length(inputs)) {
       }else{
         sch<-NA
       }
-      sch<-paste(sch, collapse = " | ")
+      sch<-paste(sch[order(sch)], collapse = " | ")
       
       output<- as.data.frame(c(sch))
       colnames(output)<-"BPE_AgProfileScheme"
@@ -327,7 +327,7 @@ for (f in 1:length(inputs)) {
       }else{
         sch<-NA
       }
-      sch<-paste(sch, collapse = " | ")
+      sch<-paste(sch[order(sch)], collapse = " | ")
       
       output<- as.data.frame(c(sch))
       colnames(output)<-"BPE_T3SSScheme"
@@ -399,7 +399,7 @@ for (f in 1:length(inputs)) {
     cg$Sample<-gsub( "_cgmlst.json","", inputs[f])
     cg$AllelesFound<-paste(ncol(cg_profile.temp), " of ", (ncol(cg_profile)-1))
     cg$cgMLSTDate<-cg_profile_date
-    cg$cgMLST_BPE_Warning<-NA
+    cg$cgMLST_Warning<-NA
     
     if(!exists("cg_out")){
       cg_out<-cg
@@ -416,12 +416,13 @@ for (f in 1:length(inputs)) {
     cg_out$Sample<-gsub( "_cgmlst.json","", inputs[f])
     cg_out$AllelesFound<-NA
     cg_out$cgMLSTDate<-NA
-    cg_out$cgMLST_BPE_Warning<-"Server Not responding"
+    cg_out$cgMLST_Warning<-"Server Not responding"
 
   }
 }
 
 mlst_out<-merge(mlst_out, outamr,  by="Sample", all.x = TRUE, all.y = TRUE)
+mlst_out<-merge(mlst_out, outphase,  by="Sample", all.x = TRUE, all.y = TRUE)
 mlst_out<-merge(mlst_out, outvac,  by="Sample", all.x = TRUE, all.y = TRUE)
 mlst_out<-merge(mlst_out, outtoxin,  by="Sample", all.x = TRUE, all.y = TRUE)
 mlst_out<-merge(mlst_out, outtss3,  by="Sample", all.x = TRUE, all.y = TRUE)

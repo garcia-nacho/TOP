@@ -247,7 +247,7 @@ for (i in 1:length(abrilist)) {
 }
 try(out.abri$Abricate_vfdb<-NULL)
 colnames(out.abri)[which(colnames(out.abri) == "Abricate_vfdb2" )]<- "Abricate_vfdb"
-colnames(out.abri)<-gsub("BETA\\.LACTAM", "BETA-LACTAM", colnames(out.abri))
+#colnames(out.abri)<-gsub("BETA\\.LACTAM", "BETA-LACTAM", colnames(out.abri))
 out.abri$Abricate_vfdb<-sub("^(\\|\\s*)+", "", out.abri$Abricate_vfdb)
 
 
@@ -289,7 +289,7 @@ for (i in 1:length(hipbp3)) {
   dummy<-read.csv(hipbp3[i])
 
   if(colnames(dummy)[1]!="NoHi"){ 
-    colnames(dummy)<-c("Sample", "HinfPBP3_Mutations", "HinfPBP3_Class")
+    colnames(dummy)<-c("Sample", "HinfPBP3_Mutations", "HinfPBP3_Class","HinfPBP3_Stage1","HinfPBP3_Stage2","HinfPBP3_Stage3","HinfPBP3_Other" )
     if(is.na(dummy$HinfPBP3_Class[1])) dummy$HinfPBP3_Class[1]<-"None"
   
   if(!exists("out.hipbp3")){
@@ -1363,11 +1363,12 @@ for (i in 1:length(bpe)) {
   }
 }
 
+
 if(exists("outbpe")){
 outbpe$Sample<-gsub("_.*","",outbpe$Sample)
-colnames(outbpe)[6]<-"cgMLST_Score"
-colnames(outbpe)[7]<-"cgMLST_AlellesFound"
-colnames(outbpe)[-1]<-paste("BPE_",colnames(outbpe)[-1],sep = "")
+colnames(outbpe)[14]<-"cgMLST_Score"
+colnames(outbpe)[15]<-"cgMLST_AlellesFound"
+colnames(outbpe)[-1]<-paste("BPE_",gsub("^BPE_","",colnames(outbpe)[-1]),sep = "")
 
 summ<-merge(summ, outbpe, by="Sample",all.x = TRUE, all.y = FALSE)
 
@@ -1385,6 +1386,9 @@ summ$MLST_Date[which(summ$Sample %in% outbpe$Sample)]<-
 if(length(which(colnames(summ)=="ClonalComplex"))>0){
   summ$ClonalComplex<-NA
 }
+
+if(length( which(colnames(summ) =="ClonalComplex")   )==0) summ$ClonalComplex<-NA
+
 summ$ClonalComplex[which(summ$Sample %in% outbpe$Sample)]<-
   summ$BPE_ClonalComplex[which(summ$Sample %in% outbpe$Sample)]
 
@@ -1401,13 +1405,13 @@ if(length(bpe.index)>0){
   for (vf in 1:length(vfbpe)) {
     summ$dummybpe<-NA
     for (i in 1:length(bpe.index)) {
-        if(length(grep(vfbpe[vf], summ$Abricate_vfdb[bpe.index]))==1){
-          summ$dummybpe[bpe.index]<-"Detected"
+        if(length(grep(vfbpe[vf], summ$Abricate_vfdb[bpe.index[i]]))==1){
+          summ$dummybpe[bpe.index[i]]<-"Detected"
         }else{
-          summ$dummybpe[bpe.index]<-"Non Detected"
+          summ$dummybpe[bpe.index[i]]<-"Non Detected"
         }
     }
-    colnames(summ)[which(colnames(summ)=="dummybpe")]<-paste("Bpe_",vfbpe[vf],sep = "")
+    colnames(summ)[which(colnames(summ)=="dummybpe")]<-paste("BPE_",vfbpe[vf],sep = "")
   }
 }
 
@@ -1439,6 +1443,8 @@ outcds$MLST.Scheme<-paste("atpA:", outcds$atpA, "|dnaE:", outcds$dnaE,"|dnaK:",o
 
 colnames(outcds)[-which(colnames(outcds)=="Sample")]<-paste("DiphtoScan_",colnames(outcds)[-which(colnames(outcds)=="Sample")], sep = "")
 
+outcds$Sample<-gsub("_.*","",outcds$Sample)
+
 summ<-merge(summ, outcds, by="Sample",all.x = TRUE, all.y = FALSE)
 
 summ$MLST.Scheme[which(summ$Sample %in% outcds$Sample)]<-
@@ -1447,7 +1453,7 @@ summ$MLST.Scheme[which(summ$Sample %in% outcds$Sample)]<-
 summ$DiphtoScan_MLST.Scheme<-NULL
 
 summ$MLST.Type[which(summ$Sample %in% outcds$Sample)]<-
-  summ$DiphtoScan_ST[which(summ$Sample %in% outcds$Sample)]
+  gsub( "^ST","", summ$DiphtoScan_ST[which(summ$Sample %in% outcds$Sample)])
 
 summ$DiphtoScan_ST<-NULL
 
@@ -1489,6 +1495,33 @@ if(exists("outtbpro")){
 }
 
 colnames(summ)<-gsub("\\.x$","", colnames(summ))
+
+
+
+# cgHinf ------------------------------------------------------------------
+
+hcg.files<-list.files(pattern = "Hicgmlst.csv")
+
+if(exists("outhcg")) rm(outhcg)
+
+for (i in 1:length(hcg.files)) {
+  dummy<-read.csv(hcg.files[i])
+  if(colnames(dummy)[1]!="NoHi"){
+    if(!exists("outhcg")){
+      outhcg<-dummy
+    }else{
+      outhcg<-rbind(outhcg,dummy)
+    }  
+  }
+}
+
+
+
+if(exists("outhcg")){
+  outhcg$Sample<-gsub("_.*", "", outhcg$Sample)
+  summ<-merge(summ, outhcg, by="Sample",all.x = TRUE, all.y = FALSE)
+}
+
 
 
 # versions ------------------------------------------------------------

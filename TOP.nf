@@ -465,6 +465,48 @@ process NGstar {
 
 }
 
+
+process HiCgmlst{
+    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
+    containerOptions '--volume '+params.progress_dir+':/logs'
+
+    input:
+    path(fastaclean)
+    val(sample)
+    path(agent)
+
+    output:
+    path("*Hicgmlst.csv"), emit: hicgmlst_results
+
+    
+    script:
+
+    """
+    if [[ -f "Hinf.agent" ]]
+    then
+
+        cp /home/docker/CommonFiles/profiles_cgmlst.tsv.tar.gz ./profiles_cgmlst.tsv.tar.gz && tar -xf profiles_cgmlst.tsv.tar.gz
+        #GET https://rest.pubmlst.org/db/pubmlst_hinfluenzae_seqdef/schemes/56/profiles_csv > profiles_cgmlst.tsv
+    
+        /home/docker/CommonFiles/Code/REST_Runner.sh ${sample}_clean_contigs.fasta https://rest.pubmlst.org/db/pubmlst_hinfluenzae_seqdef/schemes/56/sequence ${sample}_Hicgmlst.json
+        Rscript /home/docker/CommonFiles/Code/Hicgmlst.R
+        mv Hicgmlst.csv ${sample}_Hicgmlst.csv
+
+        logstring="${sample},Hicgmlst,Completed"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.tsv
+
+    else
+        echo "NoHi" > ${sample}_Hicgmlst.csv
+        logstring="${sample},Hicgmlst,Skipped"
+        logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
+        echo \${logstring} >> /logs/\${logkey}_logs.tsv
+    fi
+
+    """
+}
+
+
 process Hicap { 
     container 'ghcr.io/garcia-nacho/top_hicap:v1.1'
     containerOptions '--volume '+params.progress_dir+':/logs'
@@ -958,6 +1000,8 @@ process BPEprofiler{
     containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 1
     maxForks = 1
+    errorStrategy 'retry'
+    maxRetries 10
 
     input:
     path(fastaclean)
@@ -1366,6 +1410,7 @@ process Integration {
     path(abri)
     path(amrfinderplus_in)
     path(hicap)
+    path(hicgmlst)
     path(seroba)
     path(depth)
     path(emmtyp)
@@ -1464,6 +1509,8 @@ workflow {
    mlst=Rmlst(outputspades.fastasclean, outputspades.sample_name,outputspades.r1spades, outputspades.r2spades)
    abri=Abricate(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    hicap=Hicap(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+   hicgmlst=HiCgmlst(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
+
    seroba=Seroba(mlst.r1mlst, mlst.r2mlst, mlst.sample_frommlst, mlst.agent)
    emmtyp=EMMtyper(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
    meningotype=MeningoTyper(mlst.clean_contigs_frommlst, mlst.sample_frommlst, mlst.agent)
@@ -1502,6 +1549,7 @@ workflow {
                      abri.abricate_results.collect(),
                      amrfindplus.amrfinder_results.collect(),
                      hicap.hicap_results.collect(),
+                     hicgmlst.hicgmlst_results.collect(),
                      seroba.seroba_results.collect(),
                      mapped.bt2depth.collect(),
                      emmtyp.emm_results.collect(),

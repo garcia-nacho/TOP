@@ -110,7 +110,7 @@ server <- function(input, output, session) {
     if(length(dupind)>0) dfsstat<-dfsstat[-dupind,]
     
     pendingtable<-as.data.frame(expand.grid(unique(dfsstat$Sample), c("Prefilter", "Trimming","KrakenRaw","Assembly","MLST","KrakenClean",
-                                                                      "Mapping", "Abricate","NGStar", "Hicap", "HinfPBP3","STX_Fastq", "STX_Contigs", "EMMTypper",
+                                                                      "Mapping", "Abricate","NGStar", "Hicap", "Hicgmlst","HinfPBP3","STX_Fastq", "STX_Contigs", "EMMTypper",
                                                                        "MeningoTyper" ,"NGmaster", "Seqsero","Tartrate", "TBPipeline","BPEprofiler" , "Diphtoscan","Seroba",
                                                                       "TBProfiler", "BohlinsECPipeline","BohlinsECPipelineContigs" , "AMRFinderPlus")))
     colnames(pendingtable)<-c("Sample", "Process")
@@ -122,7 +122,7 @@ server <- function(input, output, session) {
     dfsstat<-rbind(dfsstat, pendingtable)
     
     dfsstat$Process<-factor(dfsstat$Process, levels= c("Prefilter", "Trimming","KrakenRaw","Assembly","KrakenClean","MLST",
-                                                        "Mapping", "Abricate", "AMRFinderPlus","NGStar", "Hicap", "HinfPBP3","STX_Fastq", "STX_Contigs", "EMMTypper","Seroba",
+                                                        "Mapping", "Abricate", "AMRFinderPlus","NGStar", "Hicap", "HinfPBP3","Hicgmlst","STX_Fastq", "STX_Contigs", "EMMTypper","Seroba",
                                                         "MeningoTyper" ,"NGmaster", "Seqsero","Tartrate", "TBPipeline","BPEprofiler" , "Diphtoscan",
                                                         "TBProfiler", "BohlinsECPipeline","BohlinsECPipelineContigs"  ))
     
