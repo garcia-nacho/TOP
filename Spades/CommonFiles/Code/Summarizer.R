@@ -106,16 +106,17 @@ summ$RatioReadsTrimmed<-NA
 
 for (i in 1:length(samps)) {
   out.samp<-out[grep(paste(samps[i],"_",sep = ""),out$file ),]
-  summ$TotalReadCount[which(summ$Sample==samps[i])]<- unique(out.samp$TotalCount[grep("_R1_", out.samp$file)])
-  summ$RawQ30_R1[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_R1_", out.samp$file)])
-  summ$RawQ30_R2[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_R2_", out.samp$file)])
   
-  summ$ReadCountAfterTrimming[which(summ$Sample==samps[i])]<- unique(out.samp$TotalCount[grep("_1P$", out.samp$file)])
-  summ$TrimmedQ30_R1[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_1P$", out.samp$file)])
-  summ$TrimmedQ30_R2[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_2P$", out.samp$file)])
+  try( summ$TotalReadCount[which(summ$Sample==samps[i])]<- unique(out.samp$TotalCount[grep("_R1_", out.samp$file)]))
+  try(summ$RawQ30_R1[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_R1_", out.samp$file)]))
+  try(summ$RawQ30_R2[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_R2_", out.samp$file)]))
   
-  summ$RatioReadsTrimmed[which(summ$Sample==samps[i])]<- (summ$TotalReadCount[which(summ$Sample==samps[i])]- summ$ReadCountAfterTrimming[which(summ$Sample==samps[i])])/
-    (summ$TotalReadCount[which(summ$Sample==samps[i])])
+  try(summ$ReadCountAfterTrimming[which(summ$Sample==samps[i])]<- unique(out.samp$TotalCount[grep("_1P$", out.samp$file)]))
+  try(summ$TrimmedQ30_R1[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_1P$", out.samp$file)]))
+  try(summ$TrimmedQ30_R2[which(summ$Sample==samps[i])]<- unique(out.samp$Q30[grep("_2P$", out.samp$file)]))
+  
+  try(summ$RatioReadsTrimmed[which(summ$Sample==samps[i])]<- (summ$TotalReadCount[which(summ$Sample==samps[i])]- summ$ReadCountAfterTrimming[which(summ$Sample==samps[i])])/
+    (summ$TotalReadCount[which(summ$Sample==samps[i])]))
     
   #Folder Organization
   
