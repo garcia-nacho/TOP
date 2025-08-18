@@ -73,8 +73,8 @@ fi
 echo "Using TBDB located in "${tbdb}
 echo ""
 
-conda create -n top_nf -y
-source activate top_nf
+conda create -n top2_nf -y
+source activate top2_nf
 conda install -c bioconda nextflow==23.10.1
 cp TOP.nf ${CONDA_PREFIX}/bin/TOP.nf
 

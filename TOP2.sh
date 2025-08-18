@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source activate top_nf
+source activate top2_nf
 SHORT=u,r:,f:,h,t:,c:,d,s:,x
 LONG=update,reads:,fastas:,help,tbdb:,cores:,dev,sp:,uninstall
 OPTS=$(getopt --options $SHORT --longoptions $LONG -- "$@")
@@ -17,7 +17,7 @@ if [ $? != 0 ]; then
     echo "use -u or --update to update the pipeline"
     echo "use -x or --uninstall to uninstall the pipeline" 
     echo ""
-    conda deactivate top_nf
+    conda deactivate
     exit 1
 fi
 
@@ -63,7 +63,7 @@ do
       wget -O ${CONDA_PREFIX}/bin/TOP.nf https://github.com/garcia-nacho/TOP/raw/master/TOP.nf
       wget -O ${CONDA_PREFIX}/bin/nextflow.config https://github.com/garcia-nacho/TOP/raw/master/nextflow.config
       wget -O ${CONDA_PREFIX}/top_template.html https://github.com/garcia-nacho/TOP/raw/master/top_template.html
-      wget -O ${CONDA_PREFIX}/bin/TOP.sh https://github.com/garcia-nacho/TOP/raw/master/TOP.sh
+      wget -O ${CONDA_PREFIX}/bin/TOP2.sh https://github.com/garcia-nacho/TOP/raw/master/TOP2.sh
       
       docker pull ghcr.io/garcia-nacho/top_spades:v.1.1
       docker pull ghcr.io/garcia-nacho/top_abricate:v1.1
@@ -83,6 +83,7 @@ do
       docker pull ghcr.io/garcia-nacho/top_tbprofiler
       docker pull ghcr.io/garcia-nacho/top_diphtoscan
       docker pull ghcr.io/garcia-nacho/top_bpprofiler
+      docker pull ghcr.io/garcia-nacho/top_pbp3
 
 
       exit 0
@@ -95,7 +96,7 @@ do
       echo ""
       echo "This is TOP (The One Pipeline) "
       echo ""
-      echo "use -r or --reads to run from a set of paired fastq files e.g. TOP.sh -f /path/to/fastq"
+      echo "use -r or --reads to run from a set of paired fastq files e.g. TOP2.sh -f /path/to/fastq"
       echo "use -c or --cores to set the number of cores"
       echo "use -t or --tbdb to set the path to the mtb database"
       echo "use -f or --fastas to run from a set of fastas e.g. TOP.sh -f /path/to/fastas"
