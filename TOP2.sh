@@ -120,7 +120,7 @@ do
 done
 
 mkdir top_progress
-echo "Running The One Pipeline V1.1:"
+echo "Running The One Pipeline V2:"
 echo ""
 echo nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} -resume -with-timeline -with-report
 #Delete working directory if there is no error

@@ -97,7 +97,7 @@ echo "Using krakenDB located in "${kraken}
 echo ""
 
 
-source activate top_nf
+source activate top2_nf
 conda env config vars set KRAKENDB=${kraken}
 conda env config vars set TBDB=${tbdb}
 conda env config vars set TEMPDB=${CONDA_PREFIX}/top_temp
