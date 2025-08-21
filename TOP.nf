@@ -127,10 +127,10 @@ process KrakenRaw {
     fastqc ${fq1}
     fastqc ${fq2}
 
-    # /kraken2-2.1.2/kraken2 --use-names --report  ${sample}_R1_Raw_kraken_summaries.tsv --db /Kraken2DB/ ${fq1} > ${sample}_R1_Raw.kraken.tsv
+    # /kraken2-2.1.2/kraken2 --use-names --memory-mapping --report  ${sample}_R1_Raw_kraken_summaries.tsv --db /Kraken2DB/ ${fq1} > ${sample}_R1_Raw.kraken.tsv
     # Rscript /home/docker/CommonFiles/Code/KrakenParser.R
 
-    /kraken2-2.1.2/kraken2 --use-names --report  ${sample}_R2_Raw_kraken_summaries.tsv --db /Kraken2DB/ --paired ${fq1} ${fq2} > ${sample}_Raw.kraken.tsv
+    /kraken2-2.1.2/kraken2 --use-names --memory-mapping --report  ${sample}_R2_Raw_kraken_summaries.tsv --db /Kraken2DB/ --paired ${fq1} ${fq2} > ${sample}_Raw.kraken.tsv
     Rscript /home/docker/CommonFiles/Code/KrakenParser.R
 
 
@@ -292,7 +292,7 @@ process KrakenClean {
     script:
   
     """
-    /kraken2-2.1.2/kraken2 --use-names --report  ${sample}_Contigs_kraken_summaries.tsv --db /Kraken2DB/ ${clean} > ${sample}_cleancontigs.kraken.tsv
+    /kraken2-2.1.2/kraken2 --use-names --memory-mapping --report  ${sample}_Contigs_kraken_summaries.tsv --db /Kraken2DB/ ${clean} > ${sample}_cleancontigs.kraken.tsv
     Rscript /home/docker/CommonFiles/Code/KrakenParser.R
     echo "${sample},KrakenClean,Completed" >> /logs/run_logs.tsv
     """ 
@@ -316,10 +316,10 @@ process KrakenTrimmed {
     """
     fastqc ${trimmedR1}
     fastqc ${trimmedR2}
-    # /kraken2-2.1.2/kraken2 --use-names --report  ${sample}_R1_Trimmed_kraken_summaries.tsv --db /Kraken2DB/ ${trimmedR1}  > ${sample}_R1_Trimmed.kraken.tsv
+    # /kraken2-2.1.2/kraken2 --use-names --memory-mapping --report  ${sample}_R1_Trimmed_kraken_summaries.tsv --db /Kraken2DB/ ${trimmedR1}  > ${sample}_R1_Trimmed.kraken.tsv
     # Rscript /home/docker/CommonFiles/Code/KrakenParser.R
 
-    /kraken2-2.1.2/kraken2 --use-names --report  ${sample}_R2_Trimmed_kraken_summaries.tsv --db /Kraken2DB/ --paired ${trimmedR1} ${trimmedR2}  > ${sample}_Trimmed.kraken.tsv
+    /kraken2-2.1.2/kraken2 --use-names --memory-mapping --report  ${sample}_R2_Trimmed_kraken_summaries.tsv --db /Kraken2DB/ --paired ${trimmedR1} ${trimmedR2}  > ${sample}_Trimmed.kraken.tsv
     Rscript /home/docker/CommonFiles/Code/KrakenParser.R
     """ 
 
