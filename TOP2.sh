@@ -47,10 +47,10 @@ do
       shift 2
       ;;
     -x | --uninstall )
-      echo "Removing TOP"
-      rm ${TOPSHPATH}/TOP.sh
-      conda deactivate top_nf
-      conda remove -n top_nf --all
+      echo "Removing TOP2"
+      rm ${TOPSHPATH}/TOP2.sh
+      conda deactivate top2_nf
+      conda remove -n top2_nf --all
       echo "Note that you will have to delete the docker containers manually"
       exit 0
       ;;
@@ -60,10 +60,10 @@ do
       ;;
     -u | --update )
       echo "Updating The One Pipeline"
-      wget -O ${CONDA_PREFIX}/bin/TOP.nf https://github.com/garcia-nacho/TOP/raw/master/TOP.nf
-      wget -O ${CONDA_PREFIX}/bin/nextflow.config https://github.com/garcia-nacho/TOP/raw/master/nextflow.config
-      wget -O ${CONDA_PREFIX}/top_template.html https://github.com/garcia-nacho/TOP/raw/master/top_template.html
-      wget -O ${CONDA_PREFIX}/bin/TOP2.sh https://github.com/garcia-nacho/TOP/raw/master/TOP2.sh
+      wget -O ${CONDA_PREFIX}/bin/TOP.nf https://github.com/garcia-nacho/TOP/raw/dev/TOP.nf
+      wget -O ${CONDA_PREFIX}/bin/nextflow.config https://github.com/garcia-nacho/TOP/raw/dev/nextflow.config
+      wget -O ${CONDA_PREFIX}/top_template.html https://github.com/garcia-nacho/TOP/raw/dev/top_template.html
+      wget -O ${CONDA_PREFIX}/bin/TOP2.sh https://github.com/garcia-nacho/TOP/raw/dev/TOP2.sh
       
       docker pull ghcr.io/garcia-nacho/top_spades:v.1.1
       docker pull ghcr.io/garcia-nacho/top_abricate:v1.1
