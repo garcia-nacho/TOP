@@ -1,8 +1,8 @@
 #!/bin/bash
 
 source activate top2_nf
-SHORT=u,r:,f:,h,t:,c:,d,s:,x
-LONG=update,reads:,fastas:,help,tbdb:,cores:,dev,sp:,uninstall
+SHORT=u,r:,f:,h,t:,c:,d,s:,x,l
+LONG=update,reads:,fastas:,help,tbdb:,cores:,dev,sp:,uninstall,clean
 OPTS=$(getopt --options $SHORT --longoptions $LONG -- "$@")
 
 if [ $? != 0 ]; then
@@ -57,6 +57,20 @@ do
     -f | --fastas )
       echo "Running from fastas is not implemented yet"
       exit 0
+      ;;
+    -l | --clean )
+      
+      echo "Cleaning TOP2 temporary files"
+
+      rm -rf work
+      rm .nextflow.lo*
+      rm -rf .nexflo*
+      rm -rf $(pwd)/top_progress
+      rm report-*.html
+      rm timeline-*.html
+
+      exit 0
+
       ;;
     -u | --update )
       echo "Updating The One Pipeline"
