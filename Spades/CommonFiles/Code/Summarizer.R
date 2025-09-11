@@ -225,6 +225,7 @@ if(length(which(is.na(summ$MLST.Scheme)))>0 ) summ$MLST.Scheme[which(is.na(summ$
 if(length(which(summ$MLST.Type =="ND" )) >0 ) summ$MLST.Type[which(summ$MLST.Type =="ND" )]<-"Non Detected"
 if(length(which(summ$MLST.Scheme =="ND" )) >0 ) summ$MLST.Type[which(summ$MLST.Scheme =="ND" )]<-"Non Detected"
 
+summ$MLST.Scheme<-gsub(".*_MLST_","",summ$MLST.Scheme)
 
 #Abricate
 if(exists("out.abri"))rm(out.abri)
