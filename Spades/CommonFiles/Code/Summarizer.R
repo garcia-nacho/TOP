@@ -1423,17 +1423,36 @@ if(exists("outcds")) rm(outcds)
 
 for (i in 1:length(cds.files)) {
   dummy<-read.csv(cds.files[i])
+  
   if(colnames(dummy)[1]!="NoDiphto"){
-    dummy<-dummy[,which(colnames(dummy) %in% c( "Sample", "species", "species_match", "ST", "atpA", "dnaE", "dnaK", "fusA", "leuA",           
-                                                "odhA","rpoB","tox_allele","GENOMIC_CONTEXT","NoClass") )]
+    # dummy<-dummy[,which(colnames(dummy) %in% c( "Sample", "species", "species_match", "ST", "atpA", "dnaE", "dnaK", "fusA", "leuA",           
+    #                                             "odhA","rpoB","tox_allele","GENOMIC_CONTEXT","NoClass") )]
+    # 
     if(!exists("outcds")){
       outcds<-dummy
     }else{
+      
+      missingdum <- colnames(outcds)[-which(colnames(outcds) %in% colnames(dummy))]
+      missingout <- colnames(dummy)[-which(colnames(dummy) %in% colnames(outcds))]
+      
+      if(length(missingout)>0){
+        
+      padsum<-as.data.frame(matrix(NA, ncol = length(missingout), nrow = nrow(outcds)))
+      colnames(padsum)<-missingout
+      outcds<-cbind(outcds, padsum)
+
+      }
+      
+      if(length(missingdum)>0){
+        padout<-as.data.frame(matrix(NA, ncol = length(missingdum), nrow = nrow(dummy)))
+        colnames(padout)<-missingdum
+        dummy<-cbind(dummy, padout)
+      }
+      
       outcds<-rbind(outcds,dummy)
     }  
   }
 }
-
 
 
 
@@ -1473,29 +1492,29 @@ summ$DiphtoScan_fusA<-NULL
 
 
 # TBProfiler --------------------------------------------------------------
-tbp.files<-list.files(pattern = "tb_profiler.tsv")
-
-if(exists("outtbpro")) rm(outtbpro)
-
-for (i in 1:length(tbp.files)) {
-
-  dummy<-read.csv(tbp.files[i],sep = "\t")
-  if(colnames(dummy)[1]!="dummy"){
-    if(!exists("outtbpro")){
-      outtbpro<-dummy
-    }else{
-      outtbpro<-rbind(outtbpro,dummy)
-    }
-  }
-  
-}
-
-if(exists("outtbpro")){
-  outtbpro<-as.data.frame(apply(outtbpro,2,function(x) gsub("^DRUG_RESISTANCE / ", "", x)))
-  summ<-merge(summ, outtbpro, by="Sample",all.x = TRUE, all.y = FALSE)
-}
-
-colnames(summ)<-gsub("\\.x$","", colnames(summ))
+# tbp.files<-list.files(pattern = "tb_profiler.tsv")
+# 
+# if(exists("outtbpro")) rm(outtbpro)
+# 
+# for (i in 1:length(tbp.files)) {
+# 
+#   dummy<-read.csv(tbp.files[i],sep = "\t")
+#   if(colnames(dummy)[1]!="dummy"){
+#     if(!exists("outtbpro")){
+#       outtbpro<-dummy
+#     }else{
+#       outtbpro<-rbind(outtbpro,dummy)
+#     }
+#   }
+#   
+# }
+# 
+# if(exists("outtbpro")){
+#   outtbpro<-as.data.frame(apply(outtbpro,2,function(x) gsub("^DRUG_RESISTANCE / ", "", x)))
+#   summ<-merge(summ, outtbpro, by="Sample",all.x = TRUE, all.y = FALSE)
+# }
+# 
+# colnames(summ)<-gsub("\\.x$","", colnames(summ))
 
 
 
