@@ -936,6 +936,10 @@ if(length(tbp.list)>0){
 if(exists("out.tbp")) rm(out.tbp)
 for (i in 1:length(tbp.list)) {
   dummy<-read.csv(tbp.list[i], header = TRUE)
+
+  
+
+  
   if(colnames(dummy)[1]=="NoMyco"){
     dummy<-as.data.frame(matrix(NA,nrow = 1, ncol = 1))
     colnames(dummy)<-"Sample"
@@ -944,7 +948,6 @@ for (i in 1:length(tbp.list)) {
   if(!exists("out.tbp")){
     out.tbp<-dummy
   }else{
-    
     missing.dummy<- colnames(out.tbp)[-which(colnames(out.tbp) %in% colnames(dummy) )]
     if(length(missing.dummy)>0){
       padd<-as.data.frame(matrix(NA, nrow = nrow(dummy), ncol = length(missing.dummy)))
@@ -969,11 +972,12 @@ out.tbp$TB_lineage<-NULL
 
 
 if(mashtb[1,1]!="NonTB_in_the_run"){
+  colnames(mashtb)[which(colnames(mashtb)=="samples")]<-"Sample"
   colnames(mashtb)[-1]<-paste("TB_",colnames(mashtb)[-1],sep = "")
-  out.tbp<-merge(mashtb, out.tbp,by.x = "samples", by.y="Sample", all.x = TRUE)
+  out.tbp<-merge(mashtb, out.tbp,by = "Sample", all= TRUE)
 }
 
-summ<-merge(summ, out.tbp, by.x="Sample", by.y="samples", all.x=TRUE)
+summ<-merge(summ, out.tbp, by="Sample", all.x=TRUE)
 rm(out.tbp)
 }
 

@@ -410,13 +410,18 @@ for (f in 1:length(inputs)) {
     if(length(df)==0)cg_out$cgMLST<-NA
     if(length(df)==0)cg_out$Score<-NA
   }else{
-    cg_out<-as.data.frame(NA)
-    colnames(cg_out)<-"cgMLST"
-    cg_out$Score<-NA
-    cg_out$Sample<-gsub( "_cgmlst.json","", inputs[f])
-    cg_out$AllelesFound<-NA
-    cg_out$cgMLSTDate<-NA
-    cg_out$cgMLST_Warning<-"Server Not responding"
+    cg<-as.data.frame(NA)
+    colnames(cg)<-"cgMLST"
+    cg$Score<-NA
+    cg$Sample<-gsub( "_cgmlst.json","", inputs[f])
+    cg$AllelesFound<-NA
+    cg$cgMLSTDate<-NA
+    cg$cgMLST_Warning<-"Server Not responding"
+    if(!exists("cg_out")){
+      cg_out<-cg
+    }else{
+      cg_out<-rbind(cg_out,cg)
+    }
 
   }
 }
