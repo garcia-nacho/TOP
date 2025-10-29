@@ -1218,9 +1218,9 @@ for (i in 1:nrow(summ)) {
     
     if(length(grep("stx1", stxvar2))>0){
       if(is.na(summ$Stx1[i])){
-        summ$Stx1[i]<-paste("Reads:", paste(stxvar[grep("stx1", stxvar2)], collapse = ";"),sep = "")  
+        summ$Stx1[i]<-paste("Reads:", paste(stxvar2[grep("stx1", stxvar2)], collapse = ";"),sep = "")  
       }else{
-        summ$Stx1[i]<-paste(summ$Stx1[i], paste("Reads:", paste(stxvar[grep("stx1", stxvar2)], collapse = ";"),sep = ""), sep = " | ")
+        summ$Stx1[i]<-paste(summ$Stx1[i], paste("Reads:", paste(stxvar2[grep("stx1", stxvar2)], collapse = ";"),sep = ""), sep = " | ")
       }
     }
     if(length(grep("stx2", stxvar2))>0){
