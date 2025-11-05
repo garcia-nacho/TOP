@@ -23,6 +23,7 @@ RUN conda update numpy
 RUN conda install -c bioconda ncbi-amrfinderplus
 
 USER root  
+RUN Rscript -e "install.packages(c('jsonlite', 'writexl'), repos = 'http://cran.us.r-project.org')"
 
 COPY diphtoscan /home/docker/diphtoscan
 RUN /home/docker/diphtoscan/script/update_tools.sh

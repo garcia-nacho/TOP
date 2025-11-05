@@ -2,6 +2,7 @@
 
 // Declare syntax version
 nextflow.enable.dsl=2
+println ">>> softtrimming param received: ${params.softtrimming}"
 
 params.readsfolder = "."
 params.publishDir = params.readsfolder+"/TOPresults"
@@ -12,9 +13,10 @@ params.krakenDB="/media/nacho/Data/kraken2_standard_20220926/"
 params.TBDB="/mnt/N/NGS/TB_pipeline/TB_pipeline_database/DB/"
 params.tempfolder="/media/nacho/Data/temp/toptest/tempdb/"
 params.devrun="No"
-params.min_reads = 100000 
+params.min_reads = 40000 
 params.adapters="TruSeq"
 params.progress_dir = "/media/nacho/Data/temp/toptest/TOPv1.1test/test"
+params.softtrimming = "No"
 
 params.reads=params.readsfolder+"/*/*_{R1,R2}*.fastq.gz"
 
@@ -91,11 +93,25 @@ process Trimming {
     """
     ln -s *_R1* ${sample}_ln_R1_001.fastq.gz
     ln -s *_R2* ${sample}_ln_R2_001.fastq.gz
-    if [ params.adapters == "Kapa" ]
+    echo ">>> adapters = ${params.adapters}"
+    echo ">>> softtrimming = ${params.softtrimming}"
+    
+    if [ "${params.adapters}" == "Kapa" ]
     then
-        trimmomatic PE -phred33 -basein ${sample}_ln_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+        if [ "${params.softtrimming}" == "Yes" ]
+        then
+            trimmomatic PE -phred33 -basein ${sample}_ln_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10
+        else
+            trimmomatic PE -phred33 -basein ${sample}_ln_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/Kapa-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+        fi
+        
     else
-        trimmomatic PE -phred33 -basein ${sample}_ln_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/TruSeq3-PE-2.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+        if [ "${params.softtrimming}" == "Yes" ]
+        then
+            trimmomatic PE -phred33 -basein ${sample}_ln_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/TruSeq3-PE-2.fa:2:30:10
+        else
+            trimmomatic PE -phred33 -basein ${sample}_ln_R1_001.fastq.gz -baseout ${sample}.fastq.gz  ILLUMINACLIP:/home/docker/CommonFiles/adapters/TruSeq3-PE-2.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:36
+        fi
     fi
 
     rm ${sample}_ln_R1_001.fastq.gz

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 source activate top2_nf
-SHORT=u,r:,f:,h,t:,c:,d,s:,x,l
-LONG=update,reads:,fastas:,help,tbdb:,cores:,dev,sp:,uninstall,clean
+SHORT=u,r:,f:,h,t:,c:,d,s,x,l
+LONG=update,reads:,fastas:,help,tbdb:,cores:,dev,uninstall,clean,soft
 OPTS=$(getopt --options $SHORT --longoptions $LONG -- "$@")
 
 if [ $? != 0 ]; then
@@ -16,12 +16,13 @@ if [ $? != 0 ]; then
     echo "use -h or --help to show this help" 
     echo "use -u or --update to update the pipeline"
     echo "use -x or --uninstall to uninstall the pipeline" 
+    echo "-s or --soft to run a soft trimming of the adapters"
     echo ""
     conda deactivate
     exit 1
 fi
 
-
+SOFT="No"
 READS=$(pwd)
 devmode=0
 eval set -- "$OPTS"
@@ -34,10 +35,6 @@ do
       SPADESCORES=$((${TOPCORES}-2))
       shift 2
       ;;
-    -s | --sp )
-      echo "Specie specific tools are not implemented yet"
-      exit 2
-      ;;
     -t | --tbdb )
       TBDB="$2"
       shift 2
@@ -45,6 +42,10 @@ do
     -r | --reads )
       READS="$2"
       shift 2
+      ;;
+    -s | --soft )
+      SOFT="Yes"
+      shift
       ;;
     -x | --uninstall )
       echo "Removing TOP2"
@@ -98,8 +99,6 @@ do
       docker pull ghcr.io/garcia-nacho/top_diphtoscan
       docker pull ghcr.io/garcia-nacho/top_bpprofiler
       docker pull ghcr.io/garcia-nacho/top_pbp3
-
-
       exit 0
       ;;
     -d | --dev )
@@ -136,11 +135,11 @@ done
 mkdir top_progress
 echo "Running The One Pipeline V2:"
 echo ""
-echo nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} -resume -with-timeline -with-report
+echo nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} --softtrimming ${SOFT} -resume -with-timeline -with-report
 #Delete working directory if there is no error
 echo ""
 #nextflow run main.nf -with-dag TOP_flow.dot
-nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} --progress_dir $(pwd)/top_progress -resume -with-timeline -with-report
+nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} --progress_dir $(pwd)/top_progress --softtrimming ${SOFT} -resume -with-timeline -with-report
 
 if test -f "${READS}/TOPresults/Summaries_"*".xlsx"
 then

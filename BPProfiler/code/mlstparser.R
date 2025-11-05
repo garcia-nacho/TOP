@@ -11,7 +11,7 @@ if(file.exists("profiles_cgmlst.tsv")){
 
 
 if(file.exists("profiles_mlst.tsv")){
-  mlst_profile<-read.csv("profiles_cgmlst.tsv",sep = "\t")
+  mlst_profile<-read.csv("profiles_mlst.tsv",sep = "\t")
   mlst_profile_date<-paste(gsub("-","",Sys.Date()), "_PASTEUR.FR",sep = "")
   
 }else{
