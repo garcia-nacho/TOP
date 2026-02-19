@@ -43,4 +43,9 @@ RUN cd /home/docker/pyngSTar/ && python3 pyngSTar.py -p pyngSTarDB_050923 -u
 #RUN cd /home/docker/pyngSTar/ && python3 pyngSTar.py -p pyngSTarDB_02012024 -u
 RUN cd /home/docker/pyngSTar/ && python3 pyngSTar.py -p pyngSTarDB_03032025 -u
 
+COPY Code/CreateDB.R /home/docker/CreateDB.R
+USER root
+RUN Rscript -e "install.packages('readxl')"
+USER docker
+
 CMD /usr/bin/ngstar.sh

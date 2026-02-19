@@ -1,0 +1,14 @@
+Antibiotic	genes with associcated res or res-interim with LOF = table 1	Locus_tag	NC_000962.3_start	NC_000962.3_end	Strand
+Delamanid	ddn	Rv3547	3986844	3987299	+
+Ethionamide	ethA	Rv3854c	4326004	4327473	-
+Delamanid	fbiA	Rv3261	3640543	3641538	+
+Delamanid	fbiB	Rv3262	3641535	3642881	+
+Delamanid	fbiC	Rv1173	1302931	1305501	+
+Delamanid	fgd1	Rv0407	490783	491793	+
+Streptomycin	gid	Rv3919c	4407528	4408202	-
+Isoniazid	katG	Rv1908c	2153889	2156111	-
+Bedaquiline/Clofazimine	pepQ	Rv2535c	2859300	2860418	-
+Pyrazinamide	pncA	Rv2043c	2288681	2289241	-
+Bedaquiline/Clofazimine	Rv0678	Rv0678	778990	779487	+
+Delamanid	Rv2983	Rv2983	3339118	3339762	+
+Capreomycin	tlyA	Rv1694	1917940	1918746	+

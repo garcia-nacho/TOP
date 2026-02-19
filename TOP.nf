@@ -461,7 +461,16 @@ process NGstar {
       cp -L ${sample}_clean_contigs.fasta ${sample}_clean_contigs_nolink.fasta
       cat ${sample}_clean_contigs_nolink.fasta | tr 'a-z' 'A-Z' > ${sample}_clean_contigs_nocap.fasta
       #python3 /home/docker/pyngSTar/pyngSTar.py -f -i ${sample}_clean_contigs_nocap.fasta -p /home/docker/pyngSTar/pyngSTarDB_02012024/ -o ${sample}_ngstar_results.tsv
-      python3 /home/docker/pyngSTar/pyngSTar.py -f -i ${sample}_clean_contigs_nocap.fasta -p /home/docker/pyngSTar/pyngSTarDB_03032025/ -o ${sample}_ngstar_results.tsv  
+      
+      #URL="https://ngstar.canada.ca/alleles/download?lang=en&loci_name=23S"
+      
+      mkdir /home/docker/pyngSTar/pyngSTarDB_rolling/
+      Rscript /home/docker/CreateDB.R
+      rm /home/docker/pyngSTar/pyngSTarDB_rolling/profiles.xlsx
+      python3 /home/docker/pyngSTar/pyngSTar.py -p /home/docker/pyngSTar/pyngSTarDB_rolling/ -u
+       
+      #python3 /home/docker/pyngSTar/pyngSTar.py -f -i ${sample}_clean_contigs_nocap.fasta -p /home/docker/pyngSTar/pyngSTarDB_03032025/ -o ${sample}_ngstar_results.tsv
+      python3 /home/docker/pyngSTar/pyngSTar.py -f -i ${sample}_clean_contigs_nocap.fasta -p /home/docker/pyngSTar/pyngSTarDB_rolling/ -o ${sample}_ngstar_results.tsv  
       
 
         logstring="${sample},NGStar,Completed"

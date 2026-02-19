@@ -37,7 +37,7 @@ for (i in 1:length(results)) {
     }
     score<-score/length(primer) 
     
-    if(length(which(score==1))){
+    if(length(which(score==1))==1){
       tmp.sq<-tmp.sq[which(score==1): min(length(tmp.sq), which(score==1)+500)]
     }
     
@@ -57,7 +57,7 @@ for (i in 1:length(results)) {
     }
     score<-score/length(primer) 
     
-    if(length(which(score==1))){
+    if(length(which(score==1))==1){
       tmp.sq<-tmp.sq[which(score==1): min(length(tmp.sq), which(score==1)+500)]
     }
     
