@@ -1,8 +1,8 @@
 #!/bin/bash
 
 source activate top2_nf
-SHORT=u,r:,f:,h,t:,c:,d,s,x,l
-LONG=update,reads:,fastas:,help,tbdb:,cores:,dev,uninstall,clean,soft
+SHORT=u,r:,f:,h,t:,c:,d,s,x,l,n
+LONG=update,reads:,fastas:,help,tbdb:,cores:,dev,uninstall,clean,soft,ont
 OPTS=$(getopt --options $SHORT --longoptions $LONG -- "$@")
 
 if [ $? != 0 ]; then
@@ -17,12 +17,14 @@ if [ $? != 0 ]; then
     echo "use -u or --update to update the pipeline"
     echo "use -x or --uninstall to uninstall the pipeline" 
     echo "-s or --soft to run a soft trimming of the adapters"
+    echo "-n or --ont to run the Nanopore version of the pipeline"
     echo ""
     conda deactivate
     exit 1
 fi
 
 SOFT="No"
+ONT="No"
 READS=$(pwd)
 devmode=0
 eval set -- "$OPTS"
@@ -45,6 +47,10 @@ do
       ;;
     -s | --soft )
       SOFT="Yes"
+      shift
+      ;;
+    -o | --ont )
+      ONT="Yes"
       shift
       ;;
     -x | --uninstall )
@@ -76,6 +82,7 @@ do
     -u | --update )
       echo "Updating The One Pipeline"
       wget -O ${CONDA_PREFIX}/bin/TOP.nf https://github.com/garcia-nacho/TOP/raw/dev/TOP.nf
+      wget -O ${CONDA_PREFIX}/bin/TOP_ont.nf https://github.com/garcia-nacho/TOP/raw/dev/TOP_ont.nf
       wget -O ${CONDA_PREFIX}/bin/nextflow.config https://github.com/garcia-nacho/TOP/raw/dev/nextflow.config
       wget -O ${CONDA_PREFIX}/top_template.html https://github.com/garcia-nacho/TOP/raw/dev/top_template.html
       wget -O ${CONDA_PREFIX}/bin/TOP2.sh https://github.com/garcia-nacho/TOP/raw/dev/TOP2.sh
@@ -87,6 +94,7 @@ do
       docker pull ghcr.io/garcia-nacho/top_seroba:v1.1
       docker pull ghcr.io/garcia-nacho/top_virfinder:v1.1
       #docker pull ghcr.io/garcia-nacho/top_prokka
+      docker pull ghcr.io/garcia-nacho/top_ont
       docker pull ghcr.io/garcia-nacho/top_ngstar:v1.1
       docker pull ghcr.io/garcia-nacho/top_tbpipeline:v1.1
       docker pull ghcr.io/garcia-nacho/top_seqsero:v1.1
@@ -109,6 +117,7 @@ do
       echo ""
       echo "This is TOP (The One Pipeline) "
       echo ""
+      echo "use -n or --ont to run the Nanopore version of the pipeline"
       echo "use -r or --reads to run from a set of paired fastq files e.g. TOP2.sh -f /path/to/fastq"
       echo "use -c or --cores to set the number of cores"
       echo "use -t or --tbdb to set the path to the mtb database"
@@ -118,6 +127,7 @@ do
       echo "use -u or --update to update the pipeline"
       echo "use -p or --private to prevent updating the database on test runs or private samples"
       echo "use -x or --uninstall to uninstall the pipeline" 
+      
       echo ""
       exit 0
       ;;
@@ -133,13 +143,28 @@ do
 done
 
 mkdir top_progress
-echo "Running The One Pipeline V2:"
-echo ""
-echo nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} --softtrimming ${SOFT} -resume -with-timeline -with-report
-#Delete working directory if there is no error
-echo ""
-#nextflow run main.nf -with-dag TOP_flow.dot
-nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} --progress_dir $(pwd)/top_progress --softtrimming ${SOFT} -resume -with-timeline -with-report
+
+if ${ONT}=="No"
+then
+
+  echo "Running The One Pipeline V2: Illumina"
+  echo ""
+  echo nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} --softtrimming ${SOFT} -resume -with-timeline -with-report
+  echo ""
+  nextflow ${CONDA_PREFIX}/bin/TOP.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} --progress_dir $(pwd)/top_progress --softtrimming ${SOFT} -resume -with-timeline -with-report
+
+else
+
+  echo "Running The One Pipeline V2: Nanopore"
+  echo ""
+  echo nextflow ${CONDA_PREFIX}/bin/TOP_ont.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} --softtrimming ${SOFT} -resume -with-timeline -with-report
+  echo ""
+  rm /home/docker/CommonFiles/Versions.csv
+  cp /home/docker/CommonFiles/Versions_ont.csv /home/docker/CommonFiles/Versions.csv
+  nextflow ${CONDA_PREFIX}/bin/TOP_ont.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} --progress_dir $(pwd)/top_progress --softtrimming ${SOFT} -resume -with-timeline -with-report
+
+fi
+
 
 if test -f "${READS}/TOPresults/Summaries_"*".xlsx"
 then
@@ -148,11 +173,9 @@ then
     rm -rf top_progress
 fi
 
-
 if test -f "${READS}/TOPresults/TB_Pipeline/Non_MTBC_samples_in_the_run"
 then
     rm -rf ${READS}/TOPresults/TB_Pipeline/
 fi
 
 conda deactivate
-

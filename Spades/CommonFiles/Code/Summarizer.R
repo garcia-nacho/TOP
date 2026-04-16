@@ -1371,8 +1371,8 @@ for (i in 1:length(bpe)) {
 
 if(exists("outbpe")){
 outbpe$Sample<-gsub("_.*","",outbpe$Sample)
-colnames(outbpe)[14]<-"cgMLST_Score"
-colnames(outbpe)[15]<-"cgMLST_AlellesFound"
+colnames(outbpe)[which(colnames(outbpe)=="Score")]<-"cgMLST_Score"
+colnames(outbpe)[which(colnames(outbpe)=="AllelesFound")]<-"cgMLST_AlellesFound"
 colnames(outbpe)[-1]<-paste("BPE_",gsub("^BPE_","",colnames(outbpe)[-1]),sep = "")
 
 summ<-merge(summ, outbpe, by="Sample",all.x = TRUE, all.y = FALSE)

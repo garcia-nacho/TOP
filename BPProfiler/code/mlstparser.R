@@ -25,10 +25,10 @@ inputs<-list.files(pattern = "_mlst.json")
 
 for (f in 1:length(inputs)) {
   if(exists("df")) rm(df)
-
-  try(df<-fromJSON(inputs[f]))
   
-  if(exists("df")){
+  if(file.size(inputs[f])>0){
+    try(df<-fromJSON(inputs[f]))  
+
     
 
     if(!is.null(df$fields$ST)){
@@ -76,13 +76,13 @@ for (f in 1:length(inputs)) {
     }else{
       mlst_out<-rbind(mlst_out,output)
     }
-    if(length(df)==0)mlst_out$MLST_BPE_Warning<-"Server error"
+    if(length(df)==0)mlst_out$MLST_BPE_Warning<-"Server error/Non Bpe"
   }else{
 
     mlst_out<-as.data.frame(NA)  
     colnames(mlst_out)<-"MLST.Type"
     mlst_out$ClonalComplex<-NA
-    mlst_out$MLST_BPE_Warning<-"Server error"
+    mlst_out$MLST_BPE_Warning<-"Server error/Non Bpe"
     mlst_out$Sample<-gsub("_mlst.json","",inputs[f])
 
 
@@ -100,9 +100,8 @@ outamr<-list()
 for (f in 1:length(inputs)) {
   if(exists("df")) rm(df)
   
-  try(df<-fromJSON(inputs[f]))
-  
-  if(exists("df")){
+  if(file.size(inputs[f])>0){
+    try(df<-fromJSON(inputs[f]))  
     
     if(!is.null(df$exact_matches)){
       
@@ -138,7 +137,7 @@ for (f in 1:length(inputs)) {
     }  
 
   }else{
-      output<-as.data.frame(t(c("DBError", "DBError")))
+      output<-as.data.frame(t(c("ND", "ND")))
       colnames(output)<-c("BPE_23S", "BPE_AMRscheme")
   }
   output$Sample<-gsub("_amrst.json","",inputs[f])
@@ -155,9 +154,9 @@ outphase<-list()
 for (f in 1:length(inputs)) {
   if(exists("df")) rm(df)
   
-  try(df<-fromJSON(inputs[f]))
-  
-  if(exists("df")){
+  if(file.size(inputs[f])>0){
+    try(df<-fromJSON(inputs[f]))  
+
     
     if(!is.null(df$exact_matches)){
       
@@ -183,7 +182,7 @@ for (f in 1:length(inputs)) {
     }  
     
   }else{
-    output<-as.data.frame(c("DBError"))
+    output<-as.data.frame(c("ND"))
     colnames(output)<-"BPE_PhaseScheme"
   }
   output$Sample<-gsub("_phasest.json","",inputs[f])
@@ -200,9 +199,9 @@ outtoxin<-list()
 for (f in 1:length(inputs)) {
   if(exists("df")) rm(df)
   
-  try(df<-fromJSON(inputs[f]))
-  
-  if(exists("df")){
+  if(file.size(inputs[f])>0){
+    try(df<-fromJSON(inputs[f]))  
+
     
     if(!is.null(df$exact_matches)){
       
@@ -228,7 +227,7 @@ for (f in 1:length(inputs)) {
     }  
     
   }else{
-    output<-as.data.frame(c("DBError"))
+    output<-as.data.frame(c("ND"))
     colnames(output)<-"BPE_ToxinScheme"
   }
   output$Sample<-gsub("_toxinst.json","",inputs[f])
@@ -246,9 +245,9 @@ outvac<-list()
 for (f in 1:length(inputs)) {
   if(exists("df")) rm(df)
   
-  try(df<-fromJSON(inputs[f]))
-  
-  if(exists("df")){
+  if(file.size(inputs[f])>0){
+    try(df<-fromJSON(inputs[f]))  
+
     
     if(!is.null(df$fields$BPagST)){
       agst<-df$fields$BPagST
@@ -284,9 +283,9 @@ for (f in 1:length(inputs)) {
     }  
     
   }else{
-    output<-as.data.frame(c("DBError"))
+    output<-as.data.frame(c("ND"))
     colnames(output)<-"BPE_AgProfileScheme"
-    output$BPE_AgProfileType<-"DBError"
+    output$BPE_AgProfileType<-"ND"
   }
   output$Sample<-gsub("_bpagst.json","",inputs[f])
   outvac<-c(outvac, list(output))
@@ -304,9 +303,9 @@ outtss3<-list()
 for (f in 1:length(inputs)) {
   if(exists("df")) rm(df)
   
-  try(df<-fromJSON(inputs[f]))
-  
-  if(exists("df")){
+  if(file.size(inputs[f])>0){
+    try(df<-fromJSON(inputs[f]))  
+
     
     if(!is.null(df$fields$T3SStype)){
       agst<-df$fields$T3SStype
@@ -342,9 +341,9 @@ for (f in 1:length(inputs)) {
     }  
     
   }else{
-    output<-as.data.frame(c("DBError"))
+    output<-as.data.frame(c("ND"))
     colnames(output)<-"BPE_T3SSScheme"
-    output$BPE_T3SSType<-"DBError"
+    output$BPE_T3SSType<-"ND"
   }
   output$Sample<-gsub("_tss3st.json","",inputs[f])
   outtss3<-c(outtss3, list(output))
@@ -362,9 +361,9 @@ for (f in 1:length(inputs)) {
 
   if(exists("df")) rm(df)
 
-  try(df<-fromJSON(inputs[f]))
+  if(file.size(inputs[f])>0){
+    try(df<-fromJSON(inputs[f]))  
 
-  if(exists("df")){
   
     if(is.null(df$exact_matches)){
       cgdf<-as.data.frame(NA)
@@ -406,7 +405,7 @@ for (f in 1:length(inputs)) {
     }else{
       cg_out<-rbind(cg_out,cg)
     }
-    if(length(df)==0)cg_out$cgMLST_BPE_Warning<-"Server error"
+    if(length(df)==0)cg_out$cgMLST_BPE_Warning<-"Server error/Non Bpe"
     if(length(df)==0)cg_out$cgMLST<-NA
     if(length(df)==0)cg_out$Score<-NA
   }else{
@@ -416,7 +415,7 @@ for (f in 1:length(inputs)) {
     cg$Sample<-gsub( "_cgmlst.json","", inputs[f])
     cg$AllelesFound<-NA
     cg$cgMLSTDate<-NA
-    cg$cgMLST_Warning<-"Server Not responding"
+    cg$cgMLST_Warning<-"Server error/Non Bpe"
     if(!exists("cg_out")){
       cg_out<-cg
     }else{

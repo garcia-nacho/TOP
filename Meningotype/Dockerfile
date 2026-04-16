@@ -29,9 +29,11 @@ RUN conda install -c bioconda mlst
 RUN pip install --user git+https://github.com/MDU-PHL/meningotype.git
 
 COPY menwy.py /home/docker/.local/lib/python3.10/site-packages/meningotype/menwy.py
+COPY meningotype.py /home/docker/.local/lib/python3.10/site-packages/meningotype/meningotype.py
 
 USER root
 RUN chmod +x /home/docker/.local/lib/python3.10/site-packages/meningotype/menwy.py
+RUN chmod +x /home/docker/.local/lib/python3.10/site-packages/meningotype/meningotype.py
 RUN ln -s /home/docker/.local/bin/* /usr/bin
 RUN apt-get update \
     && apt-get install -y --no-install-recommends file
