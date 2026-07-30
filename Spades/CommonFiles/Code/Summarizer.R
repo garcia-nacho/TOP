@@ -1583,7 +1583,7 @@ if(exists("outhcg")){
 #Check nanopore vs Illumina
 
 sum.txts<-list.files(recursive = FALSE,pattern = "Bowtie2summary.txt")
-isont<-read.csv(sum.txts,header = FALSE)
+isont<-read.csv(sum.txts[1],header = FALSE)
 if(is.na(isont[1,1])){
   versions<-read.csv("/home/docker/CommonFiles/Versions_ont.csv", sep = ";", header = FALSE)
 }else{
