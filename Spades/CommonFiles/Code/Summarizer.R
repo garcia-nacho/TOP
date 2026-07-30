@@ -341,7 +341,7 @@ if(exists("out.seroba")) rm(out.seroba)
 for (i in 1:length(serolist)) {
   dummy<-read.csv(serolist[i])
   #Fix no hicap
-  if(dummy[1,1]=="NoSpne"){
+  if(colnames(dummy)[1]=="NoSpne"){
     dummy<-as.data.frame(matrix(NA))
     colnames(dummy)[1]<-"Seroba_Predicted_Serotype"
     dummy$Sample<-gsub("_.*","",serolist[i])
@@ -1579,7 +1579,17 @@ if(exists("outhcg")){
 
 
 # versions ------------------------------------------------------------
-versions<-read.csv("/home/docker/CommonFiles/Versions.csv", sep = ";", header = FALSE)
+
+#Check nanopore vs Illumina
+
+sum.txts<-list.files(recursive = FALSE,pattern = "Bowtie2summary.txt")
+isont<-read.csv(sum.txts,header = FALSE)
+if(is.na(isont[1,1])){
+  versions<-read.csv("/home/docker/CommonFiles/Versions_ont.csv", sep = ";", header = FALSE)
+}else{
+  versions<-read.csv("/home/docker/CommonFiles/Versions.csv", sep = ";", header = FALSE)
+}
+  
 #versions<-read.csv("/media/nacho/Data/DockerImages/TOP_dev/Spades/CommonFiles/Versions.csv", sep = ";", header = FALSE)
 
 summ$Software_versions<-paste(paste(versions$V1,versions$V2, sep = ":"), collapse = " | ")
