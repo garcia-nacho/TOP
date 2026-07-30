@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source activate top2_nf
-SHORT=u,r:,f:,h,t:,c:,d,s,x,l,n
+SHORT=u,r:,f:,h,t:,c:,d,s,x,l,o
 LONG=update,reads:,fastas:,help,tbdb:,cores:,dev,uninstall,clean,soft,ont
 OPTS=$(getopt --options $SHORT --longoptions $LONG -- "$@")
 
