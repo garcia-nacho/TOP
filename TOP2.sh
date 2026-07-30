@@ -94,7 +94,6 @@ do
       #docker pull ghcr.io/garcia-nacho/top_seroba:v1.1
       docker pull ghcr.io/garcia-nacho/top_virfinder:v1.1
       #docker pull ghcr.io/garcia-nacho/top_prokka
-      docker pull ghcr.io/garcia-nacho/top_ont
       docker pull ghcr.io/garcia-nacho/top_ngstar:v1.1
       docker pull ghcr.io/garcia-nacho/top_tbpipeline:v1.1
       docker pull ghcr.io/garcia-nacho/top_seqsero:v1.1
@@ -146,8 +145,7 @@ done
 
 mkdir top_progress
 
-if ${ONT}=="No"
-then
+if [[ "$ONT" == "No" ]]; then
 
   echo "Running The One Pipeline V2: Illumina"
   echo ""
