@@ -17,7 +17,7 @@ if [ $? != 0 ]; then
     echo "use -u or --update to update the pipeline"
     echo "use -x or --uninstall to uninstall the pipeline" 
     echo "-s or --soft to run a soft trimming of the adapters"
-    echo "-n or --ont to run the Nanopore version of the pipeline"
+    echo "-o or --ont to run the Nanopore version of the pipeline"
     echo ""
     conda deactivate
     exit 1
@@ -87,11 +87,11 @@ do
       wget -O ${CONDA_PREFIX}/top_template.html https://github.com/garcia-nacho/TOP/raw/dev/top_template.html
       wget -O ${CONDA_PREFIX}/bin/TOP2.sh https://github.com/garcia-nacho/TOP/raw/dev/TOP2.sh
       
-      docker pull ghcr.io/garcia-nacho/top_spades:v.1.1
+      docker pull ghcr.io/garcia-nacho/top_spades:v.1.2
       docker pull ghcr.io/garcia-nacho/top_abricate:v1.1
       docker pull ghcr.io/garcia-nacho/top_emmtyper:v1.1
       docker pull ghcr.io/garcia-nacho/top_hicap:v1.1
-      docker pull ghcr.io/garcia-nacho/top_seroba:v1.1
+      #docker pull ghcr.io/garcia-nacho/top_seroba:v1.1
       docker pull ghcr.io/garcia-nacho/top_virfinder:v1.1
       #docker pull ghcr.io/garcia-nacho/top_prokka
       docker pull ghcr.io/garcia-nacho/top_ont
@@ -107,6 +107,8 @@ do
       docker pull ghcr.io/garcia-nacho/top_diphtoscan
       docker pull ghcr.io/garcia-nacho/top_bpprofiler
       docker pull ghcr.io/garcia-nacho/top_pbp3
+      docker pull ghcr.io/garcia-nacho/top_ont
+      docker pull ghcr.io/garcia-nacho/top_seroba2
       exit 0
       ;;
     -d | --dev )
@@ -159,8 +161,7 @@ else
   echo ""
   echo nextflow ${CONDA_PREFIX}/bin/TOP_ont.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} --softtrimming ${SOFT} -resume -with-timeline -with-report
   echo ""
-  rm /home/docker/CommonFiles/Versions.csv
-  cp /home/docker/CommonFiles/Versions_ont.csv /home/docker/CommonFiles/Versions.csv
+
   nextflow ${CONDA_PREFIX}/bin/TOP_ont.nf --readsfolder "${READS}" --krakenDB "${KRAKENDB}" --TBDB "${TBDB}" --tempfolder "${TEMPDB}" --spadescores ${SPADESCORES} --threads ${TOPCORES} --progress_dir $(pwd)/top_progress --softtrimming ${SOFT} -resume -with-timeline -with-report
 
 fi

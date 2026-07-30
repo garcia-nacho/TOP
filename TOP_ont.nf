@@ -256,7 +256,7 @@ process Cleaning {
 }
 
 process KrakenONT {
-    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
+    container 'ghcr.io/garcia-nacho/top_spades:v1.2'
     containerOptions '--volume '+params.krakenDB+':/Kraken2DB --volume '+params.progress_dir+':/logs'
     maxForks = 1
     
@@ -320,7 +320,7 @@ process DummyFastq {
 
 
 process Integration {
-    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
+    container 'ghcr.io/garcia-nacho/top_spades:v1.2'
     containerOptions '--volume '+params.progress_dir+':/logs'
 
 
@@ -417,12 +417,14 @@ process Integration {
     if test -f "*dummy_seqsero_tar.gz"; then rm *dummy_seqsero_tar.gz; fi
     if test -f "*seqsero_tar.gz"; then mv seqsero_tar.gz ./QC; fi
 
-    if test -f "*.tsv"; then mv *.tsv ./QC; fi
-    if test -f "*.gbk"; then mv *.gbk ./QC; fi
-    if test -f "*.log"; then mv *.log ./QC; fi
-    if test -f "*.svg"; then mv *.svg ./QC; fi
-    if test -f "*.csv"; then mv *.csv ./QC; fi
-
+    if compgen -G "*.tsv" > /dev/null; then
+       mv -- *.tsv ./QC/
+    fi
+   
+    if compgen -G "*.csv" > /dev/null; then
+       mv -- *.csv ./QC/
+    fi
+   
     mkdir bam
     mv *.bam ./bam
     mv *.bai ./bam

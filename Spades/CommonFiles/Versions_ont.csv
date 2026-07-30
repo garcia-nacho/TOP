@@ -1,7 +1,7 @@
 TOP_ONT;2.0
-Flye;
-racon;
-Medaka;
+Flye;2.9.5-b1801
+racon;1.5.0
+Medaka;2.0.1
 mlst;2.23.0
 Kraken2;2.1.2
 Trimmomatic;0.39
@@ -11,7 +11,7 @@ AbricateDB;2023-Nov-4
 NGStar;leosanbu/pyngSTar-2024-Jan-01
 NGStarDB;2025-Mar-03
 Hicap;1.0.3
-Seroba;1.0.2
+Seroba;2.0.6
 Virulencefinder;1.0.1
 VirulencefinderDB;2025-Feb-27
 emmtyper;0.2.0

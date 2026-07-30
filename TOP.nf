@@ -612,7 +612,7 @@ process HinfPBP3 {
 }
 
 process Seroba { 
-    container 'ghcr.io/garcia-nacho/top_seroba:v1.1'
+    container 'ghcr.io/garcia-nacho/top_seroba2'
     containerOptions '--volume '+params.progress_dir+':/logs'
     cpus 1
     maxForks = 1
@@ -624,25 +624,26 @@ process Seroba {
     path(agent)
 
     output:
-    path("*.tsv"), emit: seroba_results
+    path("*seroba.csv"), emit: seroba_results
 
     script:
 
     """
     if test -f "Spne.agent"; 
     then
-        source activate seroba
+        
         seroba runSerotyping /home/docker/seroba/database/ ${r1} ${r2} ${sample}
-        mv ${sample}/*.tsv ./${sample}_seroba.tsv
+        
+        mv ${sample}/pred.csv ./${sample}_seroba.csv
         rm -rf dummy
-        conda deactivate
+        
 
         logstring="${sample},Seroba,Completed"
         logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
         echo \${logstring} >> /logs/\${logkey}_logs.tsv
 
     else
-        echo "NoSpne" > ${sample}_seroba.tsv
+        echo "NoSpne" > ${sample}_seroba.csv
 
         logstring="${sample},Seroba,Skipped"
         logkey=\$(echo -n \${logstring} | md5sum | cut -d ' ' -f1 | cut -c1-8)
@@ -1411,7 +1412,7 @@ process AmrFinderPlus{
 }
 
 process Integration {
-    container 'ghcr.io/garcia-nacho/top_spades:v1.1'
+    container 'ghcr.io/garcia-nacho/top_spades:v1.2'
     containerOptions '--volume '+params.progress_dir+':/logs'
 
 

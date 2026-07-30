@@ -306,27 +306,58 @@ if(exists("out.hipbp3")) summ<-merge(summ, out.hipbp3, by="Sample", all.x=TRUE)
 
 #Seroba
 
-serolist<-list.files(pattern = "_seroba.tsv")
+# serolist<-list.files(pattern = "_seroba.tsv")
+# if(exists("out.seroba")) rm(out.seroba)
+# for (i in 1:length(serolist)) {
+#   dummy<-read.csv(serolist[i], sep = "\t",header = FALSE)
+#   #Fix no hicap
+#   if(dummy[1,1]=="NoSpne"){ 
+#     dummy<-as.data.frame(matrix(NA))
+#     colnames(dummy)[1]<-"Seroba_Predicted_Serotype"
+#     dummy$Sample<-gsub("_.*","",serolist[i])
+#   }else{
+#     if(ncol(dummy)==2) colnames(dummy)<-c("Sample", "Seroba_Predicted_Serotype")
+#     if(ncol(dummy)==3) colnames(dummy)<-c("Sample", "Seroba_Predicted_Serotype","Seroba_warning")
+#   }
+#   
+#   if(!exists("out.seroba")){
+#     out.seroba<-dummy
+#   }else{
+#     if(length(setdiff(colnames(out.seroba), colnames(dummy) ))>0 | 
+#        length(setdiff(colnames(dummy), colnames(out.seroba) ))>0){
+#       dummy[setdiff(names(out.seroba), names(dummy))] <- NA
+#       out.seroba[setdiff(names(dummy), names(out.seroba))] <- NA  
+#     }
+#     out.seroba<-rbind(out.seroba, dummy)
+#   }
+# }
+# 
+# out.seroba$Sample<-gsub("_.*","",out.seroba$Sample)
+# summ<-merge(summ, out.seroba, by="Sample", all.x=TRUE)
+
+#Seroba2
+serolist<-list.files(pattern = "_seroba.csv")
 if(exists("out.seroba")) rm(out.seroba)
 for (i in 1:length(serolist)) {
-  dummy<-read.csv(serolist[i], sep = "\t",header = FALSE)
+  dummy<-read.csv(serolist[i])
   #Fix no hicap
-  if(dummy[1,1]=="NoSpne"){ 
+  if(dummy[1,1]=="NoSpne"){
     dummy<-as.data.frame(matrix(NA))
     colnames(dummy)[1]<-"Seroba_Predicted_Serotype"
     dummy$Sample<-gsub("_.*","",serolist[i])
   }else{
-    if(ncol(dummy)==2) colnames(dummy)<-c("Sample", "Seroba_Predicted_Serotype")
-    if(ncol(dummy)==3) colnames(dummy)<-c("Sample", "Seroba_Predicted_Serotype","Seroba_warning")
+    if(length(which(colnames(dummy)=="Serotype"))>0) colnames(dummy)[which(colnames(dummy)=="Serotype")]<-"Seroba_Predicted_Serotype"
+    if(length(which(colnames(dummy)=="Genetic_Variant"))>0) colnames(dummy)[which(colnames(dummy)=="Genetic_Variant")]<-"Seroba_Genetic_Variant"
+    if(length(which(colnames(dummy)=="Contamination_Status"))>0) colnames(dummy)[which(colnames(dummy)=="Contamination_Status")]<-"Seroba_Contamination_Status"
   }
-  
+
   if(!exists("out.seroba")){
     out.seroba<-dummy
   }else{
-    if(length(setdiff(colnames(out.seroba), colnames(dummy) ))>0 | 
+    if(length(setdiff(colnames(out.seroba), colnames(dummy) ))>0 |
        length(setdiff(colnames(dummy), colnames(out.seroba) ))>0){
       dummy[setdiff(names(out.seroba), names(dummy))] <- NA
-      out.seroba[setdiff(names(dummy), names(out.seroba))] <- NA  
+      out.seroba[setdiff(names(dummy), names(out.seroba))] <- NA
     }
     out.seroba<-rbind(out.seroba, dummy)
   }
@@ -334,7 +365,6 @@ for (i in 1:length(serolist)) {
 
 out.seroba$Sample<-gsub("_.*","",out.seroba$Sample)
 summ<-merge(summ, out.seroba, by="Sample", all.x=TRUE)
-
 
 
 #EMM
