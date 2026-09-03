@@ -141,6 +141,7 @@ process Renaming {
     
 }
 
+
 process ONTassembly {
 
    container 'ghcr.io/garcia-nacho/top_ont'
@@ -169,7 +170,7 @@ process ONTassembly {
       rm ${sid}_merged.fastq
       mkdir fasta
 
-      flye --nano-raw ${sid}_filtered.fastq --out-dir fasta/${sid} --threads 1
+      flye --nano-raw ${sid}_filtered.fastq --out-dir fasta/${sid} --threads 1 --genome-size 5m --asm-coverage 100
       mv fasta/${sid}/assembly.fasta ${sid}_flye.fasta
       minimap2 -x map-ont ${sid}_flye.fasta ${sid}_raw.fastq > ${sid}_overlaps.paf
       racon -t 1 ${sid}_raw.fastq ${sid}_overlaps.paf ${sid}_flye.fasta > ${sid}_racon.fasta
@@ -187,6 +188,127 @@ process ONTassembly {
     
 }
 
+
+/* 
+process ONTassembly {
+
+   container 'ghcr.io/garcia-nacho/top_ont'
+   containerOptions '--volume '+params.progress_dir+':/logs'
+   maxForks = params.spadescores
+   tag "$sid"
+
+   input:
+      tuple val(sid), path(reads)
+   
+   output:
+      tuple val(sid), path ("*raw_contigs.fasta"), emit: withid
+      path ("*raw_contigs.fasta"), emit: raw
+      path ("*sequencerID.tsv"), emit: seqncerid
+      path ("*_medaka.bam*"), emit: medakabam
+   
+   script:
+   """
+
+      gunzip -c "${reads}" > "${sid}_merged.fastq"
+      sqid=\$(gzip -cd ${reads} | head -n 1)
+      echo \${sqid} > ${sid}_sequencerID.tsv
+      
+      cat ${sid}_merged.fastq | NanoFilt -q 10 -l 3000 > ${sid}_filtered.fastq
+      cat ${sid}_merged.fastq | NanoFilt -q 8 -l 300 > ${sid}_raw.fastq
+      rm ${sid}_merged.fastq
+      
+      # Count Q10 >=3 kb reads
+      read_count=\$(( \$(wc -l < ${sid}_filtered.fastq) / 4 ))
+      echo "Reads available for Flye: \$read_count"
+
+      FLYE_READS=${sid}_filtered.fastq
+
+      if [ "\$read_count" -gt 300000 ]; then
+
+         echo "High read count: randomly sampling exactly 300000 reads for Flye"
+
+         awk -v total="\$read_count" -v target=300000 '
+            BEGIN {
+               srand()
+               selected=0
+               readnum=0
+            }
+
+            NR % 4 == 1 { header=\$0 }
+            NR % 4 == 2 { seq=\$0 }
+            NR % 4 == 3 { plus=\$0 }
+
+            NR % 4 == 0 {
+               qual=\$0
+               readnum++
+
+               remaining = total - readnum + 1
+               needed = target - selected
+
+               if (needed > 0 && (needed >= remaining || rand() < needed / remaining)) {
+                  print header
+                  print seq
+                  print plus
+                  print qual
+                  selected++
+               }
+            }
+
+            END {
+               if (selected != target) {
+                  print "ERROR: selected " selected " reads instead of " target > "/dev/stderr"
+                  exit 1
+               }
+            }
+         ' ${sid}_filtered.fastq > ${sid}_flye_reads.fastq
+
+         FLYE_READS=${sid}_flye_reads.fastq
+
+      fi
+
+      echo "Flye input: \$FLYE_READS"
+      echo "Reads passed to Flye: \$(( \$(wc -l < \$FLYE_READS) / 4 ))"      
+      mkdir fasta
+      
+      flye --nano-raw "\$FLYE_READS" \
+           --out-dir fasta/${sid} \
+           --threads 1
+      
+      mv fasta/${sid}/assembly.fasta ${sid}_flye.fasta
+      
+      minimap2 -x map-ont \
+          ${sid}_flye.fasta \
+          ${sid}_raw.fastq \
+          > ${sid}_overlaps.paf
+      
+      racon -t 1 \
+          ${sid}_raw.fastq \
+          ${sid}_overlaps.paf \
+          ${sid}_flye.fasta \
+          > ${sid}_racon.fasta
+      
+      rm ${sid}_overlaps.paf
+      
+      source activate medaka
+      
+      medaka_consensus \
+          -i ${sid}_raw.fastq \
+          -d ${sid}_racon.fasta \
+          -o ${sid}_medaka \
+          -t 1
+      
+      mv ${sid}_medaka/calls_to_draft.bam ${sid}_medaka.bam
+      mv ${sid}_medaka/calls_to_draft.bam.bai ${sid}_medaka.bam.bai
+      mv ${sid}_medaka/consensus.fasta ${sid}_raw_contigs.fasta
+      
+      conda deactivate
+      
+      rm -f ${sid}_selected_reads.txt ${sid}_flye_reads.fastq
+
+   """
+}
+
+*/
 
 process Nanoplot {
 
