@@ -422,8 +422,8 @@ process DummyFastq {
 
    output:
       path ("*.fastq.gz"), emit: dummyreads
-      path ("*R1_001.fastq.gz"), emit: r1
-      path ("*R2_001.fastq.gz"), emit: r2
+      path ("*1P.fastq.gz"), emit: r1
+      path ("*2P.fastq.gz"), emit: r2
       val (sid), emit: sample
       path (agent), emit:agent
 
@@ -431,9 +431,9 @@ process DummyFastq {
    script:
 
    """
-   wgsim -N 1000000 -1 150 -2 150 -d 350 -S 42 -e 0.0 ${fastas} ${sid}_R1_001.fastq ${sid}_R2_001.fastq
-   gzip ${sid}_R1_001.fastq
-   gzip ${sid}_R2_001.fastq
+   wgsim -N 1000000 -1 150 -2 150 -d 350 -S 42 -e 0.0 ${fastas} ${sid}_1P.fastq ${sid}_2P.fastq
+   gzip ${sid}_1P.fastq
+   gzip ${sid}_1P.fastq
 
 
    """

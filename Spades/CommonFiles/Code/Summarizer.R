@@ -1608,10 +1608,7 @@ if(length(empty.col)>0) summ<-summ[,-empty.col]
 
 write_xlsx(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".xlsx",sep = ""))
 
-status<-as.data.frame(summ$Sample)
-status$V2<-"Integration"
-status$V3<-"Completed"
-write.table(status, "Status.tsv", quote = FALSE, row.names = FALSE, sep = ",", col.names = FALSE)
+
 
 
 #Implementation for LW
@@ -1633,3 +1630,7 @@ if(length(to.delete)>0){
 }
 write.csv(summ, paste("Summaries_",gsub("-","",Sys.Date()), ".csv",sep = ""), row.names = FALSE)
 
+status<-as.data.frame(summ$Sample)
+status$V2<-"Integration"
+status$V3<-"Completed"
+write.table(status, "Status.tsv", quote = FALSE, row.names = FALSE, sep = ",", col.names = FALSE)
