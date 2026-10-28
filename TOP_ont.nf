@@ -433,7 +433,7 @@ process DummyFastq {
    """
    wgsim -N 1000000 -1 150 -2 150 -d 350 -S 42 -e 0.0 ${fastas} ${sid}_1P.fastq ${sid}_2P.fastq
    gzip ${sid}_1P.fastq
-   gzip ${sid}_1P.fastq
+   gzip ${sid}_2P.fastq
 
 
    """
